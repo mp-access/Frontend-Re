@@ -1,4 +1,4 @@
-declare interface CourseProps {
+declare interface CourseOverview {
   id: number;
   url: string;
   title: string;
@@ -9,10 +9,9 @@ declare interface CourseProps {
   endDate: string;
   points: number;
   activeAssignmentsCount: number;
-  assignments: Array<AssignmentProps>;
 }
 
-declare interface AssignmentProps {
+declare interface AssignmentOverview {
   id: number;
   url: string;
   title: string;
@@ -26,11 +25,12 @@ declare interface AssignmentProps {
   maxPoints: number;
   points: number;
   tasksCount: number;
-  defaultTaskNum: number;
+  defaultTaskURL: string;
 }
 
-declare interface TaskProps {
+declare interface TaskOverview {
   id: number;
+  url: string;
   title: string;
   ordinalNum: number;
   description: string;
@@ -42,9 +42,10 @@ declare interface TaskProps {
   maxAttempts: number;
   remainingAttempts: number;
   points: number;
+  text: boolean;
 }
 
-declare interface TaskWorkspaceProps extends TaskProps {
+declare interface TaskProps extends TaskOverview {
   files: Array<TaskFileProps>;
   submissions: Array<SubmissionProps>;
 }
@@ -52,6 +53,7 @@ declare interface TaskWorkspaceProps extends TaskProps {
 declare interface TaskFileProps {
   id: number;
   name: string;
+  path: string;
   language: string;
   editable: boolean;
   image: boolean;
@@ -68,7 +70,7 @@ declare interface SubmissionProps {
   createdAt: string;
   points: number;
   maxPoints: number;
-  stdOut: string;
+  hint: string;
   answer: string;
   files: Array<SubmissionFileProps>;
 }
@@ -85,9 +87,9 @@ declare interface StudentProps {
   points: number;
 }
 
-declare interface CourseContext {
+declare interface UserContext {
+  isCreator: boolean;
+  user: any;
   isAssistant: boolean;
   isSupervisor: boolean;
-  userId: string;
-  name?: string;
 }

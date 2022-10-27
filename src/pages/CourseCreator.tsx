@@ -1,35 +1,29 @@
-import { Heading, HStack, Stack, TabPanel, Text, VStack } from '@chakra-ui/react'
-import React from 'react'
-import { AiOutlineRead } from 'react-icons/ai'
-import CreatorForm from '../forms/CreatorForm'
-import { DateField, NameField, UniversityField, URLField } from '../forms/InputFields'
-import { OrganizationTypeField } from '../forms/TypesFields'
+import { Button, Heading, Input, InputGroup, InputLeftElement, Text, VStack } from '@chakra-ui/react'
+import { useMutation } from '@tanstack/react-query'
+import React, { useState } from 'react'
+import { Navigate } from 'react-router-dom'
+import { GitHubIcon } from '../components/Icons'
 
 export default function CourseCreator() {
-  const fields = ['name', 'url', 'startDate', 'endDate', 'organization', 'university', 'semester']
-
+  const [repository, setRepository] = useState('')
+  const { mutate: create, isLoading, data: courseURL } = useMutation<string, any, object>(['courses'])
+    if (courseURL)
+      return <Navigate to={`/courses/${courseURL}`} />
   return (
-      <VStack spacing={4} pt={5}>
+      <VStack spacing={4}>
         <Heading fontSize='3xl'>Let's get started!</Heading>
         <Text color='gray.600' textAlign='center' lineHeight={1.5} w='md'>
-          Follow these steps to create a new course on ACCESS.
+          To set up a new course on ACCESS, connect a Git repository to use as source for all your course data.
         </Text>
-        <CreatorForm fields={fields} url='/courses'>
-          <TabPanel as={Stack} spacing={4} px={0}>
-            <Heading fontSize='2xl'>Course Details</Heading>
-            <NameField prefix='Course' icon={AiOutlineRead}/>
-            <URLField />
-            <HStack spacing={4}>
-              <DateField label='Start Date' />
-              <DateField label='End Date' isEnd />
-            </HStack>
-          </TabPanel>
-          <TabPanel px={0}>
-            <Heading fontSize='2xl'>Select your organization type</Heading>
-            <OrganizationTypeField />
-            <UniversityField />
-          </TabPanel>
-        </CreatorForm>
+        <InputGroup py={6}>
+          <InputLeftElement top={6}>
+            <GitHubIcon />
+          </InputLeftElement>
+          <Input w='container.md' value={repository} onChange={e => setRepository(e.target.value)} type='text' />
+        </InputGroup>
+        <Button variant='round' onClick={() => create({ repository })} isLoading={isLoading}>
+          Submit
+        </Button>
       </VStack>
   )
 }
