@@ -1,8 +1,7 @@
 FROM node as frontend
 WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . ./
+COPY . .
+RUN npm i
 RUN npm run build
 
 FROM nginx
