@@ -65,8 +65,8 @@ export default function Task() {
   })
 
   return (
-      <Flex p={3} gap={3}>
-        <Stack w='fit-content' maxW='15vw' h='85vh'>
+      <Flex>
+        <Stack w='15vw' px={3}>
           {tasks.map(task =>
               <Card key={task.id} to={`../tasks/${task.url}`} h='7rem' p={2} rounded='2xl'>
                 <Flex boxSize='full'>
@@ -127,7 +127,7 @@ export default function Task() {
                         Are you sure you want to submit?
                       </Text>
                       <ButtonGroup variant='round'>
-                        <Button variant='roundBorder' isLoading={isLoading} onClick={onClose} children='Cancel' />
+                        <Button variant='border' isLoading={isLoading} onClick={onClose} children='Cancel' />
                         <Button isLoading={isLoading} onClick={onSubmit('grade')} children='Confirm' />
                       </ButtonGroup>
                     </VStack>
@@ -138,7 +138,7 @@ export default function Task() {
             {isAssistant &&
               <TaskController task={task} value={userId} defaultValue={user.email} onChange={setUserId} />}
           </HStack>
-          <Flex w='full' h='85vh' boxShadow='xs'>
+          <Flex w='full' h='85vh' boxShadow='xs' bg='base'>
             <SplitVertical>
               <Accordion h='full' overflow='auto' allowMultiple defaultIndex={[0]}>
                 <AccordionItem>

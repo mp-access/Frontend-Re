@@ -18,8 +18,8 @@ export default function Layout() {
   const assignment = assignments?.find(assignment => assignment.url === assignmentURL)
 
   return (
-      <Stack bgImage='radial-gradient(#cda8ff1f 1px, #ffffff 1px)' bgSize='20px 20px' h='full'>
-        <Flex justify='space-between' p={3} w='full' bg='white' borderBottomWidth={1} align='center' boxShadow='lg'>
+      <Stack bg='bg' minH='full'>
+        <Flex justify='space-between' p={3} w='full' bg='base' borderBottomWidth={1} align='center' boxShadow='lg'>
           <HStack>
             <LogoButton />
             <Breadcrumb separator={<ChevronRightIcon color='gray.500' />}>

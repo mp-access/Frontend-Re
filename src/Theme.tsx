@@ -2,14 +2,33 @@ import { extendTheme } from '@chakra-ui/react'
 
 const theme = extendTheme({
   fonts: { heading: '"DM Sans", sans-serif', body: '"DM Sans", sans-serif' },
+  semanticTokens: {
+    colors: {
+      bg: {
+        default: 'linear-gradient(180deg,#fdfcfb,#f5f3f7)',
+        _dark: 'linear-gradient(180deg,#fdfcfb,#f5f3f7)'
+      },
+      base: {
+        default: 'white',
+        _dark: 'blackAlpha.900'
+      }
+    }
+  },
+  layerStyles: {
+    card: {
+      p: 8,
+      bg: 'base',
+      borderWidth: 1,
+      boxShadow: 'lg',
+      rounded: '3xl'
+    }
+  },
   colors: {
     orange: {
       200: '#ffb460'
     },
     gray: {
       15: '#f3f3f3',
-      20: '#f7f9fd',
-      70: '#f8f9fa',
       100: '#f6f9fd',
       200: '#e9edf2',
       250: '#d7d9e2',
@@ -24,14 +43,11 @@ const theme = extendTheme({
       600: '#21ad7c',
       750: '#019b03'
     },
-    lavender: {
-      500: '#8940ff',
-      600: '#6816ed'
-    },
     purple: {
       100: '#ded8fd',
       200: '#d2c7ff',
       500: '#9576ff',
+      600: '#8147ff',
       750: '#3b0fd2'
     },
     blue: {
@@ -63,11 +79,8 @@ const theme = extendTheme({
     sm: '0px 3px 3px 1px #858f9d2e',
     md: '0px 3px 12px #858f9d2e',
     lg: '0px 2px 6px rgba(19, 18, 66, 0.07)',
-    focus: '0px 2px 6px rgba(19, 18, 66, 0.07), 0px 0px 0px 1px #dcdcff',
-    outline: '0 0 0 3px #6997ff36',
-    card: 'rgb(215 217 226) 0px 1px 2px 0px',
-    hover: 'rgb(42 48 57 / 20%) 0px 2px 16px 0px',
-    line: '0px -1px 2px 0px #e6e6e6 inset'
+    card: '#d7d9e2 0px 1px 2px 0px',
+    hover: '#2a303933 0px 2px 16px 0px'
   },
   components: {
     Button: {
@@ -77,7 +90,7 @@ const theme = extendTheme({
           rounded: 'full', py: 6, px: 8, boxShadow: 'md', fontWeight: 700, bg: 'purple.500', color: 'white',
           _hover: { bg: 'purple.600', _disabled: { bg: 'purple.500' } }
         },
-        'roundBorder': {
+        'border': {
           rounded: 'full', py: 6, px: 8, boxShadow: 'md', fontWeight: 700, borderWidth: 1, bg: 'white',
           borderColor: 'purple.500', color: 'purple.500', _hover: { bg: 'purple.50' }
         },
@@ -93,7 +106,17 @@ const theme = extendTheme({
   styles: {
     global: {
       'html, body, #root': { h: 'full' },
-      'ul, li': { listStyle: 'none', padding: 0, margin: 0 }
+      'ul, li': { listStyle: 'none', padding: 0, margin: 0 },
+      '.fc': {
+        '.fc-button-primary': {
+          rounded: '2xl', boxShadow: 'md', bg: 'purple.500', borderWidth: 0, _hover: { bg: 'purple.600' },
+          _disabled: { bg: 'purple.500' }
+        },
+        '.fc-toolbar.fc-header-toolbar': { mb: 2 },
+        '.fc-toolbar-title': { fontSize: 'lg' },
+        '.fc-daygrid-day-frame': { display: 'flex', justifyContent: 'center', alignItems: 'center' },
+        'table, tr, th, td, .fc-scrollgrid-liquid': { border: 'none', textAlign: 'center' }
+      }
     }
   }
 })

@@ -1,88 +1,91 @@
-import { ChevronRightIcon } from '@chakra-ui/icons'
-import { Box, Button, Center, Flex, Heading, HStack, Icon, Stack, Tag, TagLabel, Text, Tooltip } from '@chakra-ui/react'
+import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { format, parseISO } from 'date-fns'
-import { divide, take } from 'lodash'
-import { Column } from 'primereact/column'
-import { DataTable } from 'primereact/datatable'
-import React from 'react'
+import { take } from 'lodash'
+import {
+  Box, Button, Flex, Heading, HStack, Icon, SimpleGrid, Stack, Tag, TagLabel, Text, Tooltip
+} from '@chakra-ui/react'
 import { AiOutlineClockCircle } from 'react-icons/ai'
-import { useNavigate, useParams, useRouteLoaderData } from 'react-router-dom'
-import { Card, ProgressBar, ScoreProgress } from '../components/Common'
+import { Link, useRouteLoaderData } from 'react-router-dom'
+import { Calendar, ProgressBar } from '../components/Common'
 import CourseController from '../components/CourseController'
 import { StarIcon } from '../components/Icons'
 
 export default function Course() {
-  const { courseURL } = useParams()
   const { isSupervisor } = useRouteLoaderData('user') as UserContext
-  const { data: course } = useQuery<CourseOverview>(['courses', courseURL])
   const { data: assignments } = useQuery<AssignmentOverview[]>(['assignments'])
-  const navigate = useNavigate()
+
+  if (!assignments)
+    return <></>
 
   return (
-      <Stack w='fit-content' spacing={6} p={4} bg='white'>
-        <HStack justifyContent='space-between'>
-          <Heading>{course?.title}</Heading>
-          {isSupervisor && <CourseController />}
-        </HStack>
-        <Heading fontSize='xl'>Latest Assignments</Heading>
-        <HStack spacing={6} h='xs'>
-          {take(assignments, 3).map(assignment =>
-              <Card key={assignment.id} to={`assignments/${assignment.url}/tasks/${assignment.defaultTaskURL}`}
-                    w='2xs' p={4} alignItems='start' gap={2} borderColor='gray.200'>
-                <Box>
-                  <Text fontSize='xs'>ASSIGNMENT {assignment.ordinalNum}</Text>
-                  <Heading fontSize='lg' minBlockSize={12} noOfLines={2}>{assignment.title}</Heading>
-                </Box>
-                <Flex>
-                  {!assignment.published && <Tag colorScheme='red'>Draft</Tag>}
-                  <Tag>{assignment.tasksCount} Tasks</Tag>
-                  <Tag gap={1}>
-                    <Icon as={AiOutlineClockCircle} boxSize={4} color='purple.500' />
-                    <TagLabel>
-                      {format(parseISO(assignment.endDate), 'dd-MM-yyyy')}
-                    </TagLabel>
+      <Flex py={4} w='85%' gap={6}>
+        <Stack spacing={4}>
+          <Flex justify='space-between' align='end' px={4}>
+            <Heading fontSize='xl'>Active Assignments</Heading>
+            {isSupervisor && <CourseController />}
+          </Flex>
+          <SimpleGrid columns={3} gap={6}>
+            {take(assignments, 3).map(assignment =>
+                <Stack key={assignment.id} layerStyle='card' p={5}>
+                  <Box>
+                    <Text fontSize='xs'>ASSIGNMENT {assignment.ordinalNum}</Text>
+                    <Heading fontSize='lg' noOfLines={1} wordBreak='break-all'>{assignment.title}</Heading>
+                  </Box>
+                  <HStack>
+                    {!assignment.published && <Tag colorScheme='red'>Draft</Tag>}
+                    <Tag colorScheme='blackAlpha'>{assignment.tasksCount} Tasks</Tag>
+                    <Tag colorScheme='blackAlpha' gap={1}>
+                      <Icon as={AiOutlineClockCircle} boxSize={4} color='purple.500' />
+                      <TagLabel>
+                        {format(parseISO(assignment.endDate), 'dd-MM-yyyy')}
+                      </TagLabel>
+                    </Tag>
+                  </HStack>
+                  <Tooltip label={assignment.description}>
+                    <Text flexGrow={1} py={2} fontSize='sm' noOfLines={5}>{assignment.description}</Text>
+                  </Tooltip>
+                  <ProgressBar value={assignment.points} max={assignment.maxPoints} w='full' />
+                  <Button w='full' colorScheme='green' as={Link}
+                          to={`assignments/${assignment.url}/tasks/${assignment.defaultTaskURL}`}>Start</Button>
+                </Stack>)}
+          </SimpleGrid>
+          <Heading p={4} pb={0} fontSize='xl'>All Assignments</Heading>
+          <Stack maxH='45vh' overflow='auto'>
+            {assignments.map(assignment =>
+                <HStack key={assignment.id} justify='space-between' layerStyle='card' p={4}>
+                  <Box w='sm'>
+                    <Text fontSize='xs'>ASSIGNMENT {assignment.ordinalNum}</Text>
+                    <Heading mb={1} fontSize='lg' noOfLines={1}>{assignment.title}</Heading>
+                    <Tooltip label={assignment.description}>
+                      <Text noOfLines={2} minBlockSize={10} fontSize='sm'>{assignment.description}</Text>
+                    </Tooltip>
+                  </Box>
+                  <Tag colorScheme='blackAlpha' gap={1}>
+                    {format(parseISO(assignment.startDate), 'dd-MM-yyyy')}
                   </Tag>
-                </Flex>
-                <Tooltip label={assignment.description}>
-                  <Text flexGrow={1} fontSize='sm' noOfLines={5}>{assignment.description}</Text>
-                </Tooltip>
-                <ScoreProgress value={assignment.points} max={assignment.maxPoints} />
-                <Button w='full' colorScheme='green'>Start</Button>
-              </Card>)}
-        </HStack>
-        <DataTable value={assignments} rowHover paginator rows={3}
-                   onRowClick={({ data }) => navigate(`assignments/${data.url}/tasks/${data.defaultTaskURL}`)}
-                   header={() => <Heading mb={1} mt={4} fontSize='xl'>All Assignments</Heading>}>
-          <Column field='ordinalNum' header='#' sortable
-                  bodyStyle={{ borderRadius: '10px 0 0 10px', paddingRight: 0 }}
-                  body={assignment => <Center fontWeight={500} color='gray.500'>{assignment.ordinalNum}</Center>} />
-          <Column field='title' header='Assignment' sortable
-                  body={assignment =>
-                      <Stack w='2xs' h='7rem' justify='center'>
-                        <Heading fontSize='lg'>{assignment.title}</Heading>
-                        <Tooltip label={assignment.description}>
-                          <Text noOfLines={3} fontSize='sm'>{assignment.description}</Text>
-                        </Tooltip>
-                      </Stack>} />
-          <Column field='startDate' header='Publish Date' sortable body={assignment =>
-              <Text fontSize='sm'>{format(parseISO(assignment.startDate), 'dd-MM-yyyy')}</Text>} />
-          <Column field='endDate' header='Due Date' sortable body={assignment =>
-              <Text fontSize='sm'>{format(parseISO(assignment.endDate), 'dd-MM-yyyy')}</Text>} />
-          <Column field='points' header='EXP' sortable body={assignment =>
-              <Box w='7rem'>
-                <Tag size='sm' rounded='xl' borderWidth={2} boxShadow='base' gap={1}>
-                  <Icon as={StarIcon} boxSize='1rem' />
-                  <TagLabel fontWeight={700}>{assignment.points} / {assignment.maxPoints} EXP</TagLabel>
-                </Tag>
-              </Box>} />
-          <Column field='progress' header='Progress' bodyStyle={{ borderRadius: '0 10px 10px 0' }}
-                  body={assignment =>
-                      <HStack>
-                        <ProgressBar value={divide(assignment.points, assignment.maxPoints || 1)} />
-                        <ChevronRightIcon boxSize='1.5rem' />
-                      </HStack>} />
-        </DataTable>
-      </Stack>
+                  <Tag colorScheme='blackAlpha' gap={1}>
+                    {format(parseISO(assignment.endDate), 'dd-MM-yyyy')}
+                  </Tag>
+                  <Tag size='sm' rounded='xl' borderWidth={2} boxShadow='base' gap={1}>
+                    <Icon as={StarIcon} boxSize='1rem' />
+                    <TagLabel fontWeight={700}>{assignment.points} / {assignment.maxPoints} EXP</TagLabel>
+                  </Tag>
+                  <ProgressBar value={assignment.points} max={assignment.maxPoints} w='10rem' />
+                  <Button as={Link} to={`assignments/${assignment.url}/tasks/${assignment.defaultTaskURL}`}>
+                    View
+                  </Button>
+                </HStack>)}
+          </Stack>
+        </Stack>
+        <Stack spacing={4} minW='30%'>
+          <Heading px={4} fontSize='xl'>Live & Upcoming Classes</Heading>
+          <Stack layerStyle='card'>
+          </Stack>
+          <Stack layerStyle='card'>
+            <Calendar />
+          </Stack>
+        </Stack>
+      </Flex>
   )
 }

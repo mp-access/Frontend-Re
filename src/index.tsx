@@ -1,5 +1,3 @@
-import './assets/PrimeReactTheme.css'
-import 'primeicons/primeicons.css'
 import '@fontsource/courier-prime/400.css'
 import '@fontsource/dm-sans/400.css'
 import '@fontsource/dm-sans/500.css'
@@ -15,7 +13,6 @@ import { compact, flattenDeep, join } from 'lodash'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, LoaderFunctionArgs, Params, RouterProvider } from 'react-router-dom'
 import Layout from './components/Layout'
-import Analytics from './pages/Analytics'
 import Assignment from './pages/Assignment'
 import Course from './pages/Course'
 import CourseCreator from './pages/CourseCreator'
@@ -80,7 +77,6 @@ function App() {
         { path: 'create', loader: loadCreator, element: <CourseCreator /> },
         {
           path: 'courses/:courseURL', loader: loadCourse, children: [{ index: true, element: <Course /> },
-            { path: 'analytics', element: <Analytics /> },
             { path: 'students', id: 'students', element: <Students /> },
             {
               path: 'assignments/:assignmentURL', loader: loadTasks, children: [

@@ -12,7 +12,8 @@ export const SplitVertical = (props: ComponentProps<typeof Panel>) => {
       <Flex position='relative'>
         <Panel style={{ width }} h='full' {...props} />
         <Panel position='absolute' dragMomentum={false} drag='x' style={{ x }} cursor='col-resize' h='full' w='6px'
-               dragConstraints={{ left: 300, right: defaultWidth + 300 }} transition='background 0.2s' bg='gray.200'
+               dragConstraints={{ left: defaultWidth - 200, right: defaultWidth + 300 }} transition='background 0.2s'
+               bg='gray.200'
                _hover={{ bg: 'gray.300' }} _active={{ bg: 'gray.400' }} />
       </Flex>
   )

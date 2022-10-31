@@ -16,7 +16,7 @@ const File = ({ content, value, onChange }: ComponentProps<any>) =>
     <motion.li>
       <HStack as={motion.div} layout initial='collapsed' animate='open' exit='collapsed'
               cursor='pointer' _hover={{ color: 'gray.550' }} onClick={() => onChange(content)}
-              bg={value === content.id ? 'gray.15' : 'transparent'}
+              bg={value === content.id ? 'blackAlpha.50' : 'transparent'}
               variants={{ open: { opacity: 1, height: 'auto' }, collapsed: { opacity: 0, height: 0 } }}>
         <Icon as={LanguageIcon(content.language)} boxSize={4} my={2} ml={9} />
         <Text>{content.name}</Text>
