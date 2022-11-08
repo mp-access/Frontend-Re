@@ -11,7 +11,7 @@ import { filter } from 'lodash'
 import { Uri } from 'monaco-editor'
 import React, { useEffect, useState } from 'react'
 import { AiOutlineBulb, AiOutlineCode, AiOutlineReload, AiOutlineSend } from 'react-icons/ai'
-import { BsCircleFill, BsFileEarmarkCode, BsFileEarmarkText } from 'react-icons/bs'
+import { BsCircleFill, BsFileEarmarkCode } from 'react-icons/bs'
 import { CgInfinity } from 'react-icons/cg'
 import { FaFlask, FaTerminal } from 'react-icons/fa'
 import { FiAlignJustify, FiBookmark, FiFile } from 'react-icons/fi'
@@ -32,8 +32,7 @@ export default function Task() {
 
   const { data: task } = useQuery<TaskProps>(['tasks', taskURL, 'users', userId, submissionId && 'submissions', submissionId])
   const { data: tasks } = useQuery<TaskOverview[]>(['tasks'])
-  const { mutate: submit, isLoading } = useMutation<any, any, object>(['submit'],
-      { onMutate: () => setUserId(user.email), onSuccess: onClose })
+  const { mutate: submit, isLoading } = useMutation<any, any, object>(['submit'], { onSuccess: onClose })
 
   const [currentFile, setCurrentFile] = useState<TaskFileProps>()
   const [openFiles, setOpenFiles] = useState<TaskFileProps[]>([])
@@ -45,7 +44,7 @@ export default function Task() {
   }, [taskURL])
 
   useEffect(() => {
-    setCurrentFile(task?.files[0])
+    setCurrentFile(file => file || task?.files[0])
   }, [task])
 
   useEffect(() => {
@@ -65,22 +64,21 @@ export default function Task() {
   })
 
   return (
-      <Flex>
+      <Flex bg='base'>
         <Stack w='15vw' px={3}>
           {tasks.map(task =>
               <Card key={task.id} to={`../tasks/${task.url}`} h='7rem' p={2} rounded='2xl'>
                 <Flex boxSize='full'>
-                  <Icon as={task.text ? BsFileEarmarkText : BsFileEarmarkCode} boxSize='1.5rem' mr={2} />
+                  <Icon as={BsFileEarmarkCode} boxSize='1.5rem' mr={2} />
                   <Box fontSize='xs'>
                     <Text>TASK {task.ordinalNum}</Text>
                     <Text lineHeight={1.1} noOfLines={2} mb={1} fontSize='md' fontWeight={500}>{task.title}</Text>
-                    {task.limited &&
-                      <Flex alignItems='center'>
-                        {isAssistant ? <CgInfinity /> : task.remainingAttempts} / {task.maxAttempts} Submissions left
-                      </Flex>}
+                    <Flex alignItems='center'>
+                      {isAssistant ? <CgInfinity /> : task.remainingAttempts} / {task.maxAttempts} Submissions left
+                    </Flex>
                   </Box>
                 </Flex>
-                {task.graded && <ScoreProgress value={task.points} max={task.maxPoints} />}
+                <ScoreProgress value={task.points} max={task.maxPoints} />
               </Card>)}
         </Stack>
         <Stack w='85vw'>
@@ -96,17 +94,16 @@ export default function Task() {
                     {task.remainingAttempts}
                   </Text>
                   <Text noOfLines={1}>/ {task.maxAttempts} Submissions left</Text>
-                  {task.graded && <Icon as={BsCircleFill} boxSize={1} color='gray.300' mx={4} />}
+                  <Icon as={BsCircleFill} boxSize={1} color='gray.300' mx={4} />
                 </HStack>}
-              {task.graded &&
+              <HStack>
                 <HStack>
-                  <HStack>
-                    <Text whiteSpace='nowrap'>Best Score:</Text>
-                    <Text fontSize='120%' fontWeight={600}>{task.points}</Text>
-                    <Text whiteSpace='nowrap'>{` / ${task.maxPoints}`}</Text>
-                  </HStack>
-                  <ScoreProgress value={task.points} max={task.maxPoints} />
-                </HStack>}
+                  <Text whiteSpace='nowrap'>Best Score:</Text>
+                  <Text fontSize='120%' fontWeight={600}>{task.points}</Text>
+                  <Text whiteSpace='nowrap'>{` / ${task.maxPoints}`}</Text>
+                </HStack>
+                <ScoreProgress value={task.points} max={task.maxPoints} />
+              </HStack>
             </HStack>
             <ButtonGroup variant='gradient'>
               <Button leftIcon={<FaFlask />} children='Test' isLoading={isLoading} onClick={onSubmit('test')} />
@@ -195,7 +192,7 @@ export default function Task() {
                             <ButtonGroup size='sm' variant='outline' justifyContent='center'>
                               <Popover>
                                 <PopoverTrigger>
-                                  <Button colorScheme='gray' isDisabled={!submission.hint}
+                                  <Button colorScheme='gray' isDisabled={!submission.output}
                                           leftIcon={submission.graded ? <AiOutlineBulb /> : <AiOutlineCode />}>
                                     {submission.graded ? 'Hint' : 'Output'}
                                   </Button>
@@ -203,7 +200,7 @@ export default function Task() {
                                 <PopoverContent w='fit-content' bg='yellow.50'>
                                   <PopoverArrow />
                                   <PopoverBody overflow='auto' fontSize='sm' whiteSpace='pre-wrap' maxH='2xs'>
-                                    {submission.hint}
+                                    {submission.output}
                                   </PopoverBody>
                                 </PopoverContent>
                               </Popover>
@@ -257,8 +254,8 @@ export default function Task() {
                       </HStack>
                       <HStack align='start'>
                         <Text whiteSpace='nowrap' color='orange.300'>$</Text>
-                        <Text whiteSpace='pre-wrap' color={submission.hint ? 'inherit' : 'whiteAlpha.600'}>
-                          {submission.hint || 'No output'}
+                        <Text whiteSpace='pre-wrap' color={submission.output ? 'inherit' : 'whiteAlpha.600'}>
+                          {submission.output || 'No output'}
                         </Text>
                       </HStack>
                     </Stack>)}

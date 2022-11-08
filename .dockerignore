@@ -145,7 +145,6 @@ web_modules/
 .yarn-integrity
 
 # dotenv environment variables file
-.env.production
 .env.test
 
 # parcel-bundler cache (https://parceljs.org/)

@@ -23,7 +23,7 @@ export default function Courses() {
                   <Text>{course.semester}</Text>
                 </Stack>
                 <Text>
-                  {course.activeAssignmentsCount} Active Assignment{course.activeAssignmentsCount === 1 ? '' : 's'}
+                  Active
                 </Text>
               </Card>)}
           {isCreator &&

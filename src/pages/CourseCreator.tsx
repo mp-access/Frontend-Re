@@ -7,8 +7,8 @@ import { GitHubIcon } from '../components/Icons'
 export default function CourseCreator() {
   const [repository, setRepository] = useState('')
   const { mutate: create, isLoading, data: courseURL } = useMutation<string, any, object>(['courses'])
-    if (courseURL)
-      return <Navigate to={`/courses/${courseURL}`} />
+  if (courseURL)
+    return <Navigate to='/' />
   return (
       <VStack spacing={4}>
         <Heading fontSize='3xl'>Let's get started!</Heading>

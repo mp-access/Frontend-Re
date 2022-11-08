@@ -7,8 +7,9 @@ declare interface CourseOverview {
   semester: string;
   startDate: string;
   endDate: string;
+  maxPoints: number;
   points: number;
-  activeAssignmentsCount: number;
+  activeAssignment: AssignmentProps;
 }
 
 declare interface AssignmentOverview {
@@ -25,7 +26,10 @@ declare interface AssignmentOverview {
   maxPoints: number;
   points: number;
   tasksCount: number;
-  defaultTaskURL: string;
+}
+
+declare interface AssignmentProps extends AssignmentOverview {
+  tasks: Array<TaskOverview>;
 }
 
 declare interface TaskOverview {
@@ -33,16 +37,12 @@ declare interface TaskOverview {
   url: string;
   title: string;
   ordinalNum: number;
-  description: string;
-  type: string;
+  instructions: string;
   published: boolean;
-  graded: boolean;
   maxPoints: number;
-  limited: boolean;
   maxAttempts: number;
   remainingAttempts: number;
   points: number;
-  text: boolean;
 }
 
 declare interface TaskProps extends TaskOverview {
@@ -64,14 +64,12 @@ declare interface TaskFileProps {
 declare interface SubmissionProps {
   id: number;
   name: string;
-  userId: string;
   valid: boolean;
   graded: boolean;
   createdAt: string;
   points: number;
   maxPoints: number;
-  hint: string;
-  answer: string;
+  output: string;
   files: Array<SubmissionFileProps>;
 }
 
@@ -89,7 +87,7 @@ declare interface StudentProps {
 
 declare interface UserContext {
   isCreator: boolean;
-  user: any;
+  user: KeycloakProfile;
   isAssistant: boolean;
   isSupervisor: boolean;
 }

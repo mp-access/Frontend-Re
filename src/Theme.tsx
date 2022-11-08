@@ -44,6 +44,7 @@ const theme = extendTheme({
       750: '#019b03'
     },
     purple: {
+      75: '#ece8ff',
       100: '#ded8fd',
       200: '#d2c7ff',
       500: '#9576ff',

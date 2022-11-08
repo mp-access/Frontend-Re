@@ -14,7 +14,7 @@ export const RIcon = R
 export const StarIcon = Star
 export const GitHubIcon = GitHub
 
-export const LanguageIcon = (language: string) => {
+export const TypeIcon = (language: string) => {
   switch (language) {
     case 'python':
       return PythonIcon

@@ -34,6 +34,6 @@ export default function Description({ task }: { task: TaskProps }) {
     img: ImageRenderer
   }
 
-  return <MarkdownBase children={task.description} fontSize='90%' components={components} remarkPlugins={[remarkGfm]}
+  return <MarkdownBase children={task.instructions} fontSize='90%' components={components} remarkPlugins={[remarkGfm]}
                        wordBreak='break-word' whiteSpace='pre-wrap' overflow='auto' boxSize='full' />
 }

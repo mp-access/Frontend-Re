@@ -43,7 +43,7 @@ export default function Layout() {
             </MenuList>
           </Menu>
         </Flex>
-        <Center flexGrow={1}>
+        <Center flexGrow={1} flexDir='column'>
           <Outlet />
         </Center>
       </Stack>
