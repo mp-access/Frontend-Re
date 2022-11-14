@@ -11,17 +11,17 @@ const theme = extendTheme({
       base: {
         default: 'white',
         _dark: 'blackAlpha.900'
+      },
+      mid: {
+        default: '#bba6ff40',
+        _dark: 'blackAlpha.600'
       }
     }
   },
   layerStyles: {
-    card: {
-      p: 8,
-      bg: 'base',
-      borderWidth: 1,
-      boxShadow: 'lg',
-      rounded: '3xl'
-    }
+    card: { p: 8, bg: 'base', borderWidth: 1, boxShadow: 'lg', rounded: '3xl', h: 'full' },
+    segment: { p: 6, bg: 'base', rounded: '3xl', h: 'full' },
+    feature: { rounded: '3xl', bg: 'gradients.400', pos: 'relative', color: 'base' }
   },
   colors: {
     orange: {
@@ -32,6 +32,7 @@ const theme = extendTheme({
       100: '#f6f9fd',
       200: '#e9edf2',
       250: '#d7d9e2',
+      450: '#1F1E1E',
       550: '#1F1E1E'
     },
     yellow: {
@@ -67,11 +68,13 @@ const theme = extendTheme({
     gradients: {
       100: 'linear-gradient(115deg, #eddeff, #d6d7ff)',
       200: 'linear-gradient(145deg, #ffffff, #e7e7ff)',
+      400: 'linear-gradient(115deg, #9057ff, #6a33d6)',
+      405: 'linear-gradient(125deg, #9057ff, #6a33d6)',
       500: 'linear-gradient(115deg, #923aff, #5e63ff)',
       'purple-light': 'linear-gradient(#fff, #fff) padding-box, linear-gradient(115deg, #923aff, #5e63ff) border-box',
       'purple-gray': 'linear-gradient(#f7f9fd, #f7f9fd) padding-box, linear-gradient(115deg, #923aff, #5e63ff) border-box',
       'purple-dark': 'linear-gradient(#f4f0ff, #f4f0ff) padding-box,linear-gradient(115deg, #923aff, #5e63ff) border-box',
-      'green-light': 'linear-gradient(120deg, #f8fffa, #f8fffa) padding-box,linear-gradient(120deg, #10dc4e, #41fb7a) border-box',
+      'green-light': 'linear-gradient(#fff, #fff) padding-box,linear-gradient(120deg, #10dc4e, #41fb7a) border-box',
       'green-dark': 'linear-gradient(120deg, #e2ffeb, #e2ffeb) padding-box,linear-gradient(120deg, #10dc4e, #41fb7a) border-box'
     }
   },
@@ -107,16 +110,26 @@ const theme = extendTheme({
   styles: {
     global: {
       'html, body, #root': { h: 'full' },
+      '::-webkit-scrollbar': { h: 6, w: 3, bg: 'transparent' },
+      '::-webkit-scrollbar-thumb': { borderRadius: 6, bg: 'transparent', border: '1px solid transparent' },
+      ':hover::-webkit-scrollbar-thumb': { bg: 'mid', borderColor: 'base' },
       'ul, li': { listStyle: 'none', padding: 0, margin: 0 },
       '.fc': {
-        '.fc-button-primary': {
-          rounded: '2xl', boxShadow: 'md', bg: 'purple.500', borderWidth: 0, _hover: { bg: 'purple.600' },
-          _disabled: { bg: 'purple.500' }
+        '.fc-toolbar.fc-header-toolbar': {
+          mb: 2, '.fc-toolbar-title': { fontSize: 'lg' }, '.fc-button-primary': {
+            rounded: 'full', margin: 0, padding: 2, bg: 'none', color: 'purple.600', borderWidth: 0, boxShadow: 'none',
+            _hover: { bg: 'purple.100', color: 'inherit' }, _disabled: { color: 'purple.400' }
+          }
         },
-        '.fc-toolbar.fc-header-toolbar': { mb: 2 },
-        '.fc-toolbar-title': { fontSize: 'lg' },
-        '.fc-daygrid-day-frame': { display: 'flex', justifyContent: 'center', alignItems: 'center' },
-        'table, tr, th, td, .fc-scrollgrid-liquid': { border: 'none', textAlign: 'center' }
+        '.fc-daygrid-day.fc-day-today': {
+          bgColor: 'transparent', '.fc-daygrid-day-number': { rounded: 'full', bgColor: 'purple.500', color: 'white' }
+        },
+        '.fc-daygrid-day-frame': {
+          '.fc-daygrid-day-number': { boxSize: 8, p: 1.5 },
+          '.fc-daygrid-day-top': { m: 0, h: 'full', textAlign: 'center' }, h: 'full',
+          '> *': { justifyContent: 'center', alignItems: 'center' }, '.fc-daygrid-day-events': { minH: 0, margin: 0 }
+        },
+        'table, tr, th, td, .fc-scrollgrid-liquid': { border: 'none', verticalAlign: 'middle', overflow: 'hidden' }
       }
     }
   }

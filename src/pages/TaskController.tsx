@@ -18,7 +18,7 @@ export default function TaskController({ task, value, defaultValue, onChange }: 
 
   return (
       <HStack>
-        <Stack w='3xs'>
+        <Stack w='3xs' bg='base'>
           <Select placeholder='View as student...' value={{ email: value }} getOptionValue={data => data?.email}
                   getOptionLabel={data => data?.email} options={students}
                   controlShouldRenderValue={value !== defaultValue}

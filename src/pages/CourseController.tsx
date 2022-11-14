@@ -8,7 +8,7 @@ import { AiOutlineAudit, AiOutlineGithub } from 'react-icons/ai'
 import { Link } from 'react-router-dom'
 
 export default function CourseController() {
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const { isOpen, onOpen, onClose } = useDisclosure({ onClose: () => window.location.reload() })
   const { refetch, isFetching } = useQuery(['pull'], { enabled: false, onSuccess: onClose })
   return (
       <ButtonGroup variant='gradient'>

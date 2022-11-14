@@ -9,7 +9,8 @@ declare interface CourseOverview {
   endDate: string;
   maxPoints: number;
   points: number;
-  activeAssignment: AssignmentProps;
+  avgPoints: number;
+  activeAssignments: Array<AssignmentProps>;
 }
 
 declare interface AssignmentOverview {
@@ -25,6 +26,7 @@ declare interface AssignmentOverview {
   active: boolean;
   maxPoints: number;
   points: number;
+  avgPoints: number;
   tasksCount: number;
 }
 
@@ -39,6 +41,7 @@ declare interface TaskOverview {
   ordinalNum: number;
   instructions: string;
   published: boolean;
+  avgPoints: number;
   maxPoints: number;
   maxAttempts: number;
   remainingAttempts: number;

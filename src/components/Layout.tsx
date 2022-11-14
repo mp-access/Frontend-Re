@@ -18,7 +18,7 @@ export default function Layout() {
   const assignment = assignments?.find(assignment => assignment.url === assignmentURL)
 
   return (
-      <Stack bg='bg' minH='full'>
+      <Stack spacing={0} bg='bg' minH='full'>
         <Flex justify='space-between' p={3} w='full' bg='base' borderBottomWidth={1} align='center' boxShadow='lg'>
           <HStack>
             <LogoButton />

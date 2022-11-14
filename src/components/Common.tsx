@@ -21,7 +21,7 @@ export const ProgressBar = ({ value = 0, max = 1, w = '3xs' }) =>
         <Box as={motion.div} position='absolute' top={0} left={0} right={0} h='full' bg='green.300' transformOrigin={0}
              style={{ scaleX: divide(value, max || 1) }} />
       </HStack>
-      <Text w={6} fontSize='70%'>{Math.round(divide(value, max || 1) * 100)}%</Text>
+      <Text w={6} whiteSpace='nowrap' fontSize='70%'>{Math.round(divide(value, max || 1) * 100)}%</Text>
     </HStack>
 
 const pointsToProgress = (points?: number, max?: number) => (points && max) ? Math.round(points * 100 / max) : 0
@@ -42,4 +42,4 @@ export const LogoButton = () =>
 
 export const Calendar = () =>
     <FullCalendar plugins={[dayGridPlugin]} initialView='dayGridMonth' locale={enLocale}
-                  buttonText={{ today: 'Today' }} />
+                  buttonText={{ today: 'Today' }} aspectRatio={1} />

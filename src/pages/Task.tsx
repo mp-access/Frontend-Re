@@ -20,8 +20,8 @@ import { Card, ScoreProgress } from '../components/Common'
 import Description from '../components/Description'
 import { FileTab } from '../components/FileTab'
 import { FileTree } from '../components/FileTree'
-import { SplitHorizontal, SplitVertical } from '../components/Splitters'
-import TaskController from '../components/TaskController'
+import { SplitHorizontal, SplitVertical } from '../components/Panels'
+import TaskController from './TaskController'
 
 export default function Task() {
   const { taskURL } = useParams()
@@ -41,7 +41,7 @@ export default function Task() {
   useEffect(() => {
     setCurrentFile(undefined)
     setOpenFiles([])
-  }, [taskURL])
+  }, [taskURL, userId, submissionId])
 
   useEffect(() => {
     setCurrentFile(file => file || task?.files[0])
@@ -137,7 +137,7 @@ export default function Task() {
           </HStack>
           <Flex w='full' h='85vh' boxShadow='xs' bg='base'>
             <SplitVertical>
-              <Accordion h='full' overflow='auto' allowMultiple defaultIndex={[0]}>
+              <Accordion h='full' allowMultiple defaultIndex={[0]}>
                 <AccordionItem>
                   <AccordionButton gap={2}>
                     <FiAlignJustify />
@@ -248,9 +248,7 @@ export default function Task() {
                     <Stack key={submission.id} spacing={0}>
                       <HStack align='start'>
                         <Text whiteSpace='nowrap' color='orange.300'>{'>'}</Text>
-                        <Text whiteSpace='pre-wrap'>
-                          Running {submission.name}...
-                        </Text>
+                        <Text whiteSpace='pre-wrap'>{submission.name}</Text>
                       </HStack>
                       <HStack align='start'>
                         <Text whiteSpace='nowrap' color='orange.300'>$</Text>

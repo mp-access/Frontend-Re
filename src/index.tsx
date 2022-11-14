@@ -6,7 +6,6 @@ import '@fontsource/source-code-pro'
 import React from 'react'
 import axios from 'axios'
 import Keycloak from 'keycloak-js'
-import { ArcElement, BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js'
 import { Center, ChakraProvider, ColorModeScript, Spinner } from '@chakra-ui/react'
 import { ReactKeycloakProvider, useKeycloak } from '@react-keycloak/web'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -22,16 +21,6 @@ import Error from './pages/Error'
 import Students from './pages/Students'
 import Task from './pages/Task'
 import theme from './Theme'
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend)
-ChartJS.defaults.plugins.legend.display = false
-ChartJS.defaults.maintainAspectRatio = false
-ChartJS.defaults.elements.bar.borderSkipped = false
-ChartJS.defaults.elements.bar.borderRadius = 10
-ChartJS.defaults.scale.display = false
-ChartJS.defaults.scale.grid.display = false
-ChartJS.defaults.scale.grid.drawBorder = false
-ChartJS.defaults.datasets.bar.minBarLength = 5
 
 const authClient = new Keycloak({
   url: process.env.REACT_APP_AUTH_SERVER_URL,
