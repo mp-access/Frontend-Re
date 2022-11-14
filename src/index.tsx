@@ -23,7 +23,7 @@ import Task from './pages/Task'
 import theme from './Theme'
 
 const authClient = new Keycloak({
-  url: process.env.REACT_APP_AUTH_SERVER_URL || '/auth',
+  url: process.env.REACT_APP_AUTH_SERVER_URL || ':8443',
   realm: 'access',
   clientId: 'access-frontend'
 })
