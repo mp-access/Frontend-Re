@@ -6,7 +6,7 @@ import '@fontsource/source-code-pro'
 import React from 'react'
 import axios from 'axios'
 import Keycloak from 'keycloak-js'
-import { Center, ChakraProvider, ColorModeScript, Spinner } from '@chakra-ui/react'
+import { Button, Center, ChakraProvider, ColorModeScript } from '@chakra-ui/react'
 import { ReactKeycloakProvider, useKeycloak } from '@react-keycloak/web'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { compact, flattenDeep, join } from 'lodash'
@@ -36,7 +36,7 @@ function App() {
   const { keycloak } = useKeycloak()
 
   if (!keycloak.token)
-    return <></>
+    return <Center h='full'><Button onClick={() => keycloak.login()}>Keycloak</Button></Center>
 
   setAuthToken(keycloak.token)
   const queryClient = new QueryClient()
@@ -99,13 +99,11 @@ function App() {
 }
 
 createRoot(document.getElementById('root')!).render(
-    <ChakraProvider theme={theme}>
-      <ColorModeScript />
-      <ReactKeycloakProvider authClient={authClient} initOptions={{ onLoad: 'login-required' }}
-                             onTokens={({ token }) => setAuthToken(token)}
-                             LoadingComponent={<Center h='full'><Spinner size='xl' /></Center>}>
+    <ReactKeycloakProvider authClient={authClient} onTokens={({ token }) => setAuthToken(token)}>
+      <ChakraProvider theme={theme}>
+        <ColorModeScript />
         <React.StrictMode>
           <App />
         </React.StrictMode>
-      </ReactKeycloakProvider>
-    </ChakraProvider>)
+      </ChakraProvider>
+    </ReactKeycloakProvider>)
