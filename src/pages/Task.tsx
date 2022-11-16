@@ -238,7 +238,7 @@ export default function Task() {
                           options={{ minimap: { enabled: false }, readOnly: !currentFile.editable }} />
                   {currentFile.image &&
                     <Center p={2} position='absolute' bottom={0} bg='white' boxSize='full' zIndex={2}>
-                      <Image src={`data:image/png;base64,${currentFile.template}`} h='auto' />
+                      <Image src={`data:image/png;base64,${currentFile.bytes}`} h='auto' />
                     </Center>}
                 </Flex>
               </SplitHorizontal>

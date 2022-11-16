@@ -60,6 +60,7 @@ declare interface TaskFileProps {
   language: string;
   editable: boolean;
   image: boolean;
+  bytes: string;
   template: string;
   content: string;
 }

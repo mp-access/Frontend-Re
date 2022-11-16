@@ -18,8 +18,7 @@ export default function Description({ task }: { task: TaskProps }) {
   }
 
   function ImageRenderer({ src }: ComponentProps<any>) {
-    const imageName = src?.replace('resource/', '')
-    const imageBytes = task.files?.find(f => f.name === imageName)?.template
+    const imageBytes = task.files?.find(f => f.name === src)?.bytes
     return <Image src={`data:image/png;base64,${imageBytes || ''}`} h='auto' pr={3} />
   }
 
