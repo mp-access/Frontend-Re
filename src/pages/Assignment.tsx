@@ -1,18 +1,18 @@
 import React from 'react'
-import { Link, useParams, useRouteLoaderData } from 'react-router-dom'
+import { Link, useOutletContext, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
-  Box, Button, Center, Divider, Grid, GridItem, Heading, HStack, Icon, Stack, Tag, TagLabel, Text, Wrap, WrapItem
+  Box, Button, Center, Divider, Grid, GridItem, Heading, HStack, Stack, Tag, TagLabel, TagLeftIcon, Text, Wrap, WrapItem
 } from '@chakra-ui/react'
-import { AiOutlineClockCircle } from 'react-icons/ai'
-import { formatDistance, parseISO } from 'date-fns'
-import { ProgressBar } from '../components/Common'
+import { AiOutlineCalendar } from 'react-icons/ai'
 import { StarIcon } from '../components/Icons'
 import { CgInfinity } from 'react-icons/cg'
+import { ProgressBar } from '../components/Statistics'
+import { range } from 'lodash'
 
 export default function Assignment() {
   const { assignmentURL } = useParams()
-  const { isAssistant } = useRouteLoaderData('user') as UserContext
+  const { isAssistant } = useOutletContext<UserContext>()
   const { data: assignment } = useQuery<AssignmentProps>(['assignments', assignmentURL])
 
   if (!assignment)
@@ -24,12 +24,17 @@ export default function Assignment() {
           <Box>
             <Text>ASSIGNMENT {assignment.ordinalNum}</Text>
             <Heading>{assignment.title}</Heading>
-            <Tag my={2} gap={1} colorScheme='blackAlpha'>
-              <Icon as={AiOutlineClockCircle} boxSize={4} color='purple.500' />
-              <TagLabel lineHeight={1}>
-                Due in {formatDistance(parseISO(assignment.endDate), new Date())}
-              </TagLabel>
-            </Tag>
+            <Wrap my={2}>
+              {!assignment.published && <Tag colorScheme='red'>Draft</Tag>}
+              <Tag>{assignment.tasksCount} Tasks</Tag>
+              <Tag>
+                <TagLeftIcon as={AiOutlineCalendar} />
+                <TagLabel>{assignment.startDate} ~ {assignment.endDate}</TagLabel>
+              </Tag>
+              <Tag colorScheme={assignment.active ? 'green' : 'purple'}>
+                Submission {assignment.active ? 'Open' : 'Closed'}
+              </Tag>
+            </Wrap>
           </Box>
           <Text flexGrow={1} fontSize='sm'>{assignment.description}</Text>
         </Stack>
@@ -37,7 +42,7 @@ export default function Assignment() {
         <Divider borderColor='gray.300' />
         <Stack maxW='container.lg' p={2}>
           {assignment.tasks.map(task =>
-              <Grid as={Center} key={task.id} templateColumns='3fr 2fr 1fr 2fr 1fr' layerStyle='card' gap={4} p={5}>
+              <Grid as={Center} key={task.id} templateColumns='3fr 2fr 1fr 2fr 1fr' layerStyle='card' gap={4}>
                 <GridItem>
                   <Text fontSize='xs'>TASK {task.ordinalNum}</Text>
                   <Heading fontSize='lg' noOfLines={1} wordBreak='break-all'>{task.title}</Heading>
@@ -45,7 +50,7 @@ export default function Assignment() {
                 </GridItem>
                 <GridItem>
                   <Wrap my={2}>
-                    {[...Array(task.maxAttempts).keys()].map(i =>
+                    {range(task.maxAttempts).map(i =>
                         <WrapItem key={i} rounded='full' boxSize={5} borderWidth={2} borderColor='purple.500'
                                   bg={(isAssistant || i <= task.remainingAttempts) ? 'purple.500' : 'transparent'} />)}
                   </Wrap>
@@ -58,8 +63,8 @@ export default function Assignment() {
                 </GridItem>
                 <GridItem>
                   <Tag gap={1} colorScheme='blackAlpha' my={2}>
-                    <Icon as={StarIcon} boxSize={4} />
-                    <TagLabel lineHeight={1}>
+                    <TagLeftIcon as={StarIcon} />
+                    <TagLabel>
                       {task.points} / {task.maxPoints}
                     </TagLabel>
                   </Tag>

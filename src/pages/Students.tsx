@@ -7,7 +7,7 @@ export default function Students() {
   if (!students)
     return <></>
   return (
-      <Stack layerStyle='card' minH='sm'>
+      <Stack layerStyle='card' minH='sm' p={8}>
         <Heading m={2} fontSize='3xl'>Students</Heading>
         <Table>
           <Thead>
@@ -20,13 +20,12 @@ export default function Students() {
           </Thead>
           <Tbody>
             {students.map(student =>
-                <Tr>
+                <Tr key={student.email}>
                   <Td>{student.lastName}</Td>
                   <Td>{student.firstName}</Td>
                   <Td>{student.email}</Td>
                   <Td>{student.points}</Td>
-                </Tr>
-            )}
+                </Tr>)}
           </Tbody>
           <TableCaption>
             {!students.length && <Center color='gray.400'>No students found.</Center>}

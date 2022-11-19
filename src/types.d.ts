@@ -10,6 +10,11 @@ declare interface CourseOverview {
   maxPoints: number;
   points: number;
   avgPoints: number;
+  assignmentsCount: number;
+}
+
+declare interface CourseProps extends CourseOverview {
+  assignments: Array<AssignmentOverview>;
   activeAssignments: Array<AssignmentProps>;
 }
 
@@ -20,7 +25,9 @@ declare interface AssignmentOverview {
   ordinalNum: number;
   description: string;
   startDate: string;
+  startTime: string;
   endDate: string;
+  endTime: string;
   published: boolean;
   pastDue: boolean;
   active: boolean;
@@ -40,6 +47,7 @@ declare interface TaskOverview {
   title: string;
   ordinalNum: number;
   instructions: string;
+  active: boolean;
   published: boolean;
   avgPoints: number;
   maxPoints: number;
@@ -68,6 +76,7 @@ declare interface TaskFileProps {
 declare interface SubmissionProps {
   id: number;
   name: string;
+  type: string;
   valid: boolean;
   graded: boolean;
   createdAt: string;
@@ -91,7 +100,7 @@ declare interface StudentProps {
 
 declare interface UserContext {
   isCreator: boolean;
-  user: KeycloakProfile;
+  user: KeycloakTokenParsed;
   isAssistant: boolean;
   isSupervisor: boolean;
 }

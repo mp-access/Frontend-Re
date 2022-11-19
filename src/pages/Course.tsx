@@ -1,29 +1,68 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { format, parseISO } from 'date-fns'
+import { formatDistance, parseISO } from 'date-fns'
 import { take } from 'lodash'
 import {
-  Box, Button, Divider, Grid, GridItem, Heading, HStack, Icon, SimpleGrid, Stack, Tag, TagLabel, Text
+  Box, Button, Center, Divider, Grid, GridItem, Heading, HStack, SimpleGrid, Stack, Tag, TagLabel, TagLeftIcon, Text,
+  Wrap
 } from '@chakra-ui/react'
-import { AiOutlineClockCircle } from 'react-icons/ai'
-import { Link, useParams, useRouteLoaderData } from 'react-router-dom'
-import { Calendar, ProgressBar } from '../components/Common'
+import { AiOutlineCalendar, AiOutlineClockCircle } from 'react-icons/ai'
+import { Link, useOutletContext, useParams } from 'react-router-dom'
+import { Calendar } from '../components/Common'
 import CourseController from './CourseController'
-import { Carousel } from '../components/Panels'
+import { ProgressBar, Score, TasksOverview } from '../components/Statistics'
+import { Feature, Underline } from '../components/Panels'
 
 export default function Course() {
   const { courseURL } = useParams()
-  const { isSupervisor } = useRouteLoaderData('user') as UserContext
-  const { data: course } = useQuery<CourseOverview>(['courses', courseURL])
-  const { data: assignments } = useQuery<AssignmentOverview[]>(['assignments'])
+  const { isSupervisor } = useOutletContext<UserContext>()
+  const { data: course } = useQuery<CourseProps>(['courses', courseURL])
+  const [feature, setFeature] = useState({ to: 0, from: 0 })
 
-  if (!course?.activeAssignments || !assignments)
+  if (!course?.assignments)
     return <></>
+
+  const featuredAssignment = course.activeAssignments[feature.to]
 
   return (
       <Grid templateColumns='5fr 2fr' templateRows='auto 1fr' flexGrow={1}>
-        <GridItem p={4} overflow='hidden'>
-          <Carousel data={course.activeAssignments} />
+        <GridItem m={4} overflow='hidden' layerStyle='segment'>
+          <HStack px={4} justify='space-between' mb={4}>
+            <HStack>
+              <Heading fontSize='xl'>Active Assignments</Heading>
+              <Center rounded='md' bg='purple.100' p={0.5} w={6} color='purple.600' fontWeight={600}>
+                {course.activeAssignments.length}
+              </Center>
+            </HStack>
+            <HStack spacing={4}>
+              {course.activeAssignments.map((assignment, i) =>
+                  <Underline key={i} onClick={() => setFeature({ to: i, from: feature.to })}
+                             isActive={feature.to === i}>
+                    {`Assignment ${assignment.ordinalNum}`}
+                  </Underline>)}
+            </HStack>
+          </HStack>
+          {featuredAssignment ?
+              <Feature custom={feature}>
+                <Box pos='absolute' bg='gradients.405' w='full' h='4xl' rounded='full' left='15%' bottom={5} />
+                <Box p={4} zIndex={1}>
+                  <Text fontSize='xs'>ASSIGNMENT {featuredAssignment.ordinalNum}</Text>
+                  <Heading fontSize='lg'>{featuredAssignment.title}</Heading>
+                  <Tag colorScheme='whiteAlpha' my={2}>
+                    <TagLeftIcon as={AiOutlineClockCircle} />
+                    <TagLabel>
+                      Due in {formatDistance(new Date(), parseISO(featuredAssignment.endDate))}
+                    </TagLabel>
+                  </Tag>
+                  <Text noOfLines={3} fontSize='sm'>{featuredAssignment.description}</Text>
+                </Box>
+                <TasksOverview data={featuredAssignment.tasks} />
+                <Score points={featuredAssignment.points} maxPoints={featuredAssignment.maxPoints} />
+              </Feature> :
+              <Center layerStyle='feature' bg='blackAlpha.50' color='blackAlpha.500' border='2px dashed'
+                      borderColor='blackAlpha.300'>
+                No active assignments.
+              </Center>}
         </GridItem>
         <GridItem as={Stack} colSpan={1} rowSpan={2} bg='base' boxShadow='md' borderLeftWidth={1} p={8}>
           <Heading fontSize='xl'>Notice Board</Heading>
@@ -44,22 +83,23 @@ export default function Course() {
           </HStack>
           <Divider borderColor='gray.300' />
           <SimpleGrid columns={3} p={2} gap={6} flexGrow={1}>
-            {take(assignments, 3).map(assignment =>
-                <Stack key={assignment.id} layerStyle='card' p={5}>
+            {take(course.assignments, 3).map(assignment =>
+                <Stack key={assignment.id} layerStyle='card'>
                   <Box>
                     <Text fontSize='xs'>ASSIGNMENT {assignment.ordinalNum}</Text>
                     <Heading fontSize='lg' noOfLines={2}>{assignment.title}</Heading>
                   </Box>
-                  <HStack align='start'>
+                  <Wrap>
                     {!assignment.published && <Tag colorScheme='red'>Draft</Tag>}
                     <Tag>{assignment.tasksCount} Tasks</Tag>
-                    <Tag gap={1}>
-                      <Icon as={AiOutlineClockCircle} boxSize={4} color='purple.500' />
-                      <TagLabel>
-                        {format(parseISO(assignment.endDate), 'dd-MM-yyyy')}
-                      </TagLabel>
+                    <Tag colorScheme={assignment.active ? 'green' : 'purple'}>
+                      Submission {assignment.active ? 'Open' : 'Closed'}
                     </Tag>
-                  </HStack>
+                    <Tag>
+                      <TagLeftIcon as={AiOutlineCalendar} />
+                      <TagLabel>{assignment.startDate} ~ {assignment.endDate}</TagLabel>
+                    </Tag>
+                  </Wrap>
                   <Text flexGrow={1} py={2} fontSize='sm' noOfLines={5}>{assignment.description}</Text>
                   <ProgressBar value={assignment.points} max={assignment.maxPoints} w='full' />
                   <Button w='full' colorScheme='green' as={Link} to={`assignments/${assignment.url}`}>

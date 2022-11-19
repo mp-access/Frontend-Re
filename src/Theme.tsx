@@ -13,15 +13,18 @@ const theme = extendTheme({
         _dark: 'blackAlpha.900'
       },
       mid: {
-        default: '#bba6ff40',
+        default: '#d6c9ff73',
         _dark: 'blackAlpha.600'
       }
     }
   },
   layerStyles: {
-    card: { p: 8, bg: 'base', borderWidth: 1, boxShadow: 'lg', rounded: '3xl', h: 'full' },
+    card: { p: 5, bg: 'base', borderWidth: 1, boxShadow: 'lg', rounded: '3xl', h: 'full' },
     segment: { p: 6, bg: 'base', rounded: '3xl', h: 'full' },
-    feature: { rounded: '3xl', bg: 'gradients.400', pos: 'relative', color: 'base' }
+    feature: {
+      rounded: '3xl', bg: 'gradients.400', pos: 'relative', color: 'base', overflow: 'hidden', h: '25vh',
+      _hover: { boxShadow: 'hover' }
+    }
   },
   colors: {
     orange: {
@@ -30,6 +33,7 @@ const theme = extendTheme({
     gray: {
       15: '#f3f3f3',
       100: '#f6f9fd',
+      150: '#fcfcfc',
       200: '#e9edf2',
       250: '#d7d9e2',
       450: '#1F1E1E',
@@ -87,6 +91,8 @@ const theme = extendTheme({
     hover: '#2a303933 0px 2px 16px 0px'
   },
   components: {
+    Code: { defaultProps: { colorScheme: 'whiteAlpha' }, variants: { subtle: { bg: 'transparent' } } },
+    Tag: { defaultProps: { colorScheme: 'blackAlpha' } },
     Button: {
       defaultProps: { colorScheme: 'purple' },
       variants: {
@@ -110,9 +116,10 @@ const theme = extendTheme({
   styles: {
     global: {
       'html, body, #root': { h: 'full' },
-      '::-webkit-scrollbar': { h: 6, w: 3, bg: 'transparent' },
-      '::-webkit-scrollbar-thumb': { borderRadius: 6, bg: 'transparent', border: '1px solid transparent' },
-      ':hover::-webkit-scrollbar-thumb': { bg: 'mid', borderColor: 'base' },
+      '::-webkit-scrollbar': { h: 3, w: 3, bg: 'transparent', ':horizontal': { bg: 'transparent' } },
+      '::-webkit-scrollbar-corner': { bg: 'transparent' },
+      '::-webkit-scrollbar-thumb': { borderRadius: 6, bg: 'transparent' },
+      ':hover::-webkit-scrollbar-thumb': { bg: 'mid' },
       'ul, li': { listStyle: 'none', padding: 0, margin: 0 },
       '.fc': {
         '.fc-toolbar.fc-header-toolbar': {

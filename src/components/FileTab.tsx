@@ -6,10 +6,7 @@ const FileTabBase = chakra(Reorder.Item)
 
 export const FileTab = ({ isSelected, value, onClick, ...props }: ComponentProps<any>) =>
     <FileTabBase value={value} id={`${value.id}`} roundedTop='lg' display='flex' alignItems='baseline'
-                 borderWidth={1} bg='white' initial={{ opacity: 0, y: 30 }}
-                 exit={{ opacity: 0, y: 20, transition: { duration: 0.3 } }}
-                 whileHover={{ color: '#333333' }} whileDrag={{ backgroundColor: '#e3e3e3' }}
-                 animate={{
-                   opacity: 1, backgroundColor: isSelected ? '#fff' : '#f3f3f3', y: 0,
-                   color: isSelected ? '#333333' : '#999999', transition: { duration: 0.15 }
-                 }} {...props} />
+                 borderWidth={1} borderBottomWidth={0} borderColor='blackAlpha.300'
+                 bg='base' initial={{ opacity: 0, y: 30 }} _hover={{ color: 'purple.600' }}
+                 exit={{ opacity: 0, y: 20, transition: { duration: 0.3 } }} whileDrag={{ opacity: 1 }}
+                 animate={{ opacity: isSelected ? 1 : 0.6, y: 0, transition: { duration: 0.15 } }} {...props} />

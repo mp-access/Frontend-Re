@@ -2,14 +2,14 @@ import {
   Button, ButtonGroup, Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader, ModalOverlay, Text, useDisclosure,
   VStack
 } from '@chakra-ui/react'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import React from 'react'
 import { AiOutlineAudit, AiOutlineGithub } from 'react-icons/ai'
 import { Link } from 'react-router-dom'
 
 export default function CourseController() {
   const { isOpen, onOpen, onClose } = useDisclosure({ onClose: () => window.location.reload() })
-  const { refetch, isFetching } = useQuery(['pull'], { enabled: false, onSuccess: onClose })
+  const { mutate, isLoading } = useMutation(['pull'], { onSuccess: onClose })
   return (
       <ButtonGroup variant='gradient'>
         <Button as={Link} to='students' leftIcon={<AiOutlineAudit />}>Students</Button>
@@ -25,7 +25,7 @@ export default function CourseController() {
               <Text textAlign='center'>
                 Are you sure you want to pull the latest data from the course repository?
               </Text>
-              <Button variant='round' isLoading={isFetching} onClick={() => refetch()}>
+              <Button variant='round' isLoading={isLoading} onClick={() => mutate()}>
                 Pull
               </Button>
             </ModalBody>

@@ -9,10 +9,10 @@ import Keycloak from 'keycloak-js'
 import { ChakraProvider, ColorModeScript } from '@chakra-ui/react'
 import { ReactKeycloakProvider, useKeycloak } from '@react-keycloak/web'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { compact, flattenDeep, join } from 'lodash'
+import { compact, flattenDeep, join, tail, takeRight } from 'lodash'
 import { createRoot } from 'react-dom/client'
-import { createBrowserRouter, LoaderFunctionArgs, Params, RouterProvider } from 'react-router-dom'
-import Layout from './components/Layout'
+import { createBrowserRouter, LoaderFunctionArgs, RouterProvider } from 'react-router-dom'
+import Layout from './pages/Layout'
 import Assignment from './pages/Assignment'
 import Course from './pages/Course'
 import CourseCreator from './pages/CourseCreator'
@@ -21,6 +21,7 @@ import Error from './pages/Error'
 import Students from './pages/Students'
 import Task from './pages/Task'
 import theme from './Theme'
+import Assignments from './pages/Assignments'
 
 const authClient = new Keycloak({
   url: process.env.REACT_APP_AUTH_SERVER_URL || 'https://info1-staging.ifi.uzh.ch:8443',
@@ -39,60 +40,52 @@ function App() {
     return <></>
 
   setAuthToken(keycloak.token)
-  const queryClient = new QueryClient()
+  const client = new QueryClient()
 
   const fetchURL = (...path: any[]) => join(compact(flattenDeep(path)), '/')
-  const fetchCourse = (params: Params) => ['courses', params.courseURL]
-  const setQuery = (key: string, path: any[]) => queryClient.setQueryDefaults(
-      [key], { queryFn: context => axios.get(fetchURL(path, context.queryKey)) })
-  const setMutation = (key: string, path: any[]) =>
-      queryClient.setMutationDefaults([key], {
-        mutationFn: (data) => axios.post(fetchURL(path, key), data),
-        onSettled: async () => queryClient.invalidateQueries([path ? 'tasks' : key])
+  const setQuery = (...path: any[]) => client.setQueryDefaults(takeRight(path),
+      { queryFn: context => axios.get(fetchURL(path, tail(context.queryKey))) })
+  const setMutation = (...path: any[]) =>
+      client.setMutationDefaults(takeRight(path), {
+        mutationFn: (data) => axios.post(fetchURL(path), data),
+        onSettled: async () => client.invalidateQueries({ type: 'all' })
       })
 
-  const loadCourses = () => setQuery('courses', [])
-  const loadCreator = () => setMutation('courses', [])
+  const loadCourses = () => setQuery('courses')
+  const loadCreator = () => setMutation('courses')
   const loadCourse = ({ params }: LoaderFunctionArgs) => {
-    const coursePath = fetchCourse(params)
-    setQuery('assignments', coursePath)
-    setQuery('students', coursePath)
-    setQuery('pull', coursePath)
-    setMutation('students', coursePath)
-    setMutation('submit', coursePath)
+    setQuery('courses', params.courseURL, 'students')
+    setMutation('courses', params.courseURL, 'students')
+    setMutation('courses', params.courseURL, 'pull')
+    setMutation('courses', params.courseURL, 'submit')
   }
+  const loadAssignments = ({ params }: LoaderFunctionArgs) =>
+      setQuery('courses', params.courseURL, 'assignments')
   const loadTasks = ({ params }: LoaderFunctionArgs) =>
-      setQuery('tasks', [...fetchCourse(params), 'assignments', params.assignmentURL])
-
-  const loadContext = ({ params }: LoaderFunctionArgs) => ({
-    user: keycloak.idTokenParsed,
-    isCreator: keycloak.hasRealmRole('supervisor'),
-    isSupervisor: !!params.courseURL && keycloak.hasRealmRole(params.courseURL + '-supervisor'),
-    isAssistant: !!params.courseURL && keycloak.hasRealmRole(params.courseURL + '-assistant')
-  })
+      setQuery('courses', params.courseURL, 'assignments', params.assignmentURL, 'tasks')
 
   const router = createBrowserRouter([{
-    id: 'user', loader: loadContext, children: [{
-      path: '/', element: <Layout />, loader: loadCourses, errorElement: <Error />, children: [
-        { index: true, element: <Courses /> },
-        { path: 'create', loader: loadCreator, element: <CourseCreator /> },
-        {
-          path: 'courses/:courseURL', loader: loadCourse, children: [{ index: true, element: <Course /> },
-            { path: 'students', id: 'students', element: <Students /> },
-            {
-              path: 'assignments/:assignmentURL', loader: loadTasks, children: [
-                { index: true, element: <Assignment /> },
-                { path: 'tasks/:taskURL', element: <Task /> }
-              ]
-            }
-          ]
-        }
-      ]
-    }]
+    path: '/', element: <Layout />, loader: loadCourses, errorElement: <Error />, children: [
+      { index: true, element: <Courses /> },
+      { path: 'create', loader: loadCreator, element: <CourseCreator /> },
+      {
+        path: 'courses/:courseURL', loader: loadCourse, children: [
+          { index: true, element: <Course /> },
+          { path: 'students', element: <Students /> },
+          { path: 'assignments', element: <Assignments /> },
+          {
+            path: 'assignments/:assignmentURL', loader: loadAssignments, children: [
+              { index: true, element: <Assignment /> },
+              { path: 'tasks/:taskURL', loader: loadTasks, element: <Task /> }
+            ]
+          }
+        ]
+      }
+    ]
   }])
 
   return (
-      <QueryClientProvider client={queryClient}>
+      <QueryClientProvider client={client}>
         <RouterProvider router={router} />
       </QueryClientProvider>
   )

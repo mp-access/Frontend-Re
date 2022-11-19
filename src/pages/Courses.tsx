@@ -1,38 +1,59 @@
-import { Heading, HStack, Stack, Text, VStack } from '@chakra-ui/react'
+import {
+  Box, Button, Center, Divider, Flex, Grid, GridItem, Heading, HStack, Stack, Tag, TagLabel, TagLeftIcon, Text
+} from '@chakra-ui/react'
 import { useQuery } from '@tanstack/react-query'
 import React from 'react'
-import { AiOutlinePlusCircle } from 'react-icons/ai'
-import { useRouteLoaderData } from 'react-router-dom'
-import { Card } from '../components/Common'
+import { Link, useOutletContext } from 'react-router-dom'
+import { AiOutlineBook, AiOutlineCalendar, AiOutlineTeam } from 'react-icons/ai'
+import { Score } from '../components/Statistics'
+import { AddIcon } from '@chakra-ui/icons'
 
 export default function Courses() {
-  const { isCreator } = useRouteLoaderData('user') as UserContext
+  const { isCreator, user } = useOutletContext<UserContext>()
   const { data: courses } = useQuery<CourseOverview[]>(['courses'])
 
+  if (!courses)
+    return <></>
+
   return (
-      <VStack>
-        <Heading fontSize='3xl'>My Courses</Heading>
-        <HStack p={4} spacing={6} h='sm'>
-          {courses?.map(course =>
-              <Card key={course.url} to={`courses/${course.url}`} p={6} w='2xs' borderColor='transparent'>
-                <Stack flexGrow={1} fontSize='xl' alignItems='start'>
-                  <Heading mb={2} color='purple.500' fontSize='2xl' whiteSpace='break-spaces'>
-                    {course.title}
-                  </Heading>
-                  <Text>{course.university}</Text>
-                  <Text>{course.semester}</Text>
-                </Stack>
-                <Text>
-                  Active
-                </Text>
-              </Card>)}
-          {isCreator &&
-            <Card to='create' w='2xs' bg='white' borderColor='gray.200' borderStyle='dashed' color='purple.400'
-                  gap={4} _hover={{ bg: 'gray.50' }}>
-              <AiOutlinePlusCircle size='2rem' />
-              <Text fontSize='xl' fontWeight={500}>Create Course</Text>
-            </Card>}
-        </HStack>
-      </VStack>
+      <Grid templateColumns='1fr 2fr' gap={6}>
+        <GridItem layerStyle='segment'>
+          <Heading fontWeight={400} fontSize='3xl'>Welcome, <b>{user.given_name}</b>!</Heading>
+        </GridItem>
+        <GridItem as={Stack} layerStyle='segment' maxW='container.md'>
+          <HStack justify='space-between' px={2} align='end'>
+            <Heading fontSize='2xl'>My Courses</Heading>
+            {isCreator &&
+              <Button as={Link} to='create' variant='gradient' leftIcon={<AddIcon />}>
+                Create Course
+              </Button>}
+          </HStack>
+          <Divider borderColor='gray.300' />
+          <Stack p={2}>
+            {courses.map(course =>
+                <Flex key={course.id} as={Link} to={`courses/${course.url}`} layerStyle='feature'>
+                  <Box pos='absolute' bg='gradients.405' w='full' h='4xl' rounded='full' left='15%' bottom={5} />
+                  <Stack p={4} zIndex={1} align='start' w='full'>
+                    <Heading fontSize='2xl'>{course.title}</Heading>
+                    <Tag colorScheme='whiteAlpha' color='white'>
+                      <TagLeftIcon as={AiOutlineCalendar} />
+                      <TagLabel>{course.startDate} ~ {course.endDate}</TagLabel>
+                    </Tag>
+                    <Tag colorScheme='whiteAlpha' color='white'>
+                      <TagLeftIcon as={AiOutlineTeam} />
+                      <TagLabel>5 Students</TagLabel>
+                    </Tag>
+                    <Tag colorScheme='whiteAlpha' color='white'>
+                      <TagLeftIcon as={AiOutlineBook} />
+                      <TagLabel>{course.assignmentsCount} Assignments</TagLabel>
+                    </Tag>
+                    <Text noOfLines={3} fontSize='sm'>{course.description}</Text>
+                  </Stack>
+                  <Score points={course.points} maxPoints={course.maxPoints} />
+                </Flex>)}
+            {!courses.length && <Center h='25vh' color='gray.500'>No courses found.</Center>}
+          </Stack>
+        </GridItem>
+      </Grid>
   )
 }

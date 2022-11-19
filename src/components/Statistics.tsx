@@ -1,8 +1,9 @@
 import React, { SVGProps } from 'react'
-import { round } from 'lodash'
+import { divide, round } from 'lodash'
 import { Bar, BarChart, Cell, Label, LabelList, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
-import { Box, Text } from '@chakra-ui/react'
+import { Box, HStack, Text } from '@chakra-ui/react'
 import { TooltipProps } from 'recharts/types/component/Tooltip'
+import { motion } from 'framer-motion'
 
 
 const tickStyle: SVGProps<any> = { fill: 'white', fontSize: '80%', alignmentBaseline: 'before-edge' }
@@ -11,7 +12,7 @@ const RoundBar = ({ fill, x, y, height, width }: SVGProps<any>) =>
     <rect x={x} y={y} height={height} width={width} rx={10} fill={fill === '#eee' ? '#ffffff61' : fill} />
 
 const TaskTooltip = ({ active, payload, label }: TooltipProps<number, string>) =>
-    active && payload?.length && !!payload[0]?.payload?.id &&
+    active && payload?.length && !!payload[0]?.payload?.maxPoints &&
   <Box bg='blackAlpha.700' p={2} rounded='lg' fontSize='sm'>
     <Text fontWeight={600}>{label}</Text>
     <Text>My Score: {payload[0].payload.points} / {payload[0].payload.maxPoints}</Text>
@@ -20,15 +21,15 @@ const TaskTooltip = ({ active, payload, label }: TooltipProps<number, string>) =
   </Box>
 
 
-export const AssignmentScore = ({ data }: { data: AssignmentProps }) =>
+export const Score = ({ points = 0, maxPoints = 1 }) =>
     <ResponsiveContainer>
       <PieChart>
         <Tooltip cursor={false} wrapperStyle={{ outline: 'none' }} content={TaskTooltip} />
-        <Pie dataKey='value' innerRadius={50} outerRadius={80} startAngle={90} endAngle={-270}
-             data={[{ value: data.points, ...data }, { value: data.maxPoints - data.points }]}>
+        <Pie dataKey='points' innerRadius={50} outerRadius={80} startAngle={90} endAngle={-270}
+             data={[{ points, maxPoints }, { points: maxPoints - points }]}>
           <Cell key='cell-0' fill='#3dcb99' />
           <Cell key='cell-1' fill='#ffffff61' />
-          <Label value={`${round(data.points / data.maxPoints * 100, 1)}%`} fill='#fff' fontSize='120%'
+          <Label value={`${round(points / maxPoints * 100, 1)}%`} fill='#fff' fontSize='120%'
                  fontWeight={600} position='center' />
         </Pie>
       </PieChart>
@@ -48,3 +49,12 @@ export const TasksOverview = ({ data }: { data: Array<TaskOverview> }) =>
         </Bar>
       </BarChart>
     </ResponsiveContainer>
+
+export const ProgressBar = ({ value = 0, max = 1, w = '3xs' }) =>
+    <HStack w={w}>
+      <HStack h={3} w='full' rounded='2xl' bg='gray.200' position='relative' overflow='hidden'>
+        <Box as={motion.div} position='absolute' top={0} left={0} right={0} h='full' bg='green.300' transformOrigin={0}
+             style={{ scaleX: divide(value, max || 1) }} />
+      </HStack>
+      <Text w={6} whiteSpace='nowrap' fontSize='70%'>{Math.round(divide(value, max || 1) * 100)}%</Text>
+    </HStack>
