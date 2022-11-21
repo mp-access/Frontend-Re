@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import React from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
 import { AiOutlineBook, AiOutlineCalendar, AiOutlineTeam } from 'react-icons/ai'
-import { Score } from '../components/Statistics'
+import { CourseScore } from '../components/Statistics'
 import { AddIcon } from '@chakra-ui/icons'
 
 export default function Courses() {
@@ -31,7 +31,7 @@ export default function Courses() {
           <Divider borderColor='gray.300' />
           <Stack p={2}>
             {courses.map(course =>
-                <Flex key={course.id} as={Link} to={`courses/${course.url}`} layerStyle='feature'>
+                <Flex key={course.id} as={Link} to={`courses/${course.url}`} layerStyle='feature' h='2xs'>
                   <Box pos='absolute' bg='gradients.405' w='full' h='4xl' rounded='full' left='15%' bottom={5} />
                   <Stack p={4} zIndex={1} align='start' w='full'>
                     <Heading fontSize='2xl'>{course.title}</Heading>
@@ -49,7 +49,7 @@ export default function Courses() {
                     </Tag>
                     <Text noOfLines={3} fontSize='sm'>{course.description}</Text>
                   </Stack>
-                  <Score points={course.points} maxPoints={course.maxPoints} />
+                  <CourseScore points={course.points} maxPoints={course.maxPoints} />
                 </Flex>)}
             {!courses.length && <Center h='25vh' color='gray.500'>No courses found.</Center>}
           </Stack>

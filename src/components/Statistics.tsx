@@ -1,52 +1,67 @@
 import React, { SVGProps } from 'react'
 import { divide, round } from 'lodash'
-import { Bar, BarChart, Cell, Label, LabelList, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
+import { Bar, BarChart, Cell, Label, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
 import { Box, HStack, Text } from '@chakra-ui/react'
-import { TooltipProps } from 'recharts/types/component/Tooltip'
 import { motion } from 'framer-motion'
 
+const Rounded = ({ x, y, height, width, fill }: SVGProps<any>) =>
+    <rect x={x} y={y} height={height} width={width} rx={8} fill={fill === '#eee' ? '#ffffff61' : fill} />
+const NameLabel = ({ x, y, cx, cy, fill, textAnchor, name }: SVGProps<any>) =>
+    <text x={x} y={y} cx={cx} cy={cy} fill={fill} textAnchor={textAnchor} children={name}
+          dx={5 * (textAnchor === 'start' ? 1 : -1)} alignmentBaseline='middle' fontSize='80%' />
 
-const tickStyle: SVGProps<any> = { fill: 'white', fontSize: '80%', alignmentBaseline: 'before-edge' }
+const roundedStyle = { shape: <Rounded />, minPointSize: 10, background: <Rounded /> }
+const tooltipStyle = {
+  contentStyle: { borderRadius: 8, background: '#000000ad', border: 'none', fontSize: '80%' },
+  wrapperStyle: { outline: 'none' }, itemStyle: { padding: 1, color: 'inherit' },
+  cursor: { fill: 'transparent', cursor: 'pointer' }
+}
 
-const RoundBar = ({ fill, x, y, height, width }: SVGProps<any>) =>
-    <rect x={x} y={y} height={height} width={width} rx={10} fill={fill === '#eee' ? '#ffffff61' : fill} />
-
-const TaskTooltip = ({ active, payload, label }: TooltipProps<number, string>) =>
-    active && payload?.length && !!payload[0]?.payload?.maxPoints &&
-  <Box bg='blackAlpha.700' p={2} rounded='lg' fontSize='sm'>
-    <Text fontWeight={600}>{label}</Text>
-    <Text>My Score: {payload[0].payload.points} / {payload[0].payload.maxPoints}</Text>
-    {!!payload[1]?.payload?.avgPoints
-        && <Text>Avg. Score: {payload[1].payload.avgPoints} / {payload[1].payload.maxPoints}</Text>}
-  </Box>
-
-
-export const Score = ({ points = 0, maxPoints = 1 }) =>
+export const CourseScore = ({ points = 0, maxPoints = 1 }) =>
     <ResponsiveContainer>
       <PieChart>
-        <Tooltip cursor={false} wrapperStyle={{ outline: 'none' }} content={TaskTooltip} />
-        <Pie dataKey='points' innerRadius={50} outerRadius={80} startAngle={90} endAngle={-270}
-             data={[{ points, maxPoints }, { points: maxPoints - points }]}>
+        <Tooltip {...tooltipStyle} />
+        <Pie dataKey='points' innerRadius={50} outerRadius={80} startAngle={90} endAngle={-270} label={NameLabel}
+             nameKey='name'
+             data={[{ points, name: 'My Score' }, { points: maxPoints - points, name: 'Remaining' }]} fill='#ffffff61'>
           <Cell key='cell-0' fill='#3dcb99' />
           <Cell key='cell-1' fill='#ffffff61' />
-          <Label value={`${round(points / maxPoints * 100, 1)}%`} fill='#fff' fontSize='120%'
+          <Label value={`${round(points / maxPoints * 100, 1)}%`} fill='#fff'
                  fontWeight={600} position='center' />
         </Pie>
       </PieChart>
     </ResponsiveContainer>
 
+
+export const AssignmentScore = ({ data }: { data: AssignmentProps }) => {
+  const scoredTasks = data.tasks.filter(task => task.points)
+  return (
+      <ResponsiveContainer>
+        <PieChart>
+          <Tooltip {...tooltipStyle} formatter={(value) => `${value} Points`} />
+          <Pie dataKey='points' innerRadius={50} outerRadius={80} startAngle={90} endAngle={-270} fill='#ffffff61'
+               nameKey={({ ordinalNum }) => ordinalNum ? `Task ${ordinalNum}` : 'Remaining'}
+               data={[...scoredTasks, { points: data.maxPoints - data.points }]} label={NameLabel}>
+            {scoredTasks.map((_, i) => <Cell key={`cell-${i}`} fill='#3dcb99' />)}
+            <Cell key={`cell-${scoredTasks.length}`} fill='#ffffff61' />
+            <Label value={`${round(data.points / data.maxPoints * 100, 1)}%`} fill='#fff'
+                   fontWeight={600} position='center' />
+          </Pie>
+        </PieChart>
+      </ResponsiveContainer>
+  )
+}
+
 export const TasksOverview = ({ data }: { data: Array<TaskOverview> }) =>
     <ResponsiveContainer>
-      <BarChart data={data.map(task => ({ name: `Task ${task.ordinalNum}`, ...task }))}
-                barSize={20} barGap={15} margin={{ top: 10, bottom: 20 }}>
-        <XAxis axisLine={false} tick={tickStyle} fontWeight={600} dataKey='name' tickMargin={25} />
-        <Tooltip cursor={false} wrapperStyle={{ outline: 'none' }} content={TaskTooltip} />
-        <Bar shape={<RoundBar />} dataKey='points' fill='#3dcb99' minPointSize={10} background={<RoundBar />}>
-          <LabelList formatter={() => 'Me'} offset={10} position='bottom' fontSize='80%' fill='#fff' />
-        </Bar>
-        <Bar shape={<RoundBar />} dataKey='avgPoints' fill='#d7d9e2' minPointSize={10} background={<RoundBar />}>
-          <LabelList formatter={() => 'Avg'} offset={10} position='bottom' fontSize='80%' fill='#fff' />
-        </Bar>
+      <BarChart data={data} barSize={15}>
+        <XAxis axisLine={false} tick={{ fill: '#fff', fontSize: '80%', fontWeight: 600 }} dataKey='ordinalNum'
+               tickFormatter={(value) => `Task ${value}`} />
+        <Tooltip formatter={(value, _, item) => `${value} / ${item.payload.maxPoints}`}
+                 labelFormatter={(label) => <b>{`Task ${label}`}</b>} {...tooltipStyle} />
+        <Legend wrapperStyle={{ fontSize: '80%', lineHeight: 1.2 }} iconType='circle' iconSize={8} />
+        <Bar dataKey='points' name='My Score' fill='#3dcb99' {...roundedStyle} />
+        <Bar dataKey='avgPoints' name='Average' fill='#d7d9e2' {...roundedStyle} />
       </BarChart>
     </ResponsiveContainer>
 

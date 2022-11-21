@@ -20,9 +20,9 @@ const theme = extendTheme({
   },
   layerStyles: {
     card: { p: 5, bg: 'base', borderWidth: 1, boxShadow: 'lg', rounded: '3xl', h: 'full' },
-    segment: { p: 6, bg: 'base', rounded: '3xl', h: 'full' },
+    segment: { p: 6, bg: 'base', rounded: '3xl' },
     feature: {
-      rounded: '3xl', bg: 'gradients.400', pos: 'relative', color: 'base', overflow: 'hidden', h: '25vh',
+      rounded: '3xl', bg: 'gradients.400', pos: 'relative', color: 'base', overflow: 'hidden', p: 4,
       _hover: { boxShadow: 'hover' }
     }
   },
@@ -73,7 +73,7 @@ const theme = extendTheme({
       100: 'linear-gradient(115deg, #eddeff, #d6d7ff)',
       200: 'linear-gradient(145deg, #ffffff, #e7e7ff)',
       400: 'linear-gradient(115deg, #9057ff, #6a33d6)',
-      405: 'linear-gradient(125deg, #9057ff, #6a33d6)',
+      405: 'linear-gradient(140deg, #9057ff, #6a33d6)',
       500: 'linear-gradient(115deg, #923aff, #5e63ff)',
       'purple-light': 'linear-gradient(#fff, #fff) padding-box, linear-gradient(115deg, #923aff, #5e63ff) border-box',
       'purple-gray': 'linear-gradient(#f7f9fd, #f7f9fd) padding-box, linear-gradient(115deg, #923aff, #5e63ff) border-box',
@@ -120,6 +120,7 @@ const theme = extendTheme({
       '::-webkit-scrollbar-corner': { bg: 'transparent' },
       '::-webkit-scrollbar-thumb': { borderRadius: 6, bg: 'transparent' },
       ':hover::-webkit-scrollbar-thumb': { bg: 'mid' },
+      '.recharts-surface': { cursor: 'pointer !important' },
       'ul, li': { listStyle: 'none', padding: 0, margin: 0 },
       '.fc': {
         '.fc-toolbar.fc-header-toolbar': {

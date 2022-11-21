@@ -185,7 +185,7 @@ export default function Task() {
                       </ModalContent>
                     </Modal>
                   </ButtonGroup>
-                  <AccordionPanel px={0}>
+                  <AccordionPanel p={0} h='16vh' overflow='auto'>
                     <FileTree data={task.files} value={currentFile.id} onChange={setCurrentFile} />
                   </AccordionPanel>
                 </AccordionItem>
@@ -231,7 +231,8 @@ export default function Task() {
               </Stack>
             </Stack>
           </GridItem>
-          <GridItem as={Stack} bg='blackAlpha.100' borderLeftWidth={2} borderColor='blackAlpha.100' p={2}>
+          <GridItem as={Stack} bg='blackAlpha.100' borderLeftWidth={2} borderColor='blackAlpha.100' p={2}
+                    overflow='auto'>
             <Heading fontSize='md' m={3}>Activity</Heading>
             {task.submissions.map(submission =>
                 <Flex key={submission.id} gap={2} fontSize='sm'>
@@ -241,8 +242,9 @@ export default function Task() {
                   </VStack>
                   <Stack mb={8}>
                     <HStack align='baseline' lineHeight={1.2}>
-                      <Text fontWeight={500}>{submission.graded ? '' : 'Executed'}</Text>
-                      <Kbd m={0} px={1} rounded='sm' fontSize='95%' textTransform='capitalize'>{submission.type}</Kbd>
+                      <Text fontWeight={500}>{submission.graded ? submission.name : 'Executed'}</Text>
+                      {!submission.graded && <Kbd m={0} px={1} rounded='sm' fontSize='95%'
+                                                  textTransform='capitalize'>{submission.type}</Kbd>}
                     </HStack>
                     {!submission.valid && <Badge colorScheme='red'>Not valid</Badge>}
                     <Text whiteSpace='nowrap' w='fit-content' pl={1} fontSize='0.7rem'>

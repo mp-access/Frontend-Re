@@ -19,7 +19,7 @@ export default function Assignment() {
     return <></>
 
   return (
-      <Stack spacing={4}>
+      <Stack spacing={4} maxW='container.lg'>
         <Stack layerStyle='segment'>
           <Box>
             <Text>ASSIGNMENT {assignment.ordinalNum}</Text>
@@ -40,7 +40,7 @@ export default function Assignment() {
         </Stack>
         <Heading p={4} pb={0} fontSize='2xl'>Tasks</Heading>
         <Divider borderColor='gray.300' />
-        <Stack maxW='container.lg' p={2}>
+        <Stack p={2}>
           {assignment.tasks.map(task =>
               <Grid as={Center} key={task.id} templateColumns='3fr 2fr 1fr 2fr 1fr' layerStyle='card' gap={4}>
                 <GridItem>
@@ -49,10 +49,10 @@ export default function Assignment() {
                   <Text fontSize='sm' noOfLines={3}>{task.instructions}</Text>
                 </GridItem>
                 <GridItem>
-                  <Wrap my={2}>
+                  <Wrap my={2} maxH={12} overflow='hidden'>
                     {range(task.maxAttempts).map(i =>
                         <WrapItem key={i} rounded='full' boxSize={5} borderWidth={2} borderColor='purple.500'
-                                  bg={(isAssistant || i <= task.remainingAttempts) ? 'purple.500' : 'transparent'} />)}
+                                  bg={(isAssistant || i < task.remainingAttempts) ? 'purple.500' : 'transparent'} />)}
                   </Wrap>
                   <HStack>
                     <Text fontSize='120%' fontWeight={600}>

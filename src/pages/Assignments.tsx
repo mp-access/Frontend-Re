@@ -16,14 +16,14 @@ export default function Assignments() {
     return <></>
 
   return (
-      <Stack spacing={4}>
+      <Stack spacing={4} maxW='container.lg'>
         <Stack layerStyle='segment'>
           <Heading>{course.title}</Heading>
           <Text flexGrow={1} fontSize='sm'>{course.description}</Text>
         </Stack>
         <Heading p={4} pb={0} fontSize='2xl'>Assignments</Heading>
         <Divider borderColor='gray.300' />
-        <Stack maxW='container.lg' p={2}>
+        <Stack p={2}>
           {course.assignments.map(assignment =>
               <Grid as={Center} key={assignment.id} templateColumns='4fr 2fr 2fr auto 3fr 1fr' layerStyle='card'
                     gap={4}>
