@@ -96,7 +96,7 @@ export default function Task() {
             <Button leftIcon={<FaFlask />} children='Test' isLoading={isLoading} onClick={onSubmit('test')} />
             <Button leftIcon={<FaTerminal />} children='Run' isLoading={isLoading} onClick={onSubmit('run')} />
             <Button colorScheme='green' leftIcon={<AiOutlineSend />} onClick={confirm.onOpen} children='Submit'
-                    isDisabled={isLoading || (!task.active && !isAssistant)} />
+                    isDisabled={isLoading || (!isAssistant && (task.remainingAttempts <= 0 || !task.active))} />
             <Modal size='sm' isOpen={confirm.isOpen} onClose={confirm.onClose} isCentered closeOnOverlayClick>
               <ModalOverlay />
               <ModalContent>
