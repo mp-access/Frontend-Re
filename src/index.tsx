@@ -40,16 +40,13 @@ function App() {
     return <></>
 
   setAuthToken(keycloak.token)
-  const client = new QueryClient()
+  const client = new QueryClient({ defaultOptions: { queries: { refetchOnWindowFocus: false } } })
 
   const fetchURL = (...path: any[]) => join(compact(flattenDeep(path)), '/')
   const setQuery = (...path: any[]) => client.setQueryDefaults(takeRight(path),
       { queryFn: context => axios.get(fetchURL(path, tail(context.queryKey))) })
-  const setMutation = (...path: any[]) =>
-      client.setMutationDefaults(takeRight(path), {
-        mutationFn: (data) => axios.post(fetchURL(path), data),
-        onSettled: async () => client.invalidateQueries({ type: 'all' })
-      })
+  const setMutation = (...path: any[]) => client.setMutationDefaults(takeRight(path),
+      { mutationFn: (data) => axios.post(fetchURL(path), data) })
 
   const loadCourses = () => setQuery('courses')
   const loadCreator = () => setMutation('courses')

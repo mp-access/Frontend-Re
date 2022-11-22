@@ -90,6 +90,7 @@ declare interface SubmissionProps {
 declare interface SubmissionFileProps {
   id: number;
   content: string;
+  taskFileId: number;
 }
 
 declare interface StudentProps {

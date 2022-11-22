@@ -65,7 +65,7 @@ export default function Layout() {
             </MenuList>
           </Menu>
         </Flex>
-        <Center flexGrow={1} flexDir='column'>
+        <Center flexGrow={1} flexDir='column' overflow='hidden'>
           <Outlet context={context} />
         </Center>
       </Stack>
