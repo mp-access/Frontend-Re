@@ -7,10 +7,10 @@ import {
 } from '@chakra-ui/react'
 import { AiOutlineCalendar } from 'react-icons/ai'
 import { Link, useOutletContext, useParams } from 'react-router-dom'
-import { Calendar } from '../components/Common'
 import CourseController from './CourseController'
 import { AssignmentScore, ProgressBar, TasksOverview } from '../components/Statistics'
 import { Feature, Underline } from '../components/Panels'
+import { DayPicker } from 'react-day-picker'
 
 export default function Course() {
   const { courseURL } = useParams()
@@ -24,7 +24,7 @@ export default function Course() {
   const featuredAssignment = course.activeAssignments[feature.i]
 
   return (
-      <Grid templateColumns='5fr 2fr' templateRows='auto 1fr' flexGrow={1}>
+      <Grid templateColumns='5fr 2fr' templateRows='auto 1fr' flexGrow={1} maxW='container.xl'>
         <GridItem m={4} overflow='hidden' layerStyle='segment'>
           <HStack px={4} justify='space-between' mb={4}>
             <HStack>
@@ -68,7 +68,7 @@ export default function Course() {
           <Heading fontSize='xl'>Leaderboard</Heading>
           <Divider borderColor='gray.300' />
           <Stack fontSize='sm'>
-            <Calendar />
+            <DayPicker mode='multiple' weekStartsOn={2} showOutsideDays />
           </Stack>
         </GridItem>
         <GridItem as={Stack} px={4}>

@@ -68,6 +68,7 @@ declare interface TaskFileProps {
   mime: string;
   language: string;
   editable: boolean;
+  open: boolean;
   image: boolean;
   bytes: string;
   template: string;

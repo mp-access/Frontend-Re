@@ -121,24 +121,7 @@ const theme = extendTheme({
       '::-webkit-scrollbar-thumb': { borderRadius: 6, bg: 'transparent' },
       ':hover::-webkit-scrollbar-thumb': { bg: 'mid' },
       '.recharts-surface': { cursor: 'pointer !important' },
-      'ul, li': { listStyle: 'none', padding: 0, margin: 0 },
-      '.fc': {
-        '.fc-toolbar.fc-header-toolbar': {
-          mb: 2, '.fc-toolbar-title': { fontSize: 'lg' }, '.fc-button-primary': {
-            rounded: 'full', margin: 0, padding: 2, bg: 'none', color: 'purple.600', borderWidth: 0, boxShadow: 'none',
-            _hover: { bg: 'purple.100', color: 'inherit' }, _disabled: { color: 'purple.400' }
-          }
-        },
-        '.fc-daygrid-day.fc-day-today': {
-          bgColor: 'transparent', '.fc-daygrid-day-number': { rounded: 'full', bgColor: 'purple.500', color: 'white' }
-        },
-        '.fc-daygrid-day-frame': {
-          '.fc-daygrid-day-number': { boxSize: 8, p: 1.5 },
-          '.fc-daygrid-day-top': { m: 0, h: 'full', textAlign: 'center' }, h: 'full',
-          '> *': { justifyContent: 'center', alignItems: 'center' }, '.fc-daygrid-day-events': { minH: 0, margin: 0 }
-        },
-        'table, tr, th, td, .fc-scrollgrid-liquid': { border: 'none', verticalAlign: 'middle', overflow: 'hidden' }
-      }
+      'ul, li': { listStyle: 'none', padding: 0, margin: 0 }
     }
   }
 })

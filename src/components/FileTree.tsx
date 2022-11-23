@@ -3,14 +3,14 @@ import { dropRight, isMap, range } from 'lodash'
 import React from 'react'
 import { FolderIcon, TypeIcon } from './Icons'
 
-type NodeProps = { value: number, onChange: (file: TaskFileProps) => void }
+type NodeProps = { value: number, onClick: (file: TaskFileProps) => void }
 type FileNodeProps = NodeProps & { data: TaskFileProps }
 type FolderNodeProps = NodeProps & { name: string, node: Map<string, any> }
 type RootNodeProps = NodeProps & { data: Array<TaskFileProps> }
 
-const File = ({ data, value, onChange }: FileNodeProps) =>
+const File = ({ data, value, onClick }: FileNodeProps) =>
     <AccordionItem border='0 solid transparent' bg={value === data.id ? 'blackAlpha.100' : 'inherit'}>
-      <AccordionButton borderWidth={0} onClick={() => onChange(data)} fontSize='sm'>
+      <AccordionButton borderWidth={0} onClick={() => onClick(data)} fontSize='sm'>
         <Icon as={TypeIcon(data.language)} ml={data.path.split('/').length * 7} mr={2} boxSize={4} />
         <Text>{data.name}</Text>
       </AccordionButton>

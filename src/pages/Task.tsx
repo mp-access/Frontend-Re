@@ -2,13 +2,12 @@ import {
   Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel, Badge, Box, Button, ButtonGroup, Center,
   CloseButton, Code, Divider, Flex, Grid, GridItem, Heading, HStack, Icon, IconButton, Image, Kbd, Modal, ModalBody,
   ModalCloseButton, ModalContent, ModalHeader, ModalOverlay, Popover, PopoverArrow, PopoverBody, PopoverContent,
-  PopoverTrigger, Spinner, Stack, Table, Tbody, Td, Text, Th, Thead, Tr, useDisclosure, VStack
+  PopoverTrigger, Spinner, Stack, Table, Tbody, Td, Text, Th, Thead, Tr, useDisclosure, useToast, VStack
 } from '@chakra-ui/react'
 import Editor, { useMonaco } from '@monaco-editor/react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { format, parseISO } from 'date-fns'
 import { AnimatePresence, Reorder } from 'framer-motion'
-import { filter } from 'lodash'
 import { Uri } from 'monaco-editor'
 import React, { useEffect, useState } from 'react'
 import { AiOutlineBulb, AiOutlineCode, AiOutlineReload, AiOutlineSend } from 'react-icons/ai'
@@ -25,15 +24,22 @@ import TaskController from './TaskController'
 import { HiDownload, HiUpload } from 'react-icons/hi'
 import JSZip from 'jszip'
 import fileDownload from 'js-file-download'
+import { unionBy } from 'lodash'
+
+const getUpdatedContent = (file: TaskFileProps, submission?: SubmissionProps) =>
+    submission?.files.find(submitted => submitted.taskFileId === file.id)?.content || file.content || file.template
+const updateFile = (file: TaskFileProps, submission?: SubmissionProps) =>
+    ({ ...file, content: getUpdatedContent(file, submission) })
 
 export default function Task() {
   const monaco = useMonaco()
+  const toast = useToast()
   const confirm = useDisclosure()
   const upload = useDisclosure()
   const { taskURL } = useParams()
   const { isAssistant, user } = useOutletContext<UserContext>()
   const [userId, setUserId] = useState(user.email)
-  const [latest, setLatest] = useState<SubmissionProps>()
+  const [currentSubmission, setCurrentSubmission] = useState<SubmissionProps>()
   const [currentFile, setCurrentFile] = useState<TaskFileProps>()
   const [openFiles, setOpenFiles] = useState<TaskFileProps[]>([])
 
@@ -41,42 +47,42 @@ export default function Task() {
   const { mutate: submit, isLoading } = useMutation<any, any, object>(['submit'],
       { onSettled: refreshTask, onSuccess: confirm.onClose })
 
-  const updateContent = (file: TaskFileProps, submission?: SubmissionProps) =>
-      ({ ...file, content: submission?.files.find(f => f.taskFileId === file.id)?.content || file.template })
+  useEffect(() => {
+    setCurrentFile(undefined)
+  }, [taskURL])
 
   useEffect(() => {
-    if (task?.files) {
-      const defaultFiles = task.files.filter(file => file.editable).map(file => updateContent(file, task.submissions[0]))
+    if (task && !currentFile) {
+      const defaultFiles = task.files.filter(file => file.editable)
       setOpenFiles(defaultFiles)
       setCurrentFile(defaultFiles[0])
     }
-  }, [task?.files])
+  }, [currentFile, task])
 
   useEffect(() => {
-    setLatest(task?.submissions[0])
-  }, [task?.submissions])
-
-  useEffect(() => {
-    if (latest) {
-      setCurrentFile(file => file && updateContent(file, latest))
-      setOpenFiles(files => files.map(file => updateContent(file, latest)))
+    if (currentSubmission) {
+      setOpenFiles(files => files.map(file => updateFile(file, currentSubmission)))
+      setCurrentFile(file => file && updateFile(file, currentSubmission))
+      toast({ title: 'Reloaded executed files', status: 'success', isClosable: true })
     }
-  }, [latest])
+  }, [currentSubmission, toast])
 
   useEffect(() => {
     if (currentFile)
-      setOpenFiles(files => files.find(f => f.id === currentFile.id) ? files : [...files, currentFile])
+      setOpenFiles(files => unionBy(files, [currentFile], 'id'))
   }, [currentFile])
 
-  const updateCurrentFile = (file: TaskFileProps) => setCurrentFile(updateContent(file, latest))
-  const getContent = (f: TaskFileProps) => monaco?.editor.getModel(Uri.file(`/${f.id}`))?.getValue() || f.template
-  const getFiles = () => task?.files.filter(f => f.editable).map(f => ({ taskFileId: f.id, content: getContent(f) }))
-  const onSubmit = (type: string) => () =>
-      submit({ taskId: task?.id, currentFileId: currentFile?.id, files: getFiles(), type })
+
+  const getEditorContent = (fileId: number) => monaco?.editor.getModel(Uri.file(`/${fileId}`))?.getValue()
+  const getContent = (file: TaskFileProps) => getEditorContent(file.id) || getUpdatedContent(file, currentSubmission)
+  const onSubmit = (type: string) => () => submit({
+    taskId: task?.id, currentFileId: currentFile?.id, type,
+    files: task?.files.filter(file => file.editable).map(file => ({ taskFileId: file.id, content: getContent(file) }))
+  })
 
   return (
       <AnimatePresence initial={false} mode='wait'>
-        {task && currentFile?.content &&
+        {task && currentFile &&
           <Screen key={task.id} flexGrow={1} w='full'>
             <Center px={4} pt={1} flexGrow={1} justifyContent='space-between'>
               <Box>
@@ -197,7 +203,8 @@ export default function Task() {
                         </Modal>
                       </ButtonGroup>
                       <AccordionPanel p={0} h='16vh' overflow='auto'>
-                        <FileTree data={task.files} value={currentFile.id} onChange={updateCurrentFile} />
+                        <FileTree data={task.files} value={currentFile.id}
+                                  onClick={file => setCurrentFile(updateFile(file, currentSubmission))} />
                       </AccordionPanel>
                     </AccordionItem>
                   </Accordion>
@@ -210,16 +217,17 @@ export default function Task() {
                         {openFiles.map(file =>
                             <FileTab key={file.id} value={file} isSelected={file.id === currentFile.id}>
                               <Text ml={3} my={2} fontFamily='Inter, Roboto, sans-serif' whiteSpace='nowrap'
-                                    onClick={() => updateCurrentFile(file)} cursor='pointer' children={file.name} />
+                                    onClick={() => setCurrentFile(file)} cursor='pointer' children={file.name} />
                               <CloseButton size='sm' mx={2} isDisabled={file.id === currentFile.id}
-                                           onClick={() => setOpenFiles(filter(openFiles, f => f.id !== file.id))} />
+                                           onClick={() => setOpenFiles(files =>
+                                               files?.filter(openFile => openFile.id !== file.id))} />
                             </FileTab>)}
                       </AnimatePresence>
                     </Reorder.Group>
                   </Flex>
                   <SplitHorizontal>
                     <Editor loading={<Spinner />} path={`${currentFile.id}`} language={currentFile.language}
-                            value={currentFile.content}
+                            value={currentFile.content || currentFile.template}
                             options={{ minimap: { enabled: false }, readOnly: !currentFile.editable }} />
                     {currentFile.image &&
                       <Center p={2} position='absolute' bottom={0} bg='white' boxSize='full' zIndex={2}>
@@ -271,7 +279,7 @@ export default function Task() {
                             <ScoreProgress value={submission.points} max={submission.maxPoints} />
                           </Box>}
                         <ButtonGroup size='xs' colorScheme='gray'>
-                          <Popover>
+                          <Popover placement='left'>
                             <PopoverTrigger>
                               <Button isDisabled={!submission.output} children={submission.graded ? 'Hint' : 'Output'}
                                       leftIcon={submission.graded ? <AiOutlineBulb /> : <AiOutlineCode />} />
@@ -283,7 +291,8 @@ export default function Task() {
                               </PopoverBody>
                             </PopoverContent>
                           </Popover>
-                          <Button leftIcon={<AiOutlineReload />} onClick={() => setLatest(submission)}>
+                          <Button leftIcon={<AiOutlineReload />}
+                                  onClick={() => setCurrentSubmission(submission)}>
                             Reload
                           </Button>
                         </ButtonGroup>
