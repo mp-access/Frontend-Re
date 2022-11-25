@@ -2,7 +2,7 @@ import { Button, Center, Heading, Icon, Text, VStack } from '@chakra-ui/react'
 import React from 'react'
 import { GrUndo } from 'react-icons/gr'
 import { Link } from 'react-router-dom'
-import { LogoButton } from '../components/Common'
+import { LogoButton } from '../components/Buttons'
 import { RobotIcon } from '../components/Icons'
 
 const Error = () =>

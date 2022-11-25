@@ -8,7 +8,8 @@ import { useQuery } from '@tanstack/react-query'
 import React from 'react'
 import { AiOutlineAppstore, AiOutlineLogout } from 'react-icons/ai'
 import { Link, Outlet, useParams } from 'react-router-dom'
-import { LogoButton } from '../components/Common'
+import { LogoButton } from '../components/Buttons'
+import { CountDown } from '../components/Statistics'
 
 export default function Layout() {
   const { keycloak } = useKeycloak()
@@ -25,8 +26,8 @@ export default function Layout() {
 
   return (
       <Stack spacing={0} bg='bg' minH='full'>
-        <Flex justify='space-between' p={3} w='full' bg='base' borderBottomWidth={1} align='center' boxShadow='lg'>
-          <HStack>
+        <Flex justify='space-between' px={3} w='full' bg='base' borderBottomWidth={1} align='center' boxShadow='lg'>
+          <HStack p={3}>
             <LogoButton />
             <Breadcrumb separator={<ChevronRightIcon color='gray.500' />}>
               <BreadcrumbItem>
@@ -54,6 +55,12 @@ export default function Layout() {
                 </BreadcrumbItem>}
             </Breadcrumb>
           </HStack>
+          {taskURL && assignment?.active &&
+            <HStack>
+              <Text color='blackAlpha.600' fontSize='xs' whiteSpace='nowrap'>DUE IN</Text>
+              <CountDown h={16} maxDays={assignment.activeDays} days={assignment.remainingDays}
+                         hours={assignment.remainingHours} minutes={assignment.remainingMinutes} />
+            </HStack>}
           <Menu>
             <MenuButton as={Button} variant='ghost' fontWeight={400} rightIcon={<Avatar size='sm' bg='purple.100' />}>
               {context.user?.name}

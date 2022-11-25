@@ -15,16 +15,16 @@ import { BsCircleFill, BsUpload } from 'react-icons/bs'
 import { FaFlask, FaTerminal } from 'react-icons/fa'
 import { FiAlignJustify, FiFile } from 'react-icons/fi'
 import { useOutletContext, useParams } from 'react-router-dom'
-import { ScoreProgress } from '../components/Common'
-import Description from '../components/Description'
 import { FileTab } from '../components/FileTab'
 import { FileTree } from '../components/FileTree'
 import { Screen, SplitHorizontal, SplitVertical } from '../components/Panels'
 import TaskController from './TaskController'
 import { HiDownload, HiUpload } from 'react-icons/hi'
+import { ProgressBar } from '../components/Statistics'
+import { MarkdownViewer } from '../components/MarkdownViewer'
+import { unionBy } from 'lodash'
 import JSZip from 'jszip'
 import fileDownload from 'js-file-download'
-import { unionBy } from 'lodash'
 
 const getUpdatedContent = (file: TaskFileProps, submission?: SubmissionProps) =>
     submission?.files.find(submitted => submitted.taskFileId === file.id)?.content || file.content || file.template
@@ -104,7 +104,7 @@ export default function Task() {
                     <Text fontSize='120%' fontWeight={600}>{task.points}</Text>
                     <Text whiteSpace='nowrap'>{` / ${task.maxPoints}`}</Text>
                   </HStack>
-                  <ScoreProgress value={task.points} max={task.maxPoints} />
+                  <ProgressBar value={task.points} max={task.maxPoints} />
                 </HStack>
               </HStack>
               <ButtonGroup variant='gradient'>
@@ -147,7 +147,7 @@ export default function Task() {
                         <Text fontWeight={500}>Instructions</Text>
                       </AccordionButton>
                       <AccordionPanel maxH='60vh' overflow='auto'>
-                        <Description task={task} />
+                        <MarkdownViewer children={task.instructions} data={task.files} />
                       </AccordionPanel>
                     </AccordionItem>
                     <AccordionItem pos='relative' borderBottomColor='transparent'>
@@ -234,9 +234,9 @@ export default function Task() {
                         <Image src={`data:image/png;base64,${currentFile.bytes}`} h='auto' />
                       </Center>}
                   </SplitHorizontal>
-                  <Stack boxSize='full' overflow='auto' p={2} bg='blackAlpha.800'>
+                  <Stack boxSize='full' flexDir='column-reverse' overflow='auto' p={2} bg='blackAlpha.800'>
                     {task.submissions.map(submission =>
-                        <Box key={submission.id}>
+                        <Box pb={2} key={submission.id}>
                           <HStack align='start'>
                             <Code color='orange.300'>{'>'}</Code>
                             <Code whiteSpace='pre-wrap'>{submission.name}</Code>
@@ -276,7 +276,7 @@ export default function Task() {
                               <Text fontWeight={600} fontSize='xl'>{submission.points}</Text>
                               <Text fontSize='lg' lineHeight={1}>/ {submission.maxPoints} Points</Text>
                             </HStack>
-                            <ScoreProgress value={submission.points} max={submission.maxPoints} />
+                            <ProgressBar value={submission.points} max={submission.maxPoints} />
                           </Box>}
                         <ButtonGroup size='xs' colorScheme='gray'>
                           <Popover placement='left'>

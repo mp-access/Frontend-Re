@@ -14,8 +14,8 @@ declare interface CourseOverview {
 }
 
 declare interface CourseProps extends CourseOverview {
-  assignments: Array<AssignmentOverview>;
   activeAssignments: Array<AssignmentProps>;
+  pastAssignments: Array<AssignmentOverview>;
 }
 
 declare interface AssignmentOverview {
@@ -25,9 +25,12 @@ declare interface AssignmentOverview {
   ordinalNum: number;
   description: string;
   startDate: string;
-  startTime: string;
   endDate: string;
-  endTime: string;
+  activeRange: string;
+  activeDays: number;
+  remainingDays: number;
+  remainingHours: number;
+  remainingMinutes: number;
   published: boolean;
   pastDue: boolean;
   active: boolean;

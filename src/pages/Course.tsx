@@ -18,7 +18,7 @@ export default function Course() {
   const { data: course } = useQuery<CourseProps>(['courses', courseURL])
   const [feature, setFeature] = useState({ i: 0, r: 1 })
 
-  if (!course?.assignments)
+  if (!course)
     return <></>
 
   const featuredAssignment = course.activeAssignments[feature.i]
@@ -81,7 +81,7 @@ export default function Course() {
           </HStack>
           <Divider borderColor='gray.300' />
           <SimpleGrid columns={3} p={2} gap={6} flexGrow={1}>
-            {take(course.assignments, 3).map(assignment =>
+            {take(course.pastAssignments, 3).map(assignment =>
                 <Stack key={assignment.id} layerStyle='card' h='35vh'>
                   <Box>
                     <Text fontSize='xs'>ASSIGNMENT {assignment.ordinalNum}</Text>
@@ -101,7 +101,7 @@ export default function Course() {
                   <Box flexGrow={1}>
                     <Text noOfLines={6} fontSize='sm'>{assignment.description}</Text>
                   </Box>
-                  <ProgressBar value={assignment.points} max={assignment.maxPoints} w='full' />
+                  <ProgressBar value={assignment.points} max={assignment.maxPoints} />
                   <Button w='full' colorScheme='green' as={Link} to={`assignments/${assignment.url}`}>
                     Start
                   </Button>

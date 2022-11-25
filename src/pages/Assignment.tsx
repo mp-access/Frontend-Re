@@ -5,7 +5,6 @@ import {
   Box, Button, Center, Divider, Grid, GridItem, Heading, HStack, Stack, Tag, TagLabel, TagLeftIcon, Text, Wrap, WrapItem
 } from '@chakra-ui/react'
 import { AiOutlineCalendar } from 'react-icons/ai'
-import { StarIcon } from '../components/Icons'
 import { CgInfinity } from 'react-icons/cg'
 import { ProgressBar } from '../components/Statistics'
 import { range } from 'lodash'
@@ -29,7 +28,7 @@ export default function Assignment() {
               <Tag>{assignment.tasksCount} Tasks</Tag>
               <Tag>
                 <TagLeftIcon as={AiOutlineCalendar} />
-                <TagLabel>{assignment.startDate} ~ {assignment.endDate}</TagLabel>
+                <TagLabel>{assignment.activeRange}</TagLabel>
               </Tag>
               <Tag colorScheme={assignment.active ? 'green' : 'purple'}>
                 Submission {assignment.active ? 'Open' : 'Closed'}
@@ -42,7 +41,7 @@ export default function Assignment() {
         <Divider borderColor='gray.300' />
         <Stack p={2}>
           {assignment.tasks.map(task =>
-              <Grid as={Center} key={task.id} templateColumns='3fr 2fr 1fr 2fr 1fr' layerStyle='card' gap={4}>
+              <Grid as={Center} key={task.id} templateColumns='3fr 2fr 2fr 1fr' layerStyle='card' gap={4}>
                 <GridItem>
                   <Text fontSize='xs'>TASK {task.ordinalNum}</Text>
                   <Heading fontSize='lg' noOfLines={1} wordBreak='break-all'>{task.title}</Heading>
@@ -62,14 +61,11 @@ export default function Assignment() {
                   </HStack>
                 </GridItem>
                 <GridItem>
-                  <Tag gap={1} colorScheme='blackAlpha' my={2}>
-                    <TagLeftIcon as={StarIcon} />
-                    <TagLabel>
-                      {task.points} / {task.maxPoints}
-                    </TagLabel>
-                  </Tag>
-                </GridItem>
-                <GridItem>
+                  <HStack px={2}>
+                    <Text whiteSpace='nowrap'>Best Score:</Text>
+                    <Text fontSize='120%' fontWeight={600}>{task.points}</Text>
+                    <Text whiteSpace='nowrap'>{` / ${task.maxPoints}`}</Text>
+                  </HStack>
                   <ProgressBar value={task.points} max={task.maxPoints} />
                 </GridItem>
                 <GridItem>

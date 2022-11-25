@@ -120,7 +120,6 @@ const theme = extendTheme({
       '::-webkit-scrollbar-corner': { bg: 'transparent' },
       '::-webkit-scrollbar-thumb': { borderRadius: 6, bg: 'transparent' },
       ':hover::-webkit-scrollbar-thumb': { bg: 'mid' },
-      '.recharts-surface': { cursor: 'pointer !important' },
       'ul, li': { listStyle: 'none', padding: 0, margin: 0 }
     }
   }
