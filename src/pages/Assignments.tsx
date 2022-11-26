@@ -17,10 +17,6 @@ export default function Assignments() {
 
   return (
       <Stack spacing={4} p={2} maxW='container.lg' h='full'>
-        <Stack layerStyle='segment'>
-          <Heading>{course.title}</Heading>
-          <Text flexGrow={1} fontSize='sm'>{course.description}</Text>
-        </Stack>
         <HStack p={4} pb={0}>
           <Icon as={FcAlarmClock} boxSize={6} />
           <Heading fontSize='2xl'>Active Assignments</Heading>

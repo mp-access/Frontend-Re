@@ -6,7 +6,7 @@ import { GitHubIcon } from '../components/Icons'
 
 export default function CourseCreator() {
   const [repository, setRepository] = useState('')
-  const { mutate: create, isLoading, data: courseURL } = useMutation<string, any, object>(['courses'])
+  const { mutate: create, isLoading, data: courseURL } = useMutation<string, any, string[]>(['create'])
   if (courseURL)
     return <Navigate to='/' />
   return (
@@ -21,7 +21,7 @@ export default function CourseCreator() {
           </InputLeftElement>
           <Input w='container.md' value={repository} onChange={e => setRepository(e.target.value)} type='text' />
         </InputGroup>
-        <Button variant='round' onClick={() => create({ repository })} isLoading={isLoading}>
+        <Button variant='round' onClick={() => create(['create', repository])} isLoading={isLoading}>
           Submit
         </Button>
       </VStack>

@@ -234,7 +234,8 @@ export default function Task() {
                         <Image src={`data:image/png;base64,${currentFile.bytes}`} h='auto' />
                       </Center>}
                   </SplitHorizontal>
-                  <Stack boxSize='full' flexDir='column-reverse' overflow='auto' p={2} bg='blackAlpha.800'>
+                  <Stack boxSize='full' flexDir='column-reverse' overflowY='scroll' overflowX='auto'
+                         p={2} bg='blackAlpha.800'>
                     {task.submissions.map(submission =>
                         <Box pb={2} key={submission.id}>
                           <HStack align='start'>

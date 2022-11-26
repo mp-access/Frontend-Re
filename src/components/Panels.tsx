@@ -30,7 +30,7 @@ export const SplitHorizontal = ({ children }: FlexProps) => {
       <Flex flexDir='column' pos='relative'>
         <MotionBox style={{ height: y }} mb={1} children={children} />
         <MotionBox pos='absolute' dragMomentum={false} drag='y' style={{ y }} cursor='row-resize' w='full' h={1}
-                   dragConstraints={{ top: defaultHeight - 400, bottom: defaultHeight + 50 }} bg='blackAlpha.200'
+                   dragConstraints={{ top: defaultHeight - 400, bottom: defaultHeight + 20 }} bg='blackAlpha.200'
                    transition='background 0.2s' _hover={{ bg: 'blackAlpha.300' }} _active={{ bg: 'blackAlpha.400' }} />
       </Flex>
   )
@@ -49,7 +49,7 @@ export const Feature = ({ custom, h, ...props }: ComponentProps<any>) =>
       <MotionBox key={custom.i} custom={custom.r} variants={{ initial: swap(1), exit: swap(-1) }}
                  transition={{ duration: 0.3 }} initial='initial' exit='exit' pos='relative' h={h}
                  animate={{ zIndex: 1, x: 0, opacity: 1 }}>
-        <Stack layerStyle='feature' pos='absolute' boxSize='full' top={0} left={0} {...props} />
+        <Stack layerStyle='card' boxSize='full' spacing={0} top={0} left={0} {...props} />
       </MotionBox>
     </AnimatePresence>
 

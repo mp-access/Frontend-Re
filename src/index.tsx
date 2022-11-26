@@ -47,29 +47,27 @@ function App() {
   const setQuery = (...path: any[]) => client.setQueryDefaults(takeRight(path),
       { queryFn: context => axios.get(fetchURL(path, tail(context.queryKey))) })
   const setMutation = (...path: any[]) => client.setMutationDefaults(takeRight(path),
-      { mutationFn: (data) => axios.post(fetchURL(path), data) })
+      { mutationFn: (data) => axios.post(fetchURL('courses', path), data) })
+  client.setDefaultOptions({ mutations: { mutationFn: (path) => axios.post(fetchURL('courses', path)) } })
 
   const loadCourses = () => setQuery('courses')
-  const loadCreator = () => setMutation('courses')
-  const loadCourse = ({ params }: LoaderFunctionArgs) => {
-    setQuery('courses', params.courseURL, 'students')
-    setMutation('courses', params.courseURL, 'students')
-    setMutation('courses', params.courseURL, 'pull')
-    setMutation('courses', params.courseURL, 'submit')
-  }
+  const loadStudents = ({ params }: LoaderFunctionArgs) =>
+      setQuery('courses', params.courseURL, 'students')
+  const loadCourse = ({ params }: LoaderFunctionArgs) =>
+      ['students', 'pull', 'submit'].forEach(key => setMutation(params.courseURL, key))
   const loadAssignments = ({ params }: LoaderFunctionArgs) =>
-      setQuery('courses', params.courseURL, 'assignments')
+      ['assignments', 'students'].forEach(key => setQuery('courses', params.courseURL, key))
   const loadTasks = ({ params }: LoaderFunctionArgs) =>
       setQuery('courses', params.courseURL, 'assignments', params.assignmentURL, 'tasks')
 
   const router = createBrowserRouter([{
     path: '/', element: <Layout />, loader: loadCourses, errorElement: <Error />, children: [
       { index: true, element: <Courses /> },
-      { path: 'create', loader: loadCreator, element: <CourseCreator /> },
+      { path: 'create', element: <CourseCreator /> },
       {
         path: 'courses/:courseURL', loader: loadCourse, children: [
           { index: true, element: <Course /> },
-          { path: 'students', element: <Students /> },
+          { path: 'students', loader: loadStudents, element: <Students /> },
           { path: 'assignments', element: <Assignments /> },
           {
             path: 'assignments/:assignmentURL', loader: loadAssignments, children: [

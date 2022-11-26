@@ -5,8 +5,8 @@ const theme = extendTheme({
   semanticTokens: {
     colors: {
       bg: {
-        default: 'linear-gradient(180deg,#fdfcfb,#f5f3f7)',
-        _dark: 'linear-gradient(180deg,#fdfcfb,#f5f3f7)'
+        default: 'linear-gradient(180deg,#f8f7f8,#f5f3f7)',
+        _dark: 'linear-gradient(180deg,#f8f7f8,#f5f3f7)'
       },
       base: {
         default: 'white',
@@ -19,11 +19,12 @@ const theme = extendTheme({
     }
   },
   layerStyles: {
-    card: { p: 5, bg: 'base', borderWidth: 1, boxShadow: 'lg', rounded: '3xl', h: 'full' },
-    segment: { p: 6, bg: 'base', rounded: '3xl' },
+    card: {
+      p: 5, bg: 'base', borderWidth: 1, boxShadow: 'lg', rounded: '3xl', h: 'full', _hover: { boxShadow: 'hover' }
+    },
+    segment: { p: 6, bg: 'base', rounded: '2xl', boxShadow: 'segment' },
     feature: {
-      rounded: '3xl', bg: 'gradients.400', pos: 'relative', color: 'base', overflow: 'hidden', p: 4,
-      _hover: { boxShadow: 'hover' }
+      rounded: '3xl', bg: 'gradients.400', color: 'base', overflow: 'hidden', p: 4, _hover: { boxShadow: 'hover' }
     }
   },
   colors: {
@@ -31,6 +32,7 @@ const theme = extendTheme({
       200: '#ffb460'
     },
     gray: {
+      10: '#f1f1f1',
       15: '#f3f3f3',
       100: '#f6f9fd',
       150: '#fcfcfc',
@@ -88,7 +90,9 @@ const theme = extendTheme({
     md: '0px 3px 12px #858f9d2e',
     lg: '0px 2px 6px rgba(19, 18, 66, 0.07)',
     card: '#d7d9e2 0px 1px 2px 0px',
-    hover: '#2a303933 0px 2px 16px 0px'
+    hover: '#2a303933 0px 2px 16px 0px',
+    callout: '#0000000d 5px 0px 15px, #00000008 4px 0px 6px',
+    segment: '#0000000a -2px 0px 6px, #0000000a -2px 0px 15px'
   },
   components: {
     Code: { defaultProps: { colorScheme: 'whiteAlpha' }, variants: { subtle: { bg: 'transparent' } } },

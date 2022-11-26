@@ -1,4 +1,4 @@
-declare interface CourseOverview {
+declare interface CourseFeature {
   id: number;
   url: string;
   title: string;
@@ -7,6 +7,9 @@ declare interface CourseOverview {
   semester: string;
   startDate: string;
   endDate: string;
+}
+
+declare interface CourseOverview extends CourseFeature {
   maxPoints: number;
   points: number;
   avgPoints: number;
@@ -21,6 +24,7 @@ declare interface CourseProps extends CourseOverview {
 declare interface AssignmentOverview {
   id: number;
   url: string;
+  name: string;
   title: string;
   ordinalNum: number;
   description: string;
@@ -47,6 +51,7 @@ declare interface AssignmentProps extends AssignmentOverview {
 declare interface TaskOverview {
   id: number;
   url: string;
+  name: string;
   title: string;
   ordinalNum: number;
   instructions: string;

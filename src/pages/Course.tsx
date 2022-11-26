@@ -1,16 +1,19 @@
 import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { take } from 'lodash'
 import {
-  Box, Button, Center, Divider, Flex, Grid, GridItem, Heading, HStack, SimpleGrid, Stack, Tag, TagLabel, TagLeftIcon,
-  Text, VStack, Wrap
+  Box, Button, Center, Flex, Grid, GridItem, Heading, HStack, Icon, Stack, Tag, TagLabel, TagLeftIcon, Text, VStack,
+  Wrap
 } from '@chakra-ui/react'
-import { AiOutlineCalendar } from 'react-icons/ai'
+import { AiOutlineBook, AiOutlineCalendar, AiOutlineTeam } from 'react-icons/ai'
 import { Link, useOutletContext, useParams } from 'react-router-dom'
 import CourseController from './CourseController'
-import { AssignmentScore, ProgressBar, TasksOverview } from '../components/Statistics'
+import { CountDown, ProgressScore, TasksOverview } from '../components/Statistics'
 import { Feature, Underline } from '../components/Panels'
 import { DayPicker } from 'react-day-picker'
+import { FcAlarmClock, FcBullish } from 'react-icons/fc'
+import { Counter, GoToButton } from '../components/Buttons'
+import { CourseIcon } from '../components/Icons'
+import { BsFillCircleFill } from 'react-icons/bs'
 
 export default function Course() {
   const { courseURL } = useParams()
@@ -21,92 +24,95 @@ export default function Course() {
   if (!course)
     return <></>
 
-  const featuredAssignment = course.activeAssignments[feature.i]
+  const featured = course.activeAssignments[feature.i]
 
   return (
-      <Grid templateColumns='5fr 2fr' templateRows='auto 1fr' flexGrow={1} maxW='container.xl'>
-        <GridItem m={4} overflow='hidden' layerStyle='segment'>
-          <HStack px={4} justify='space-between' mb={4}>
+      <Grid templateColumns='5fr 2fr' templateRows='auto auto 1fr' gap={6} maxW='container.xl' maxH='container.lg'>
+        <GridItem as={Stack} layerStyle='segment'>
+          <Flex>
+            <Icon as={CourseIcon(0)} boxSize={16} mr={4} />
+            <Stack>
+              <Heading fontSize='2xl'>{course.title}</Heading>
+              <Wrap>
+                <Tag>
+                  <TagLeftIcon as={AiOutlineCalendar} />
+                  <TagLabel>{course.semester}</TagLabel>
+                </Tag>
+                <Tag>
+                  <TagLeftIcon as={AiOutlineCalendar} />
+                  <TagLabel>{course.startDate} ~ {course.endDate}</TagLabel>
+                </Tag>
+                <Tag>
+                  <TagLeftIcon as={AiOutlineBook} />
+                  <TagLabel>{course.assignmentsCount} Assignments</TagLabel>
+                </Tag>
+                <Tag>
+                  <TagLeftIcon as={AiOutlineTeam} />
+                  <TagLabel>5 Students</TagLabel>
+                </Tag>
+                <Tag color='green.600' bg='green.50'>
+                  <TagLeftIcon as={BsFillCircleFill} boxSize={2} />
+                  <TagLabel>5 Online</TagLabel>
+                </Tag>
+              </Wrap>
+            </Stack>
+          </Flex>
+          <Text flexGrow={1} noOfLines={5} fontSize='sm'>{course.description}</Text>
+        </GridItem>
+        <GridItem as={Stack} colSpan={1} rowSpan={3} layerStyle='segment' fontSize='sm'>
+          <DayPicker mode='multiple' weekStartsOn={2} showOutsideDays />
+          {isSupervisor && <CourseController />}
+        </GridItem>
+        <GridItem layerStyle='segment'>
+          <HStack px={6} pb={2} justify='space-between'>
             <HStack>
-              <Heading fontSize='xl'>Active Assignments</Heading>
-              <Center rounded='md' bg='purple.100' p={0.5} w={6} color='purple.600' fontWeight={600}>
-                {course.activeAssignments.length}
-              </Center>
+              <Icon as={FcAlarmClock} boxSize={6} />
+              <Heading fontSize='2xl'>Active Assignments</Heading>
+              <Counter>{course.activeAssignments.length}</Counter>
+              <Button pt={1} w={20} as={Link} to='assignments' variant='link' size='lg'>View All</Button>
             </HStack>
             <HStack spacing={4}>
               {course.activeAssignments.map((assignment, i) =>
                   <Underline key={i} onClick={() => setFeature({ i, r: feature.i < i ? -1 : 1 })}
-                             isActive={feature.i === i}>
-                    {`Assignment ${assignment.ordinalNum}`}
-                  </Underline>)}
+                             isActive={feature.i === i} children={assignment.name} />)}
             </HStack>
           </HStack>
-          {featuredAssignment ?
-              <Feature custom={feature} h='35vh' as={Link} to={`assignments/${featuredAssignment.url}`}>
-                <Box pos='absolute' bg='gradients.405' w='full' h='4xl' rounded='full' left='15%' bottom={5} />
-                <Flex zIndex={1} gap={4}>
-                  <Box whiteSpace='nowrap'>
-                    <Text fontSize='xs'>ASSIGNMENT {featuredAssignment.ordinalNum}</Text>
-                    <Heading fontSize='lg'>{featuredAssignment.title}</Heading>
+          {featured ?
+              <Feature custom={feature} h='xs' as={Link} to={`assignments/${featured.url}`}>
+                <Flex gap={4} pb={4} justify='space-between' w='full'>
+                  <Box>
+                    <Text fontSize='xs'>ASSIGNMENT {featured.ordinalNum}</Text>
+                    <Heading whiteSpace='nowrap' fontSize='lg'>{featured.title}</Heading>
+                    <Text fontSize='sm' noOfLines={2}>{featured.description}</Text>
                   </Box>
-                  <Text fontSize='sm' noOfLines={2}>{featuredAssignment.description}</Text>
+                  <HStack>
+                    <Text color='blackAlpha.600' fontSize='xs' whiteSpace='nowrap'>DUE IN</Text>
+                    <CountDown h={16} maxDays={featured.activeDays} days={featured.remainingDays}
+                               hours={featured.remainingHours} minutes={featured.remainingMinutes} />
+                  </HStack>
                 </Flex>
-                <Flex zIndex={1} flexGrow={1} pt={5}>
-                  <TasksOverview data={featuredAssignment.tasks} />
-                  <VStack w='full'>
-                    <Heading fontSize='md'>Assignment Score</Heading>
-                    <AssignmentScore data={featuredAssignment} />
+                <Flex flexGrow={1} pos='relative'>
+                  <TasksOverview data={featured.tasks} />
+                  <VStack spacing={0} w='full'>
+                    <Text color='blackAlpha.500' fontSize='sm'>My Progress</Text>
+                    <ProgressScore points={featured.points} max={featured.maxPoints}
+                                   data={featured.tasks.filter(task => task.points)} />
                   </VStack>
+                  <GoToButton pos='absolute' bottom={-3} right={0}>
+                    {featured.points ? 'Continue' : 'Start'}
+                  </GoToButton>
                 </Flex>
               </Feature> :
-              <Center layerStyle='feature' bg='blackAlpha.50' color='blackAlpha.500' border='2px dashed'
+              <Center layerStyle='card' bg='blackAlpha.50' color='blackAlpha.500' border='2px dashed'
                       borderColor='blackAlpha.300' children={'No active assignments.'} />}
         </GridItem>
-        <GridItem as={Stack} colSpan={1} rowSpan={2} bg='base' boxShadow='md' borderLeftWidth={1} p={8}>
-          <Heading fontSize='xl'>Notice Board</Heading>
-          <Divider borderColor='gray.300' />
-          <Heading fontSize='xl'>Leaderboard</Heading>
-          <Divider borderColor='gray.300' />
-          <Stack fontSize='sm'>
-            <DayPicker mode='multiple' weekStartsOn={2} showOutsideDays />
-          </Stack>
-        </GridItem>
-        <GridItem as={Stack} px={4}>
-          <HStack justify='space-between' px={2} align='end'>
-            <HStack spacing={6}>
-              <Heading fontSize='xl'>Latest Assignments</Heading>
-              <Button as={Link} to='assignments' variant='link' size='lg'>View All</Button>
+        <GridItem as={Stack} layerStyle='segment'>
+          <HStack px={6} justify='space-between' align='end'>
+            <HStack>
+              <Icon as={FcBullish} boxSize={6} />
+              <Heading fontSize='2xl'>My Progress</Heading>
             </HStack>
-            {isSupervisor && <CourseController />}
           </HStack>
-          <Divider borderColor='gray.300' />
-          <SimpleGrid columns={3} p={2} gap={6} flexGrow={1}>
-            {take(course.pastAssignments, 3).map(assignment =>
-                <Stack key={assignment.id} layerStyle='card' h='35vh'>
-                  <Box>
-                    <Text fontSize='xs'>ASSIGNMENT {assignment.ordinalNum}</Text>
-                    <Heading fontSize='lg' noOfLines={2}>{assignment.title}</Heading>
-                  </Box>
-                  <Wrap>
-                    {!assignment.published && <Tag colorScheme='red'>Draft</Tag>}
-                    <Tag>{assignment.tasksCount} Tasks</Tag>
-                    <Tag colorScheme={assignment.active ? 'green' : 'purple'}>
-                      Submission {assignment.active ? 'Open' : 'Closed'}
-                    </Tag>
-                    <Tag>
-                      <TagLeftIcon as={AiOutlineCalendar} />
-                      <TagLabel>{assignment.startDate} ~ {assignment.endDate}</TagLabel>
-                    </Tag>
-                  </Wrap>
-                  <Box flexGrow={1}>
-                    <Text noOfLines={6} fontSize='sm'>{assignment.description}</Text>
-                  </Box>
-                  <ProgressBar value={assignment.points} max={assignment.maxPoints} />
-                  <Button w='full' colorScheme='green' as={Link} to={`assignments/${assignment.url}`}>
-                    Start
-                  </Button>
-                </Stack>)}
-          </SimpleGrid>
         </GridItem>
       </Grid>
   )
