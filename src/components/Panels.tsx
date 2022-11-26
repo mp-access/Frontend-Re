@@ -44,10 +44,10 @@ export const Underline = ({ isActive, onClick, children }: BoxProps & ButtonOpti
                    w='full' animate={{ transition: { type: 'spring', stiffness: 500, damping: 30 } }} />}
     </Box>
 
-export const Feature = ({ custom, h, ...props }: ComponentProps<any>) =>
+export const Feature = ({ custom, ...props }: ComponentProps<any>) =>
     <AnimatePresence initial={false} custom={custom.r} mode='popLayout'>
       <MotionBox key={custom.i} custom={custom.r} variants={{ initial: swap(1), exit: swap(-1) }}
-                 transition={{ duration: 0.3 }} initial='initial' exit='exit' pos='relative' h={h}
+                 transition={{ duration: 0.3 }} initial='initial' exit='exit' pos='relative' boxSize='full'
                  animate={{ zIndex: 1, x: 0, opacity: 1 }}>
         <Stack layerStyle='card' boxSize='full' spacing={0} top={0} left={0} {...props} />
       </MotionBox>

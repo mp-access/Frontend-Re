@@ -1,6 +1,6 @@
 import {
-  Button, ButtonGroup, Center, Divider, Flex, Grid, GridItem, Heading, HStack, Icon, Stack, Tag, TagLabel, TagLeftIcon,
-  Text, VStack, Wrap
+  Button, ButtonGroup, Center, Divider, Flex, Grid, GridItem, Heading, HStack, Icon, SimpleGrid, Stack, Tag, TagLabel,
+  TagLeftIcon, Text, VStack, Wrap
 } from '@chakra-ui/react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import React from 'react'
@@ -26,7 +26,7 @@ export default function Courses() {
     return <></>
 
   return (
-      <Grid templateColumns='2fr 1fr' gap={6} maxW='container.xl' maxH='container.md'>
+      <Grid templateColumns='2fr 1fr' gap={6} w='container.xl'>
         <GridItem as={Stack} spacing={4} layerStyle='segment'>
           <Heading fontWeight={400} fontSize='3xl'>Welcome, <b>{user.given_name}</b>!</Heading>
           <HStack justify='space-between' p={2} pb={0} align='end'>
@@ -41,7 +41,7 @@ export default function Courses() {
               </Button>}
           </HStack>
           <Divider borderColor='gray.300' />
-          <Stack p={2} spacing={6}>
+          <SimpleGrid columns={1} templateRows='auto auto' h='lg' p={2} gap={6}>
             {enrolled.map((course, i) =>
                 <Flex key={course.id} as={Link} to={`courses/${course.url}`} layerStyle='card'>
                   <Stack p={2}>
@@ -89,7 +89,7 @@ export default function Courses() {
                   </Stack>
                 </Flex>)}
             {!enrolled.length && <Center boxSize='full' color='gray.500'>No courses found.</Center>}
-          </Stack>
+          </SimpleGrid>
         </GridItem>
         <GridItem layerStyle='segment'>
           <HStack p={2}>
@@ -98,7 +98,7 @@ export default function Courses() {
             <Heading pt={1} fontSize='2xl' fontWeight={400} fontFamily='"Courier Prime", monospace'>ACCESS</Heading>
           </HStack>
           <Divider borderColor='gray.300' />
-          <Stack p={2} pt={4} spacing={4} h='full'>
+          <SimpleGrid columns={1} templateRows='auto auto' h='xl' p={2} pt={4} gap={4}>
             {featured.map(course =>
                 <Stack key={course.id} layerStyle='card'>
                   <Heading fontSize='xl'>{course.title}</Heading>
@@ -120,7 +120,7 @@ export default function Courses() {
                       <TagLabel>5 Students</TagLabel>
                     </Tag>
                   </Wrap>
-                  <Text noOfLines={4} fontSize='sm'>{course.description}</Text>
+                  <Text flexGrow={1} noOfLines={4} fontSize='sm'>{course.description}</Text>
                   <Divider borderColor='gray.300' />
                   <ButtonGroup>
                     <Button w='full' variant='ghost'>Read More</Button>
@@ -131,11 +131,11 @@ export default function Courses() {
                   </ButtonGroup>
                 </Stack>)}
             {!featured.length &&
-              <VStack h='container.sm' justify='center' spacing={4} color='blackAlpha.400'>
+              <VStack justify='center' spacing={4} color='blackAlpha.400'>
                 <Icon as={FiSend} boxSize={16} opacity={0.3} />
                 <Text>More courses <br /> coming soon!</Text>
               </VStack>}
-          </Stack>
+          </SimpleGrid>
         </GridItem>
       </Grid>
   )

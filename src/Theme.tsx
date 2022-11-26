@@ -20,7 +20,7 @@ const theme = extendTheme({
   },
   layerStyles: {
     card: {
-      p: 5, bg: 'base', borderWidth: 1, boxShadow: 'lg', rounded: '3xl', h: 'full', _hover: { boxShadow: 'hover' }
+      p: 5, bg: 'base', borderWidth: 1, boxShadow: 'lg', rounded: '3xl', _hover: { boxShadow: 'hover' }
     },
     segment: { p: 6, bg: 'base', rounded: '2xl', boxShadow: 'segment' },
     feature: {

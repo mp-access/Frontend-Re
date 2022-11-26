@@ -7,9 +7,6 @@ type ScoreProps = { data: Array<Partial<{ points: number, name: string }>>, poin
 
 const Rounded = ({ x, y, height, width, fill }: SVGProps<any>) =>
     <rect x={x} y={y || 1} height={height} width={width} rx='2%' fill={fill} />
-const NameLabel = ({ x, y, cx, cy, fill, textAnchor, name }: SVGProps<any>) =>
-    <text x={x} y={y} cx={cx} cy={cy} fill={fill} textAnchor={textAnchor} children={name}
-          dx={5 * (textAnchor === 'start' ? 1 : -1)} alignmentBaseline='middle' fontSize='80%' />
 
 const toPercent = (value = 0, max = 1) => `${round(value / max * 100, 1)}%`
 const roundedStyle = { shape: <Rounded />, background: <Rounded /> }
@@ -43,7 +40,7 @@ export const ProgressScore = ({ data, points = 0, max = 1 }: ScoreProps) =>
       <PieChart>
         <Tooltip {...tooltipStyle} formatter={(value) => `${value} Points`} />
         <Pie dataKey='points' innerRadius='65%' outerRadius='100%' startAngle={90} endAngle={-270} nameKey='name'
-             data={[...data, { points: max - points, name: 'Remaining' }]} label={NameLabel} fill='#00000014'>
+             data={[...data, { points: max - points, name: 'Remaining' }]} fill='#00000014'>
           {range(data.length).map(i => <Cell key={`cell-${i}`} fill='#3dcb99' />)}
           <Label value={toPercent(points, max)} fill='#3dcb99' fontWeight={600} position='center' />
         </Pie>
