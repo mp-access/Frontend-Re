@@ -41,7 +41,7 @@ export default function Courses() {
               </Button>}
           </HStack>
           <Divider borderColor='gray.300' />
-          <SimpleGrid columns={1} templateRows='auto auto' h='lg' p={2} gap={6}>
+          <SimpleGrid columns={1} templateRows='50% 50%' h='lg' p={2} gap={6}>
             {enrolled.map((course, i) =>
                 <Flex key={course.id} as={Link} to={`courses/${course.url}`} layerStyle='card'>
                   <Stack p={2}>
@@ -98,7 +98,7 @@ export default function Courses() {
             <Heading pt={1} fontSize='2xl' fontWeight={400} fontFamily='"Courier Prime", monospace'>ACCESS</Heading>
           </HStack>
           <Divider borderColor='gray.300' />
-          <SimpleGrid columns={1} templateRows='auto auto' h='xl' p={2} pt={4} gap={4}>
+          <SimpleGrid columns={1} templateRows='50% 50%' h='xl' p={2} pt={4} gap={4}>
             {featured.map(course =>
                 <Stack key={course.id} layerStyle='card'>
                   <Heading fontSize='xl'>{course.title}</Heading>
