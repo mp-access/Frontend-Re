@@ -58,8 +58,7 @@ export default function Layout() {
           {taskURL && assignment?.active &&
             <HStack>
               <Text color='blackAlpha.600' fontSize='xs' whiteSpace='nowrap'>DUE IN</Text>
-              <CountDown h={16} maxDays={assignment.activeDays} days={assignment.remainingDays}
-                         hours={assignment.remainingHours} minutes={assignment.remainingMinutes} />
+              <CountDown values={assignment.remainingTime} h={16} />
             </HStack>}
           <Menu>
             <MenuButton as={Button} variant='ghost' fontWeight={400} rightIcon={<Avatar size='sm' bg='purple.100' />}>

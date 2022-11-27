@@ -4,6 +4,7 @@ import { Bar, BarChart, Cell, Label, Legend, Pie, PieChart, ResponsiveContainer,
 import { SimpleGrid } from '@chakra-ui/react'
 
 type ScoreProps = { data: Array<Partial<{ points: number, name: string }>>, points: number, max: number }
+type CountDownProps = { values: Array<TimeCounterProps>, h?: number }
 
 const Rounded = ({ x, y, height, width, fill }: SVGProps<any>) =>
     <rect x={x} y={y || 1} height={height} width={width} rx='2%' fill={fill} />
@@ -16,23 +17,22 @@ const tooltipStyle = {
   cursor: { fill: 'transparent', cursor: 'pointer' }
 }
 
-const Counter = ({ value = 0, max = 1, name = '' }) =>
+const TimeCounter = ({ current, max, name }: TimeCounterProps) =>
     <ResponsiveContainer>
       <PieChart>
-        <Pie data={[{ value }, { value: max - value }]} dataKey='value' innerRadius='50%' outerRadius='65%'
+        <Pie data={[{ current }, { current: max - current }]} dataKey='current' innerRadius='50%' outerRadius='65%'
              startAngle={90} endAngle={-270} fill='#00000014' cy='40%'>
           <Cell key='cell-0' fill='#3dcb99' />
-          <Label value={value} fill='#3dcb99' fontWeight={600} position='center' />
+          <Label value={current} fill='#3dcb99' fontWeight={600} position='center' />
           <Label value={name} fill='#0000007a' fontSize='75%' position='bottom' dy={12} />
         </Pie>
       </PieChart>
     </ResponsiveContainer>
 
-export const CountDown = ({ maxDays = 1, days = 0, hours = 0, minutes = 0, h = 20 }) =>
+export const CountDown = ({ values, h = 20 }: CountDownProps) =>
     <SimpleGrid h={h} w={h * 3} columns={3}>
-      <Counter value={days} max={maxDays} name='DAYS' />
-      <Counter value={hours} max={24} name='HOURS' />
-      <Counter value={minutes} max={60} name='MINUTES' />
+      {values.map((counter, i) =>
+          <TimeCounter key={i} current={counter.current} max={counter.max} name={counter.name} />)}
     </SimpleGrid>
 
 export const ProgressScore = ({ data, points = 0, max = 1 }: ScoreProps) =>
@@ -60,7 +60,7 @@ export const TasksOverview = ({ data }: { data: Array<TaskOverview> }) =>
     </ResponsiveContainer>
 
 export const ProgressBar = ({ value = 0, max = 1 }) =>
-    <ResponsiveContainer height={20}>
+    <ResponsiveContainer height={10}>
       <BarChart data={[{ value }]} barSize={10} layout='vertical'>
         <XAxis hide type='number' domain={[0, max]} />
         <Bar dataKey='value' fill='#3dcb99' {...roundedStyle} />

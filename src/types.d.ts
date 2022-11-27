@@ -31,10 +31,7 @@ declare interface AssignmentOverview {
   startDate: string;
   endDate: string;
   activeRange: string;
-  activeDays: number;
-  remainingDays: number;
-  remainingHours: number;
-  remainingMinutes: number;
+  remainingTime: Array<TimeCounterProps>;
   published: boolean;
   pastDue: boolean;
   active: boolean;
@@ -46,6 +43,12 @@ declare interface AssignmentOverview {
 
 declare interface AssignmentProps extends AssignmentOverview {
   tasks: Array<TaskOverview>;
+}
+
+declare interface TimeCounterProps {
+  name: string;
+  current: number;
+  max: number;
 }
 
 declare interface TaskOverview {

@@ -41,10 +41,10 @@ export default function Courses() {
               </Button>}
           </HStack>
           <Divider borderColor='gray.300' />
-          <SimpleGrid columns={1} templateRows='50% 50%' h='lg' p={2} gap={6}>
+          <SimpleGrid columns={1} templateRows='1fr 1fr' h='lg' p={2} gap={6}>
             {enrolled.map((course, i) =>
-                <Flex key={course.id} as={Link} to={`courses/${course.url}`} layerStyle='card'>
-                  <Stack p={2}>
+                <Flex key={course.id} as={Link} to={`courses/${course.url}`} layerStyle='card' py={0}>
+                  <Stack p={2} pt={5}>
                     <Flex>
                       <Icon as={CourseIcon(i)} boxSize={16} mr={4} />
                       <Stack>
@@ -76,7 +76,7 @@ export default function Courses() {
                     <Text flexGrow={1} noOfLines={5} fontSize='sm'>{course.description}</Text>
                     <GoToButton>Go To Course</GoToButton>
                   </Stack>
-                  <Stack w='2xs' spacing={0}>
+                  <Stack w='2xs' spacing={0} py={5}>
                     <HStack w='full' justify='end' mb={5}>
                       <Tag colorScheme='purple'>
                         <TagLeftIcon as={BsCheck2} />
@@ -98,7 +98,7 @@ export default function Courses() {
             <Heading pt={1} fontSize='2xl' fontWeight={400} fontFamily='"Courier Prime", monospace'>ACCESS</Heading>
           </HStack>
           <Divider borderColor='gray.300' />
-          <SimpleGrid columns={1} templateRows='50% 50%' h='xl' p={2} pt={4} gap={4}>
+          <SimpleGrid columns={1} templateRows='1fr 1fr' h='xl' p={2} pt={4} gap={4}>
             {featured.map(course =>
                 <Stack key={course.id} layerStyle='card'>
                   <Heading fontSize='xl'>{course.title}</Heading>

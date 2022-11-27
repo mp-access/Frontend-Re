@@ -36,8 +36,7 @@ export default function Assignments() {
                     <TagLabel>{assignment.activeRange}</TagLabel>
                   </Tag>
                   <Text color='blackAlpha.600' fontSize='xs'>TIME REMAINING</Text>
-                  <CountDown maxDays={assignment.activeDays} days={assignment.remainingDays}
-                             hours={assignment.remainingHours} minutes={assignment.remainingMinutes} />
+                  <CountDown values={assignment.remainingTime} />
                 </GridItem>
                 <GridItem>
                   <HStack px={2}>

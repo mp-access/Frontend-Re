@@ -72,11 +72,10 @@ export default function Task() {
       setOpenFiles(files => unionBy(files, [currentFile], 'id'))
   }, [currentFile])
 
-
   const getEditorContent = (fileId: number) => monaco?.editor.getModel(Uri.file(`/${fileId}`))?.getValue()
   const getContent = (file: TaskFileProps) => getEditorContent(file.id) || getUpdatedContent(file, currentSubmission)
   const onSubmit = (type: string) => () => submit({
-    taskId: task?.id, currentFileId: currentFile?.id, type,
+    userId: user.email, restricted: !isAssistant, taskId: task?.id, currentFileId: currentFile?.id, type,
     files: task?.files.filter(file => file.editable).map(file => ({ taskFileId: file.id, content: getContent(file) }))
   })
 
@@ -99,12 +98,12 @@ export default function Task() {
                     <Icon as={BsCircleFill} boxSize={1} color='gray.300' mx={4} />
                   </HStack>}
                 <HStack>
-                  <HStack>
-                    <Text whiteSpace='nowrap'>Best Score:</Text>
-                    <Text fontSize='120%' fontWeight={600}>{task.points}</Text>
-                    <Text whiteSpace='nowrap'>{` / ${task.maxPoints}`}</Text>
-                  </HStack>
-                  <ProgressBar value={task.points} max={task.maxPoints} />
+                  <Text whiteSpace='nowrap'>Best Score:</Text>
+                  <Text fontSize='120%' fontWeight={600}>{task.points}</Text>
+                  <Text whiteSpace='nowrap'>{` / ${task.maxPoints}`}</Text>
+                  <Center w={24}>
+                    <ProgressBar value={task.points} max={task.maxPoints} />
+                  </Center>
                 </HStack>
               </HStack>
               <ButtonGroup variant='gradient'>

@@ -88,8 +88,7 @@ export default function Course() {
                     </Box>
                     <HStack>
                       <Text color='blackAlpha.600' fontSize='xs' whiteSpace='nowrap'>DUE IN</Text>
-                      <CountDown h={16} maxDays={featured.activeDays} days={featured.remainingDays}
-                                 hours={featured.remainingHours} minutes={featured.remainingMinutes} />
+                      <CountDown values={featured.remainingTime} h={16} />
                     </HStack>
                   </Flex>
                   <Flex h={44}>

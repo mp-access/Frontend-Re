@@ -42,8 +42,7 @@ export default function Assignment() {
             {assignment.active &&
               <VStack>
                 <Text color='blackAlpha.600' fontSize='xs'>TIME REMAINING</Text>
-                <CountDown maxDays={assignment.activeDays} days={assignment.remainingDays}
-                           hours={assignment.remainingHours} minutes={assignment.remainingMinutes} />
+                <CountDown values={assignment.remainingTime} />
               </VStack>}
           </Flex>
           <Text flexGrow={1} fontSize='sm'>{assignment.description}</Text>
