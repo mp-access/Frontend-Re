@@ -22,4 +22,4 @@ jobs:
           push: true
           tags: sealuzh/access-frontend:re
         env:
-          REACT_APP_AUTH_SERVER_URL: ${{ secrets.AUTH_SERVER_URL }}
+          AUTH_SERVER_URL: ${{ secrets.AUTH_SERVER_URL }}
