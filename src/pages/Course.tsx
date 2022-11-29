@@ -9,17 +9,19 @@ import { Link, useOutletContext, useParams } from 'react-router-dom'
 import CourseController from './CourseController'
 import { CountTo, ProgressScore, TasksOverview } from '../components/Statistics'
 import { Feature, Underline } from '../components/Panels'
-import { DayPicker } from 'react-day-picker'
 import { FcAlarmClock, FcBullish } from 'react-icons/fc'
 import { Counter, GoToButton } from '../components/Buttons'
 import { CourseIcon } from '../components/Icons'
 import { BsFillCircleFill } from 'react-icons/bs'
+import { parseISO } from 'date-fns'
+import { DayPicker } from 'react-day-picker'
 
 export default function Course() {
   const { courseURL } = useParams()
   const { isSupervisor } = useOutletContext<UserContext>()
   const { data: course } = useQuery<CourseProps>(['courses', courseURL])
   const [feature, setFeature] = useState({ i: 0, r: 1 })
+  const [selectedDay, setSelectedDay] = useState<Date | undefined>(new Date())
 
   if (!course)
     return <></>
@@ -61,7 +63,13 @@ export default function Course() {
         </GridItem>
         <GridItem as={VStack} colSpan={1} rowSpan={3} layerStyle='segment' fontSize='sm'>
           {isSupervisor && <CourseController />}
-          <DayPicker mode='multiple' weekStartsOn={2} showOutsideDays />
+          <DayPicker mode='single' required selected={selectedDay} onSelect={setSelectedDay} weekStartsOn={2}
+                     showOutsideDays fromMonth={new Date()} modifiersStyles={{ selected: { color: 'inherit' } }}
+                     modifiersClassNames={{ starts: 'cal-starts', ends: 'cal-ends' }}
+                     modifiers={{
+                       starts: course.activeAssignments.map(a => parseISO(a.startDate)),
+                       ends: course.activeAssignments.map(a => parseISO(a.endDate))
+                     }} />
         </GridItem>
         <GridItem layerStyle='segment'>
           <HStack px={6} pb={4} justify='space-between'>

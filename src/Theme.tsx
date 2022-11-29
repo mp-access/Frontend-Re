@@ -124,7 +124,17 @@ const theme = extendTheme({
       '::-webkit-scrollbar-corner': { bg: 'transparent' },
       '::-webkit-scrollbar-thumb': { borderRadius: 6, bg: 'transparent' },
       ':hover::-webkit-scrollbar-thumb': { bg: 'mid' },
-      'ul, li': { listStyle: 'none', padding: 0, margin: 0 }
+      'ul, li': { listStyle: 'none', padding: 0, margin: 0 },
+      '.rdp': { '--rdp-accent-color': 'var(--chakra-colors-purple-100)' },
+      '.rdp-button': { transition: 'background-color 0.5s ease' },
+      '.cal-starts': {
+        backgroundPosition: '0 -1em', backgroundRepeat: 'no-repeat', fontWeight: 500,
+        backgroundImage: 'radial-gradient(var(--chakra-colors-green-400) 3px, transparent 0)'
+      },
+      '.cal-ends': {
+        backgroundPosition: '0 -1em', backgroundRepeat: 'no-repeat', fontWeight: 500,
+        backgroundImage: 'radial-gradient(var(--chakra-colors-red-400) 3px, transparent 0)'
+      }
     }
   }
 })
