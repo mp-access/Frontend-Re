@@ -25,7 +25,7 @@ import theme from './Theme'
 import Assignments from './pages/Assignments'
 
 const authClient = new Keycloak({
-  url: process.env.REACT_APP_AUTH_SERVER_URL || 'https://info1-staging.ifi.uzh.ch:8443',
+  url: process.env.REACT_APP_AUTH_SERVER_URL,
   realm: 'access',
   clientId: 'access-frontend'
 })

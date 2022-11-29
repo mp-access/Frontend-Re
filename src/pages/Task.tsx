@@ -20,7 +20,7 @@ import { FileTree } from '../components/FileTree'
 import { Screen, SplitHorizontal, SplitVertical } from '../components/Panels'
 import TaskController from './TaskController'
 import { HiDownload, HiUpload } from 'react-icons/hi'
-import { ProgressBar } from '../components/Statistics'
+import { CountDown, ProgressBar } from '../components/Statistics'
 import { MarkdownViewer } from '../components/MarkdownViewer'
 import { unionBy } from 'lodash'
 import JSZip from 'jszip'
@@ -49,7 +49,7 @@ export default function Task() {
 
   useEffect(() => {
     setCurrentFile(undefined)
-  }, [taskURL])
+  }, [taskURL, userId])
 
   useEffect(() => {
     if (task && !currentFile) {
@@ -90,12 +90,14 @@ export default function Task() {
               </Box>
               <HStack>
                 {((!isAssistant && task.active) || userId !== user?.email) &&
-                  <HStack>
+                  <HStack pos='relative'>
                     <Text fontSize='120%' fontWeight={600}>
                       {task.remainingAttempts}
                     </Text>
                     <Text noOfLines={1}>/ {task.maxAttempts} Submissions left</Text>
                     <Icon as={BsCircleFill} boxSize={1} color='gray.300' mx={4} />
+                    {!task.remainingAttempts &&
+                      <CountDown values={task.submissions.map(s => s.nextAttemptAt)} />}
                   </HStack>}
                 <HStack>
                   <Text whiteSpace='nowrap'>Best Score:</Text>

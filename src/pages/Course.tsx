@@ -7,7 +7,7 @@ import {
 import { AiOutlineBook, AiOutlineCalendar, AiOutlineTeam } from 'react-icons/ai'
 import { Link, useOutletContext, useParams } from 'react-router-dom'
 import CourseController from './CourseController'
-import { CountDown, ProgressScore, TasksOverview } from '../components/Statistics'
+import { CountTo, ProgressScore, TasksOverview } from '../components/Statistics'
 import { Feature, Underline } from '../components/Panels'
 import { DayPicker } from 'react-day-picker'
 import { FcAlarmClock, FcBullish } from 'react-icons/fc'
@@ -88,7 +88,7 @@ export default function Course() {
                     </Box>
                     <HStack>
                       <Text color='blackAlpha.600' fontSize='xs' whiteSpace='nowrap'>DUE IN</Text>
-                      <CountDown values={featured.remainingTime} h={16} />
+                      <CountTo values={featured.remainingTime} h={16} />
                     </HStack>
                   </Flex>
                   <Flex h={44}>

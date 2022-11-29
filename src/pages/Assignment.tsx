@@ -7,7 +7,7 @@ import {
 } from '@chakra-ui/react'
 import { AiOutlineCalendar } from 'react-icons/ai'
 import { CgInfinity } from 'react-icons/cg'
-import { CountDown, ProgressBar } from '../components/Statistics'
+import { ProgressBar, CountTo } from '../components/Statistics'
 import { range } from 'lodash'
 import { FcTodoList } from 'react-icons/fc'
 import { Counter } from '../components/Buttons'
@@ -42,7 +42,7 @@ export default function Assignment() {
             {assignment.active &&
               <VStack>
                 <Text color='blackAlpha.600' fontSize='xs'>TIME REMAINING</Text>
-                <CountDown values={assignment.remainingTime} />
+                <CountTo values={assignment.remainingTime} />
               </VStack>}
           </Flex>
           <Text flexGrow={1} fontSize='sm'>{assignment.description}</Text>

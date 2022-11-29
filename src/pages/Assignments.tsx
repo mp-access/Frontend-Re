@@ -6,7 +6,7 @@ import {
 } from '@chakra-ui/react'
 import { FcAlarmClock, FcLock } from 'react-icons/fc'
 import { AiOutlineCalendar, AiOutlineClockCircle } from 'react-icons/ai'
-import { CountDown, ProgressBar } from '../components/Statistics'
+import { CountTo, ProgressBar } from '../components/Statistics'
 
 export default function Assignments() {
   const { courseURL } = useParams()
@@ -36,7 +36,7 @@ export default function Assignments() {
                     <TagLabel>{assignment.activeRange}</TagLabel>
                   </Tag>
                   <Text color='blackAlpha.600' fontSize='xs'>TIME REMAINING</Text>
-                  <CountDown values={assignment.remainingTime} />
+                  <CountTo values={assignment.remainingTime} />
                 </GridItem>
                 <GridItem>
                   <HStack px={2}>

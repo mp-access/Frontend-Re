@@ -9,7 +9,7 @@ import React from 'react'
 import { AiOutlineAppstore, AiOutlineLogout } from 'react-icons/ai'
 import { Link, Outlet, useParams } from 'react-router-dom'
 import { LogoButton } from '../components/Buttons'
-import { CountDown } from '../components/Statistics'
+import { CountTo } from '../components/Statistics'
 
 export default function Layout() {
   const { keycloak } = useKeycloak()
@@ -58,7 +58,7 @@ export default function Layout() {
           {taskURL && assignment?.active &&
             <HStack>
               <Text color='blackAlpha.600' fontSize='xs' whiteSpace='nowrap'>DUE IN</Text>
-              <CountDown values={assignment.remainingTime} h={16} />
+              <CountTo values={assignment.remainingTime} h={16} />
             </HStack>}
           <Menu>
             <MenuButton as={Button} variant='ghost' fontWeight={400} rightIcon={<Avatar size='sm' bg='purple.100' />}>

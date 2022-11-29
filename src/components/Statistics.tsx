@@ -1,10 +1,12 @@
-import React, { SVGProps } from 'react'
-import { range, round } from 'lodash'
+import React, { SVGProps, useState } from 'react'
+import { compact, findLast, range, round } from 'lodash'
 import { Bar, BarChart, Cell, Label, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
-import { SimpleGrid } from '@chakra-ui/react'
+import { Flex, SimpleGrid, Text } from '@chakra-ui/react'
+import Countdown from 'react-countdown'
+import { isAfter, parseISO } from 'date-fns'
 
 type ScoreProps = { data: Array<Partial<{ points: number, name: string }>>, points: number, max: number }
-type CountDownProps = { values: Array<TimeCounterProps>, h?: number }
+type TimeCounterProps = { values: Array<TimeCountProps>, h?: number }
 
 const Rounded = ({ x, y, height, width, fill }: SVGProps<any>) =>
     <rect x={x} y={y || 1} height={height} width={width} rx='2%' fill={fill} />
@@ -17,7 +19,7 @@ const tooltipStyle = {
   cursor: { fill: 'transparent', cursor: 'pointer' }
 }
 
-const TimeCounter = ({ current, max, name }: TimeCounterProps) =>
+const TimeCount = ({ current, max, name }: TimeCountProps) =>
     <ResponsiveContainer>
       <PieChart>
         <Pie data={[{ current }, { current: max - current }]} dataKey='current' innerRadius='50%' outerRadius='65%'
@@ -29,11 +31,25 @@ const TimeCounter = ({ current, max, name }: TimeCounterProps) =>
       </PieChart>
     </ResponsiveContainer>
 
-export const CountDown = ({ values, h = 20 }: CountDownProps) =>
+export const CountTo = ({ values, h = 20 }: TimeCounterProps) =>
     <SimpleGrid h={h} w={h * 3} columns={3}>
       {values.map((counter, i) =>
-          <TimeCounter key={i} current={counter.current} max={counter.max} name={counter.name} />)}
+          <TimeCount key={i} current={counter.current} max={counter.max} name={counter.name} />)}
     </SimpleGrid>
+
+export const CountDown = ({ values }: { values: Array<string> }) => {
+  const [end] = useState(findLast(compact(values), d => isAfter(parseISO(d), new Date())))
+  if (!end)
+    return <></>
+  return (
+      <Flex pos='absolute' fontSize='xs' bottom={-3} right={3}>
+        <Countdown date={end} daysInHours renderer={props => !props.completed &&
+          <Text whiteSpace='nowrap'>
+            New attempt in {props.hours ? props.hours + ' hours' : (props.minutes + 1) + ' minutes'}
+          </Text>} />
+      </Flex>
+  )
+}
 
 export const ProgressScore = ({ data, points = 0, max = 1 }: ScoreProps) =>
     <ResponsiveContainer>
