@@ -1,14 +1,15 @@
 import { Button, Heading, Input, InputGroup, InputLeftElement, Text, VStack } from '@chakra-ui/react'
 import { useMutation } from '@tanstack/react-query'
 import React, { useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { GitHubIcon } from '../components/Icons'
 
 export default function CourseCreator() {
+  const navigate = useNavigate()
   const [repository, setRepository] = useState('')
-  const { mutate: create, isLoading, data: courseURL } = useMutation<string, any, string[]>(['create'])
-  if (courseURL)
-    return <Navigate to='/' />
+  const { mutate: create, isLoading } = useMutation<string, any, object>(['create'],
+      { onSettled: () => navigate('/', { state: { refresh: true } }) })
+
   return (
       <VStack spacing={4} layerStyle='card' p={8}>
         <Heading fontSize='3xl'>Let's get started!</Heading>
@@ -21,7 +22,7 @@ export default function CourseCreator() {
           </InputLeftElement>
           <Input w='container.md' value={repository} onChange={e => setRepository(e.target.value)} type='text' />
         </InputGroup>
-        <Button variant='round' onClick={() => create(['create', repository])} isLoading={isLoading}>
+        <Button variant='round' onClick={() => create({ repository })} isLoading={isLoading}>
           Submit
         </Button>
       </VStack>

@@ -7,26 +7,29 @@ import {
 import { AiOutlineBook, AiOutlineCalendar, AiOutlineTeam } from 'react-icons/ai'
 import { Link, useOutletContext, useParams } from 'react-router-dom'
 import CourseController from './CourseController'
-import { CountTo, ProgressScore, TasksOverview } from '../components/Statistics'
+import { ProgressScore, TasksOverview, TimeCountDown } from '../components/Statistics'
 import { Feature, Underline } from '../components/Panels'
 import { FcAlarmClock, FcBullish } from 'react-icons/fc'
 import { Counter, GoToButton } from '../components/Buttons'
 import { CourseIcon } from '../components/Icons'
 import { BsFillCircleFill } from 'react-icons/bs'
-import { parseISO } from 'date-fns'
+import { formatISO, parseISO } from 'date-fns'
 import { DayPicker } from 'react-day-picker'
+
 
 export default function Course() {
   const { courseURL } = useParams()
   const { isSupervisor } = useOutletContext<UserContext>()
   const { data: course } = useQuery<CourseProps>(['courses', courseURL])
   const [feature, setFeature] = useState({ i: 0, r: 1 })
-  const [selectedDay, setSelectedDay] = useState<Date | undefined>(new Date())
+  const [[day, event], setSelectedDay] = useState<[Date, CourseEventProps?]>([new Date()])
 
   if (!course)
     return <></>
 
   const featured = course.activeAssignments[feature.i]
+  const findEvent = (when: string) => course.events.find(e => when.startsWith(e.date))
+  const collectEvents = (type: string) => course.events.filter(e => e.type === type).map(e => parseISO(e.date))
 
   return (
       <Grid templateColumns='5fr 2fr' templateRows='auto auto 1fr' gap={6} w='container.xl'>
@@ -63,13 +66,17 @@ export default function Course() {
         </GridItem>
         <GridItem as={VStack} colSpan={1} rowSpan={3} layerStyle='segment' fontSize='sm'>
           {isSupervisor && <CourseController />}
-          <DayPicker mode='single' required selected={selectedDay} onSelect={setSelectedDay} weekStartsOn={2}
-                     showOutsideDays fromMonth={new Date()} modifiersStyles={{ selected: { color: 'inherit' } }}
-                     modifiersClassNames={{ starts: 'cal-starts', ends: 'cal-ends' }}
-                     modifiers={{
-                       starts: course.activeAssignments.map(a => parseISO(a.startDate)),
-                       ends: course.activeAssignments.map(a => parseISO(a.endDate))
-                     }} />
+          <DayPicker mode='single' required selected={day} weekStartsOn={2} showOutsideDays
+                     onSelect={(day) => day && setSelectedDay([day, findEvent(formatISO(day))])}
+                     modifiersClassNames={{ published: 'cal-published', due: 'cal-due' }}
+                     modifiersStyles={{ selected: { color: 'inherit' } }}
+                     modifiers={{ published: collectEvents('published'), due: collectEvents('due') }}
+                     footer={event &&
+                       <HStack layerStyle='card' px={3} py={1} my={1} rounded='lg'>
+                         <Box boxSize={2} className={'cal-' + event.type} bgPos={0} />
+                         <Text>{event.description}</Text>
+                         <Text flexGrow={1} color='blackAlpha.600' textAlign='end'>{event.time}</Text>
+                       </HStack>} />
         </GridItem>
         <GridItem layerStyle='segment'>
           <HStack px={6} pb={4} justify='space-between'>
@@ -96,7 +103,7 @@ export default function Course() {
                     </Box>
                     <HStack>
                       <Text color='blackAlpha.600' fontSize='xs' whiteSpace='nowrap'>DUE IN</Text>
-                      <CountTo values={featured.remainingTime} h={16} />
+                      <TimeCountDown values={featured.countDown} h={16} />
                     </HStack>
                   </Flex>
                   <Flex h={44}>

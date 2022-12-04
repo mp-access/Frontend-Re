@@ -51,6 +51,7 @@ function App() {
   client.setDefaultOptions({ mutations: { mutationFn: (path) => axios.post(fetchURL('courses', path)) } })
 
   const loadCourses = () => setQuery('courses')
+  const loadCreator = () => setMutation('create')
   const loadStudents = ({ params }: LoaderFunctionArgs) =>
       setQuery('courses', params.courseURL, 'students')
   const loadCourse = ({ params }: LoaderFunctionArgs) =>
@@ -63,7 +64,7 @@ function App() {
   const router = createBrowserRouter([{
     path: '/', element: <Layout />, loader: loadCourses, errorElement: <Error />, children: [
       { index: true, element: <Courses /> },
-      { path: 'create', element: <CourseCreator /> },
+      { path: 'create', loader: loadCreator, element: <CourseCreator /> },
       {
         path: 'courses/:courseURL', loader: loadCourse, children: [
           { index: true, element: <Course /> },

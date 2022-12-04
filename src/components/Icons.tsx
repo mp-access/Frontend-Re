@@ -22,7 +22,7 @@ export const Course3Icon = Course3
 
 export const LanugageIcon = (language: string) => {
   switch (language) {
-    case 'python':
+    case 'py':
       return PythonIcon
     case 'r':
       return RIcon

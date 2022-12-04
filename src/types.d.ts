@@ -14,6 +14,7 @@ declare interface CourseOverview extends CourseFeature {
   points: number;
   avgPoints: number;
   assignmentsCount: number;
+  events: Array<CourseEventProps>;
 }
 
 declare interface CourseProps extends CourseOverview {
@@ -31,7 +32,7 @@ declare interface AssignmentOverview {
   startDate: string;
   endDate: string;
   activeRange: string;
-  remainingTime: Array<TimeCountProps>;
+  countDown: Array<TimeCountProps>;
   published: boolean;
   pastDue: boolean;
   active: boolean;
@@ -43,12 +44,6 @@ declare interface AssignmentOverview {
 
 declare interface AssignmentProps extends AssignmentOverview {
   tasks: Array<TaskOverview>;
-}
-
-declare interface TimeCountProps {
-  name: string;
-  current: number;
-  max: number;
 }
 
 declare interface TaskOverview {
@@ -111,6 +106,19 @@ declare interface StudentProps {
   lastName: string;
   email: string;
   points: number;
+}
+
+declare interface TimeCountProps {
+  name: string;
+  current: number;
+  max: number;
+}
+
+declare interface CourseEventProps {
+  type: string;
+  description: string;
+  date: string;
+  time: string;
 }
 
 declare interface UserContext {

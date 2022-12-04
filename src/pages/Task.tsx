@@ -2,16 +2,16 @@ import {
   Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel, Badge, Box, Button, ButtonGroup, Center,
   CloseButton, Code, Divider, Flex, Grid, GridItem, Heading, HStack, Icon, IconButton, Image, Kbd, Modal, ModalBody,
   ModalCloseButton, ModalContent, ModalHeader, ModalOverlay, Popover, PopoverArrow, PopoverBody, PopoverContent,
-  PopoverTrigger, Spinner, Stack, Table, Tbody, Td, Text, Th, Thead, Tr, useDisclosure, useToast, VStack
+  PopoverTrigger, Spinner, Stack, Text, useDisclosure, useToast, VStack
 } from '@chakra-ui/react'
 import Editor, { useMonaco } from '@monaco-editor/react'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { format, parseISO } from 'date-fns'
+import { format, isAfter, parseISO } from 'date-fns'
 import { AnimatePresence, Reorder } from 'framer-motion'
 import { Uri } from 'monaco-editor'
 import React, { useEffect, useState } from 'react'
 import { AiOutlineBulb, AiOutlineCode, AiOutlineReload, AiOutlineSend } from 'react-icons/ai'
-import { BsCircleFill, BsUpload } from 'react-icons/bs'
+import { BsCircleFill } from 'react-icons/bs'
 import { FaFlask, FaTerminal } from 'react-icons/fa'
 import { FiAlignJustify, FiFile } from 'react-icons/fi'
 import { useOutletContext, useParams } from 'react-router-dom'
@@ -19,13 +19,16 @@ import { FileTab } from '../components/FileTab'
 import { FileTree } from '../components/FileTree'
 import { Screen, SplitHorizontal, SplitVertical } from '../components/Panels'
 import TaskController from './TaskController'
-import { HiDownload, HiUpload } from 'react-icons/hi'
-import { CountDown, ProgressBar } from '../components/Statistics'
+import { HiDownload } from 'react-icons/hi'
+import { ProgressBar } from '../components/Statistics'
 import { MarkdownViewer } from '../components/MarkdownViewer'
-import { unionBy } from 'lodash'
+import { findLast, unionBy } from 'lodash'
 import JSZip from 'jszip'
 import fileDownload from 'js-file-download'
+import Countdown from 'react-countdown'
 
+const getNextAttemptAt = (values: Array<string>) =>
+    findLast(values, d => isAfter(parseISO(d), new Date()))
 const getUpdatedContent = (file: TaskFileProps, submission?: SubmissionProps) =>
     submission?.files.find(submitted => submitted.taskFileId === file.id)?.content || file.content || file.template
 const updateFile = (file: TaskFileProps, submission?: SubmissionProps) =>
@@ -34,9 +37,8 @@ const updateFile = (file: TaskFileProps, submission?: SubmissionProps) =>
 export default function Task() {
   const monaco = useMonaco()
   const toast = useToast()
-  const confirm = useDisclosure()
-  const upload = useDisclosure()
   const { taskURL } = useParams()
+  const { isOpen, onOpen, onClose } = useDisclosure()
   const { isAssistant, user } = useOutletContext<UserContext>()
   const [userId, setUserId] = useState(user.email)
   const [currentSubmission, setCurrentSubmission] = useState<SubmissionProps>()
@@ -45,35 +47,34 @@ export default function Task() {
 
   const { data: task, refetch: refreshTask } = useQuery<TaskProps>(['tasks', taskURL, 'users', userId])
   const { mutate: submit, isLoading } = useMutation<any, any, object>(['submit'],
-      { onSettled: refreshTask, onSuccess: confirm.onClose })
+      { onMutate: () => setUserId(user.email), onSettled: refreshTask, onSuccess: onClose })
 
   useEffect(() => {
     setCurrentFile(undefined)
-  }, [taskURL, userId])
+  }, [taskURL, userId, currentSubmission?.id])
 
   useEffect(() => {
     if (task && !currentFile) {
-      const defaultFiles = task.files.filter(file => file.editable)
+      const defaultFiles = task.files.filter(file => file.editable).map(file => updateFile(file, currentSubmission))
       setOpenFiles(defaultFiles)
       setCurrentFile(defaultFiles[0])
     }
-  }, [currentFile, task])
-
-  useEffect(() => {
-    if (currentSubmission) {
-      setOpenFiles(files => files.map(file => updateFile(file, currentSubmission)))
-      setCurrentFile(file => file && updateFile(file, currentSubmission))
-      toast({ title: 'Reloaded executed files', status: 'success', isClosable: true })
-    }
-  }, [currentSubmission, toast])
+  }, [currentFile, currentSubmission, task])
 
   useEffect(() => {
     if (currentFile)
       setOpenFiles(files => unionBy(files, [currentFile], 'id'))
   }, [currentFile])
 
-  const getEditorContent = (fileId: number) => monaco?.editor.getModel(Uri.file(`/${fileId}`))?.getValue()
-  const getContent = (file: TaskFileProps) => getEditorContent(file.id) || getUpdatedContent(file, currentSubmission)
+  const reload = (submission: SubmissionProps) => {
+    const title = 'Reloaded ' + (submission.graded ? submission.name : 'execution')
+    toast({ title, status: 'success', isClosable: true })
+    setCurrentSubmission(submission)
+  }
+
+  const getPath = (fileId: number) => `${fileId}/${user.email}/${currentSubmission?.id}`
+  const getEdited = (fileId: number) => monaco?.editor.getModel(Uri.file(getPath(fileId)))?.getValue()
+  const getContent = (file: TaskFileProps) => getEdited(file.id) || getUpdatedContent(file, currentSubmission)
   const onSubmit = (type: string) => () => submit({
     userId: user.email, restricted: !isAssistant, taskId: task?.id, currentFileId: currentFile?.id, type,
     files: task?.files.filter(file => file.editable).map(file => ({ taskFileId: file.id, content: getContent(file) }))
@@ -97,23 +98,27 @@ export default function Task() {
                     <Text noOfLines={1}>/ {task.maxAttempts} Submissions left</Text>
                     <Icon as={BsCircleFill} boxSize={1} color='gray.300' mx={4} />
                     {!task.remainingAttempts &&
-                      <CountDown values={task.submissions.map(s => s.nextAttemptAt)} />}
+                      <Flex pos='absolute' fontSize='xs' bottom={-3} right={3}>
+                        <Countdown date={getNextAttemptAt(task.submissions.map(s => s.nextAttemptAt))} daysInHours
+                                   onComplete={refreshTask} renderer={({ completed, hours, minutes }) => !completed &&
+                          <Text whiteSpace='nowrap'>
+                            Try again in {hours ? hours + ' hours' : (minutes + 1) + ' minutes'}
+                          </Text>} />
+                      </Flex>}
                   </HStack>}
                 <HStack>
                   <Text whiteSpace='nowrap'>Best Score:</Text>
                   <Text fontSize='120%' fontWeight={600}>{task.points}</Text>
                   <Text whiteSpace='nowrap'>{` / ${task.maxPoints}`}</Text>
-                  <Center w={24}>
-                    <ProgressBar value={task.points} max={task.maxPoints} />
-                  </Center>
+                  <ProgressBar value={task.points} max={task.maxPoints} />
                 </HStack>
               </HStack>
               <ButtonGroup variant='gradient'>
                 <Button leftIcon={<FaFlask />} children='Test' isLoading={isLoading} onClick={onSubmit('test')} />
                 <Button leftIcon={<FaTerminal />} children='Run' isLoading={isLoading} onClick={onSubmit('run')} />
-                <Button colorScheme='green' leftIcon={<AiOutlineSend />} onClick={confirm.onOpen} children='Submit'
+                <Button colorScheme='green' leftIcon={<AiOutlineSend />} onClick={onOpen} children='Submit'
                         isDisabled={isLoading || (!isAssistant && (task.remainingAttempts <= 0 || !task.active))} />
-                <Modal size='sm' isOpen={confirm.isOpen} onClose={confirm.onClose} isCentered closeOnOverlayClick>
+                <Modal size='sm' isOpen={isOpen} onClose={onClose} isCentered closeOnOverlayClick={!isLoading}>
                   <ModalOverlay />
                   <ModalContent>
                     <ModalHeader>
@@ -121,12 +126,13 @@ export default function Task() {
                       <ModalCloseButton />
                     </ModalHeader>
                     <ModalBody>
-                      <VStack p={3} minH={12} justify='space-between'>
-                        <Text textAlign='center'>
-                          Are you sure you want to submit?
-                        </Text>
-                        <ButtonGroup variant='round'>
-                          <Button variant='border' isLoading={isLoading} onClick={confirm.onClose}>Cancel</Button>
+                      <VStack p={3} justify='space-between' fontSize='lg'>
+                        {isLoading
+                            ? <Countdown date={Date.now() + 120000} daysInHours renderer={({ formatted }) =>
+                                <Text>Time Remaining: <b>{formatted.minutes}:{formatted.seconds}</b></Text>} />
+                            : <Text textAlign='center'>Are you sure you want to submit?</Text>}
+                        <ButtonGroup variant='round' pt={3}>
+                          <Button variant='border' isLoading={isLoading} onClick={onClose}>Cancel</Button>
                           <Button isLoading={isLoading} onClick={onSubmit('grade')}>Confirm</Button>
                         </ButtonGroup>
                       </VStack>
@@ -158,50 +164,11 @@ export default function Task() {
                         <Text fontWeight={500}>Files</Text>
                       </AccordionButton>
                       <ButtonGroup variant='ghost' size='sm' colorScheme='blackAlpha' pos='absolute' right={3} top={1}>
-                        <IconButton icon={<Icon as={HiUpload} boxSize={5} />} aria-label='upload'
-                                    onClick={upload.onOpen} />
                         <IconButton icon={<Icon as={HiDownload} boxSize={5} />} aria-label='download' onClick={() => {
                           let zip = new JSZip()
                           task.files.forEach(file => zip.file(file.path, getContent(file)))
                           zip.generateAsync({ type: 'blob' }).then(b => fileDownload(b, task.url + '.zip'))
                         }} />
-                        <Modal isOpen={upload.isOpen} onClose={upload.onClose} isCentered closeOnOverlayClick>
-                          <ModalOverlay />
-                          <ModalContent>
-                            <ModalHeader>
-                              <Text textAlign='center' color='purple.600'>Upload Your Solution Files</Text>
-                              <ModalCloseButton />
-                            </ModalHeader>
-                            <ModalBody>
-                              <VStack p={3} justify='space-between'>
-                                <Table>
-                                  <Thead>
-                                    <Tr>
-                                      <Th>Task File</Th>
-                                      <Th>Your Solution</Th>
-                                    </Tr>
-                                  </Thead>
-                                  <Tbody>
-                                    {task.files.filter(file => file.editable).map(file =>
-                                        <Tr key={file.id}>
-                                          <Td>{file.name}</Td>
-                                          <Td>
-                                            <Button leftIcon={<BsUpload />}>
-                                              Select
-                                            </Button>
-                                          </Td>
-                                        </Tr>)}
-                                  </Tbody>
-                                </Table>
-                                <ButtonGroup variant='round' p={3}>
-                                  <Button variant='border' isLoading={isLoading}
-                                          onClick={upload.onClose}>Cancel</Button>
-                                  <Button isLoading={isLoading}>Confirm</Button>
-                                </ButtonGroup>
-                              </VStack>
-                            </ModalBody>
-                          </ModalContent>
-                        </Modal>
                       </ButtonGroup>
                       <AccordionPanel p={0} h='16vh' overflow='auto'>
                         <FileTree data={task.files} value={currentFile.id}
@@ -227,8 +194,9 @@ export default function Task() {
                     </Reorder.Group>
                   </Flex>
                   <SplitHorizontal>
-                    <Editor loading={<Spinner />} path={`${currentFile.id}`} language={currentFile.language}
-                            value={currentFile.content || currentFile.template}
+                    <Editor loading={<Spinner />} path={getPath(currentFile.id)}
+                            language={currentFile.language === 'py' ? 'python' : currentFile.language}
+                            defaultValue={currentFile.content || currentFile.template}
                             options={{ minimap: { enabled: false }, readOnly: !currentFile.editable }} />
                     {currentFile.image &&
                       <Center p={2} position='absolute' bottom={0} bg='white' boxSize='full' zIndex={2}>
@@ -275,7 +243,7 @@ export default function Task() {
                         {submission.graded &&
                           <Box>
                             <HStack spacing={1}>
-                              <Text fontWeight={600} fontSize='xl'>{submission.points}</Text>
+                              <Text fontWeight={600} fontSize='xl'>{submission.valid ? submission.points : '?'}</Text>
                               <Text fontSize='lg' lineHeight={1}>/ {submission.maxPoints} Points</Text>
                             </HStack>
                             <ProgressBar value={submission.points} max={submission.maxPoints} />
@@ -294,7 +262,7 @@ export default function Task() {
                             </PopoverContent>
                           </Popover>
                           <Button leftIcon={<AiOutlineReload />}
-                                  onClick={() => setCurrentSubmission(submission)}>
+                                  onClick={() => reload(submission)}>
                             Reload
                           </Button>
                         </ButtonGroup>

@@ -1,17 +1,18 @@
 import { ChevronRightIcon } from '@chakra-ui/icons'
 import {
   Avatar, Breadcrumb, BreadcrumbItem, Button, Center, Flex, HStack, Icon, IconButton, Menu, MenuButton, MenuItem,
-  MenuList, Stack, Text
+  MenuList, Spinner, Stack, Text
 } from '@chakra-ui/react'
 import { useKeycloak } from '@react-keycloak/web'
 import { useQuery } from '@tanstack/react-query'
 import React from 'react'
 import { AiOutlineAppstore, AiOutlineLogout } from 'react-icons/ai'
-import { Link, Outlet, useParams } from 'react-router-dom'
+import { Link, Outlet, useLocation, useParams } from 'react-router-dom'
 import { LogoButton } from '../components/Buttons'
-import { CountTo } from '../components/Statistics'
+import { TimeCountDown } from '../components/Statistics'
 
 export default function Layout() {
+  const location = useLocation()
   const { keycloak } = useKeycloak()
   const { courseURL, assignmentURL, taskURL } = useParams()
   const { data: course } = useQuery<CourseProps>(['courses', courseURL], { enabled: !!courseURL })
@@ -23,6 +24,9 @@ export default function Layout() {
     isSupervisor: !!courseURL && keycloak.hasRealmRole(courseURL + '-supervisor'),
     isAssistant: !!courseURL && keycloak.hasRealmRole(courseURL + '-assistant')
   }
+
+  if (location.state?.refresh)
+    keycloak.clearToken()
 
   return (
       <Stack spacing={0} bg='bg' minH='full'>
@@ -58,7 +62,7 @@ export default function Layout() {
           {taskURL && assignment?.active &&
             <HStack>
               <Text color='blackAlpha.600' fontSize='xs' whiteSpace='nowrap'>DUE IN</Text>
-              <CountTo values={assignment.remainingTime} h={16} />
+              <TimeCountDown values={assignment.countDown} h={16} />
             </HStack>}
           <Menu>
             <MenuButton as={Button} variant='ghost' fontWeight={400} rightIcon={<Avatar size='sm' bg='purple.100' />}>
@@ -72,6 +76,7 @@ export default function Layout() {
           </Menu>
         </Flex>
         <Center flexGrow={1} flexDir='column' overflow='hidden'>
+          {taskURL && <Spinner pos='absolute' top='50%' />}
           <Outlet context={context} />
         </Center>
       </Stack>

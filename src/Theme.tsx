@@ -25,7 +25,8 @@ const theme = extendTheme({
     segment: { p: 6, bg: 'base', rounded: '2xl', boxShadow: 'segment' },
     feature: {
       rounded: '3xl', bg: 'gradients.400', color: 'base', overflow: 'hidden', p: 4, _hover: { boxShadow: 'hover' }
-    }
+    },
+    gradient: { rounded: 'lg', bg: 'gradients.red-light', boxShadow: 'card', border: '2px solid transparent' }
   },
   colors: {
     orange: {
@@ -64,12 +65,13 @@ const theme = extendTheme({
       300: '#69b8ff',
       400: '#369FFF',
       500: '#369FFF',
-      600: '#1785e8',
+      600: '#475eff',
       800: '#003680'
     },
     red: {
       500: '#ff4f22',
-      600: '#e62d2d'
+      600: '#e62d2d',
+      750: '#e62d2d'
     },
     gradients: {
       100: 'linear-gradient(115deg, #eddeff, #d6d7ff)',
@@ -78,10 +80,11 @@ const theme = extendTheme({
       405: 'linear-gradient(140deg, #9057ff, #6a33d6)',
       500: 'linear-gradient(115deg, #923aff, #5e63ff)',
       'purple-light': 'linear-gradient(#fff, #fff) padding-box, linear-gradient(115deg, #923aff, #5e63ff) border-box',
-      'purple-gray': 'linear-gradient(#f7f9fd, #f7f9fd) padding-box, linear-gradient(115deg, #923aff, #5e63ff) border-box',
       'purple-dark': 'linear-gradient(#f4f0ff, #f4f0ff) padding-box,linear-gradient(115deg, #923aff, #5e63ff) border-box',
       'green-light': 'linear-gradient(#fff, #fff) padding-box,linear-gradient(120deg, #10dc4e, #41fb7a) border-box',
-      'green-dark': 'linear-gradient(120deg, #e2ffeb, #e2ffeb) padding-box,linear-gradient(120deg, #10dc4e, #41fb7a) border-box'
+      'green-dark': 'linear-gradient(120deg, #e2ffeb, #e2ffeb) padding-box,linear-gradient(120deg, #10dc4e, #41fb7a) border-box',
+      'red-light': 'linear-gradient(#fff, #fff) padding-box,linear-gradient(120deg, #ffcf22, #f4c864) border-box',
+      'red-dark': 'linear-gradient(#ffeded, #ffeded) padding-box,linear-gradient(120deg, #ff4f22, #f4a764) border-box'
     }
   },
   shadows: {
@@ -92,7 +95,8 @@ const theme = extendTheme({
     card: '#d7d9e2 0px 1px 2px 0px',
     hover: '#2a303933 0px 2px 16px 0px',
     callout: '#0000000d 5px 0px 15px, #00000008 4px 0px 6px',
-    segment: '#0000000a -2px 0px 6px, #0000000a -2px 0px 15px'
+    segment: '#0000000a -2px 0px 6px, #0000000a -2px 0px 15px',
+    text: '3px 3px white,1px -2px white,-2px 1px white,-1px -1px white,1px 1px white'
   },
   components: {
     Code: { defaultProps: { colorScheme: 'whiteAlpha' }, variants: { subtle: { bg: 'transparent' } } },
@@ -125,13 +129,16 @@ const theme = extendTheme({
       '::-webkit-scrollbar-thumb': { borderRadius: 6, bg: 'transparent' },
       ':hover::-webkit-scrollbar-thumb': { bg: 'mid' },
       'ul, li': { listStyle: 'none', padding: 0, margin: 0 },
-      '.rdp': { '--rdp-accent-color': 'var(--chakra-colors-purple-100)' },
-      '.rdp-button': { transition: 'background-color 0.5s ease' },
-      '.cal-starts': {
+      '.rdp': {
+        '--rdp-accent-color': 'var(--chakra-colors-purple-75)',
+        '.rdp-button': { transition: 'background-color 0.5s ease' },
+        '.rdp-day_today': { color: 'var(--chakra-colors-purple-400)' }
+      },
+      '.cal-published': {
         backgroundPosition: '0 -1em', backgroundRepeat: 'no-repeat', fontWeight: 500,
         backgroundImage: 'radial-gradient(var(--chakra-colors-green-400) 3px, transparent 0)'
       },
-      '.cal-ends': {
+      '.cal-due': {
         backgroundPosition: '0 -1em', backgroundRepeat: 'no-repeat', fontWeight: 500,
         backgroundImage: 'radial-gradient(var(--chakra-colors-red-400) 3px, transparent 0)'
       }

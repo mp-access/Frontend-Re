@@ -1,14 +1,14 @@
 import {
-  Button, ButtonGroup, Center, HStack, IconButton, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader,
-  ModalOverlay, Stack, Text, Tooltip, useDisclosure, useNumberInput
+  Button, ButtonGroup, Center, HStack, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader,
+  ModalOverlay, Stack, Text, useDisclosure, useNumberInput
 } from '@chakra-ui/react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Select } from 'chakra-react-select'
 import React, { ComponentProps } from 'react'
-import { AiOutlineControl } from 'react-icons/ai'
+import { FaCog, FaHistory } from 'react-icons/fa'
 
 export default function TaskController({ task, value, defaultValue, onChange }: ComponentProps<any>) {
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const { isOpen, onClose } = useDisclosure()
   const { data: students } = useQuery<StudentProps[]>(['students'])
 
   const min = task.remainingAttempts
@@ -18,16 +18,17 @@ export default function TaskController({ task, value, defaultValue, onChange }: 
 
   return (
       <HStack>
-        <Stack w='3xs' bg='base'>
+        <Stack w='2xs' fontSize='sm' bg='base' rounded='lg'>
           <Select placeholder='View as student...' value={{ email: value }} getOptionValue={data => data?.email}
                   getOptionLabel={data => data?.email} options={students}
-                  controlShouldRenderValue={value !== defaultValue}
+                  controlShouldRenderValue={value !== defaultValue} isClearable focusBorderColor='blue.600'
                   onChange={newValue => onChange(newValue?.email || defaultValue)} />
         </Stack>
-        <Tooltip label='Override student settings'>
-          <IconButton aria-label='adjust' icon={<AiOutlineControl size='100%' />} colorScheme='gray' p={1}
-                      color='gray.600' onClick={onOpen} isDisabled={value === defaultValue} />
-        </Tooltip>
+        <ButtonGroup isAttached pos='relative'>
+          <Button leftIcon={<FaCog />} children='Control' isLoading={isLoading} />
+          <Button borderLeftWidth={1} borderColor='purple.100' leftIcon={<FaHistory />} children='Re-Grade'
+                  isLoading={isLoading} />
+        </ButtonGroup>
         <Modal isOpen={isOpen} onClose={onClose} isCentered>
           <ModalOverlay />
           <ModalContent>
