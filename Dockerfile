@@ -1,6 +1,5 @@
 FROM node as frontend
-ARG REACT_APP_AUTH_SERVER_URL
-ENV REACT_APP_AUTH_SERVER_URL=https://info1-staging.ifi.uzh.ch:8443
+ENV REACT_APP_AUTH_SERVER_URL=${AUTH_SERVER_URL}
 WORKDIR /app
 COPY . .
 RUN npm i

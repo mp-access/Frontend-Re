@@ -27,7 +27,7 @@ import Assignments from './pages/Assignments'
 const authClient = new Keycloak({
   url: process.env.REACT_APP_AUTH_SERVER_URL,
   realm: 'access',
-  clientId: 'access-frontend'
+  clientId: 'access-client'
 })
 
 axios.defaults.baseURL = '/api/'
