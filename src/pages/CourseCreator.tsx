@@ -11,7 +11,7 @@ export default function CourseCreator() {
       { onSettled: () => navigate('/', { state: { refresh: true } }) })
 
   return (
-      <VStack spacing={4} layerStyle='card' p={8}>
+      <VStack spacing={4} layerStyle='card' p={8} m={4}>
         <Heading fontSize='3xl'>Let's get started!</Heading>
         <Text color='gray.600' textAlign='center' lineHeight={1.5} w='md'>
           To set up a new course on ACCESS, connect a Git repository to use as source for all your course data.
