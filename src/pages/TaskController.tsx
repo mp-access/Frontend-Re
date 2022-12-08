@@ -5,7 +5,6 @@ import {
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Select } from 'chakra-react-select'
 import React, { ComponentProps } from 'react'
-import { FaCog, FaHistory } from 'react-icons/fa'
 
 export default function TaskController({ task, value, defaultValue, onChange }: ComponentProps<any>) {
   const { isOpen, onClose } = useDisclosure()
@@ -21,14 +20,9 @@ export default function TaskController({ task, value, defaultValue, onChange }: 
         <Stack w='2xs' fontSize='sm' bg='base' rounded='lg'>
           <Select placeholder='View as student...' value={{ email: value }} getOptionValue={data => data?.email}
                   getOptionLabel={data => data?.email} options={students}
-                  controlShouldRenderValue={value !== defaultValue} isClearable focusBorderColor='blue.600'
+                  controlShouldRenderValue={value !== defaultValue} isClearable focusBorderColor='purple.600'
                   onChange={newValue => onChange(newValue?.email || defaultValue)} />
         </Stack>
-        <ButtonGroup isAttached pos='relative'>
-          <Button leftIcon={<FaCog />} children='Control' isLoading={isLoading} />
-          <Button borderLeftWidth={1} borderColor='purple.100' leftIcon={<FaHistory />} children='Re-Grade'
-                  isLoading={isLoading} />
-        </ButtonGroup>
         <Modal isOpen={isOpen} onClose={onClose} isCentered>
           <ModalOverlay />
           <ModalContent>

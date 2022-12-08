@@ -7,7 +7,7 @@ import 'react-day-picker/dist/style.css'
 import React from 'react'
 import axios from 'axios'
 import Keycloak from 'keycloak-js'
-import { ChakraProvider, ColorModeScript } from '@chakra-ui/react'
+import { Center, ChakraProvider, ColorModeScript, Spinner } from '@chakra-ui/react'
 import { ReactKeycloakProvider, useKeycloak } from '@react-keycloak/web'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { compact, flattenDeep, join, tail, takeRight } from 'lodash'
@@ -25,7 +25,7 @@ import theme from './Theme'
 import Assignments from './pages/Assignments'
 
 const authClient = new Keycloak({
-  url: process.env.REACT_APP_AUTH_SERVER_URL,
+  url: process.env.REACT_APP_AUTH_SERVER_URL || window.location.origin + ':8443',
   realm: 'access',
   clientId: 'access-client'
 })
@@ -38,7 +38,7 @@ function App() {
   const { keycloak } = useKeycloak()
 
   if (!keycloak.token)
-    return <></>
+    return <Center h='full'><Spinner /></Center>
 
   setAuthToken(keycloak.token)
   const client = new QueryClient({ defaultOptions: { queries: { refetchOnWindowFocus: false } } })

@@ -7,8 +7,8 @@ import { BsArrowRight } from 'react-icons/bs'
 const transitionStyle = { repeat: Infinity, repeatDelay: .7, duration: .5, ease: 'easeInOut' }
 
 export const LogoButton = () =>
-    <Text as={Link} to='/' fontFamily='"Courier Prime", monospace' fontSize='2.5rem' fontWeight={400}
-          lineHeight={1} mt={3} _hover={{ color: 'purple.500' }} children='ACCESS.' />
+    <Text as={Link} to='/' fontFamily='"Courier Prime", monospace' fontSize={{ base: '3xl', xl: '4xl' }}
+          fontWeight={400} h={{ base: 10, xl: 12 }} _hover={{ color: 'purple.500' }} children='ACCESS.' />
 
 export const GoToButton = ({ children, ...props }: BoxProps) =>
     <HStack as={motion.div} fontSize='lg' fontWeight={600} color='purple.600'
@@ -18,4 +18,5 @@ export const GoToButton = ({ children, ...props }: BoxProps) =>
     </HStack>
 
 export const Counter = ({ children }: BoxProps) =>
-    <Center rounded='md' bg='purple.100' p={0.5} w={6} color='purple.600' fontWeight={600} children={children} />
+    <Center rounded='md' bg='purple.100' px={2} py={0.5} color='purple.600' fontSize='sm'
+            fontWeight={600} children={children} />

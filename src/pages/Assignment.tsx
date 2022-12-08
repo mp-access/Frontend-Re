@@ -21,7 +21,7 @@ export default function Assignment() {
     return <></>
 
   return (
-      <Stack spacing={4} maxW='container.lg'>
+      <Stack layerStyle='container' spacing={4}>
         <Stack layerStyle='segment'>
           <Flex justify='space-between'>
             <Box>

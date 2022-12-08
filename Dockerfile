@@ -1,5 +1,4 @@
 FROM node as frontend
-ENV REACT_APP_AUTH_SERVER_URL=${AUTH_SERVER_URL}
 WORKDIR /app
 COPY . .
 RUN npm i

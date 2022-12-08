@@ -1,12 +1,28 @@
-import { chakra } from '@chakra-ui/react'
-import { Reorder } from 'framer-motion'
-import React, { ComponentProps } from 'react'
+import { CloseButton, Flex, Text, UseDisclosureProps } from '@chakra-ui/react'
+import { AnimatePresence, Reorder } from 'framer-motion'
+import React from 'react'
 
-const FileTabBase = chakra(Reorder.Item)
+type FileTabProps = UseDisclosureProps & { value: TaskFileProps }
+type FileTabsProps = {
+  values: TaskFileProps[], defaultValue: number,
+  onSelect: (file: TaskFileProps) => void, onReorder: (files: TaskFileProps[]) => void
+}
 
-export const FileTab = ({ isSelected, value, onClick, ...props }: ComponentProps<any>) =>
-    <FileTabBase value={value} id={`${value.id}`} roundedTop='lg' display='flex' alignItems='baseline'
-                 borderWidth={1} borderBottomWidth={0} borderColor='blackAlpha.300'
-                 bg='base' initial={{ opacity: 0, y: 30 }} _hover={{ color: 'purple.600' }}
-                 exit={{ opacity: 0, y: 20, transition: { duration: 0.3 } }} whileDrag={{ opacity: 1 }}
-                 animate={{ opacity: isSelected ? 1 : 0.6, y: 0, transition: { duration: 0.15 } }} {...props} />
+export const FileTab = ({ value, isOpen, onOpen, onClose }: FileTabProps) =>
+    <Flex as={Reorder.Item} value={value} id={value.id.toString()} whileDrag={{ opacity: 1 }}
+          alignItems='baseline' borderColor='blackAlpha.200' borderWidth={1} borderBottomWidth={0} bg='base'
+          px={2} py={1} roundedTop='lg' cursor='pointer' layerStyle='file' pos='relative' lineHeight={1.8}
+          initial={{ opacity: 0, y: 30 }} exit={{ opacity: 0, y: 20, transition: { duration: 0.3 } }}
+          animate={{ opacity: isOpen ? 1 : 0.6, y: 0, transition: { duration: 0.15 } }}>
+      <Text whiteSpace='nowrap' px={1} onClick={onOpen} children={value.name} />
+      <CloseButton size='sm' isDisabled={isOpen} onClick={onClose} />
+    </Flex>
+
+export const FileTabs = ({ values, defaultValue, onReorder, onSelect }: FileTabsProps) =>
+    <Reorder.Group as='ul' axis='x' onReorder={onReorder} values={values} className='filetabs'>
+      <AnimatePresence initial={false}>
+        {values.map(value =>
+            <FileTab key={value.id} value={value} isOpen={value.id === defaultValue} onOpen={() => onSelect(value)}
+                     onClose={() => onReorder(values.filter(openFile => openFile.id !== value.id))} />)}
+      </AnimatePresence>
+    </Reorder.Group>

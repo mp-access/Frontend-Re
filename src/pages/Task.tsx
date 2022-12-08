@@ -1,13 +1,13 @@
 import {
-  Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel, Badge, Box, Button, ButtonGroup, Center,
-  CloseButton, Code, Divider, Flex, Grid, GridItem, Heading, HStack, Icon, IconButton, Image, Kbd, Modal, ModalBody,
-  ModalCloseButton, ModalContent, ModalHeader, ModalOverlay, Popover, PopoverArrow, PopoverBody, PopoverContent,
-  PopoverTrigger, Spinner, Stack, Text, useDisclosure, useToast, VStack
+  Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel, Badge, Box, Button, ButtonGroup, Code,
+  Divider, Flex, Heading, HStack, Icon, IconButton, Kbd, Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader,
+  ModalOverlay, Popover, PopoverArrow, PopoverBody, PopoverContent, PopoverTrigger, Stack, Text, useDisclosure,
+  useToast, VStack
 } from '@chakra-ui/react'
 import Editor, { useMonaco } from '@monaco-editor/react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { format, isAfter, parseISO } from 'date-fns'
-import { AnimatePresence, Reorder } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 import { Uri } from 'monaco-editor'
 import React, { useEffect, useState } from 'react'
 import { AiOutlineBulb, AiOutlineCode, AiOutlineReload, AiOutlineSend } from 'react-icons/ai'
@@ -15,9 +15,9 @@ import { BsCircleFill } from 'react-icons/bs'
 import { FaFlask, FaTerminal } from 'react-icons/fa'
 import { FiAlignJustify, FiFile } from 'react-icons/fi'
 import { useOutletContext, useParams } from 'react-router-dom'
-import { FileTab } from '../components/FileTab'
+import { FileTabs } from '../components/FileTab'
 import { FileTree } from '../components/FileTree'
-import { Screen, SplitHorizontal, SplitVertical } from '../components/Panels'
+import { ImagePanel, Screen, SidePanel, SplitHorizontal, SplitVertical } from '../components/Panels'
 import TaskController from './TaskController'
 import { HiDownload } from 'react-icons/hi'
 import { ProgressBar } from '../components/Statistics'
@@ -51,15 +51,15 @@ export default function Task() {
 
   useEffect(() => {
     setCurrentFile(undefined)
-  }, [taskURL, userId, currentSubmission?.id])
+  }, [taskURL, userId])
 
   useEffect(() => {
     if (task && !currentFile) {
-      const defaultFiles = task.files.filter(file => file.editable).map(file => updateFile(file, currentSubmission))
+      const defaultFiles = task.files.filter(file => file.editable)
       setOpenFiles(defaultFiles)
       setCurrentFile(defaultFiles[0])
     }
-  }, [currentFile, currentSubmission, task])
+  }, [currentFile, task])
 
   useEffect(() => {
     if (currentFile)
@@ -69,6 +69,8 @@ export default function Task() {
   const reload = (submission: SubmissionProps) => {
     const title = 'Reloaded ' + (submission.graded ? submission.name : 'execution')
     toast({ title, status: 'success', isClosable: true })
+    setOpenFiles(files => files.map(file => updateFile(file, submission)))
+    setCurrentFile(file => file && updateFile(file, submission))
     setCurrentSubmission(submission)
   }
 
@@ -83,8 +85,8 @@ export default function Task() {
   return (
       <AnimatePresence initial={false} mode='wait'>
         {task && currentFile &&
-          <Screen key={task.id} flexGrow={1} w='full'>
-            <Center px={4} pt={1} flexGrow={1} justifyContent='space-between'>
+          <Screen key={task.id} columns={1} templateRows='auto 1fr' w='full'>
+            <HStack w='full' p={2} justifyContent='space-between' fontSize={{ base: 'sm', xl: 'md' }}>
               <Box>
                 <Heading fontSize='sm'>TASK {task.ordinalNum}</Heading>
                 <Heading fontSize='lg' noOfLines={1}>{task.title}</Heading>
@@ -142,88 +144,68 @@ export default function Task() {
               </ButtonGroup>
               {isAssistant &&
                 <TaskController task={task} value={userId} defaultValue={user.email} onChange={setUserId} />}
-            </Center>
-            <Grid templateRows='85vh' templateColumns='85vw auto' boxShadow='xs' bg='base'>
-              <GridItem as={Flex} boxSize='full'>
-                <SplitVertical>
-                  <Accordion allowMultiple defaultIndex={[0, 1]}>
-                    <AccordionItem>
-                      <AccordionButton gap={2} borderBottomWidth={1}>
-                        <AccordionIcon />
-                        <FiAlignJustify />
-                        <Text fontWeight={500}>Instructions</Text>
-                      </AccordionButton>
-                      <AccordionPanel maxH='60vh' overflow='auto'>
-                        <MarkdownViewer children={task.instructions} data={task.files} />
-                      </AccordionPanel>
-                    </AccordionItem>
-                    <AccordionItem pos='relative' borderBottomColor='transparent'>
-                      <AccordionButton gap={2} borderBottomWidth={1}>
-                        <AccordionIcon />
-                        <FiFile />
-                        <Text fontWeight={500}>Files</Text>
-                      </AccordionButton>
-                      <ButtonGroup variant='ghost' size='sm' colorScheme='blackAlpha' pos='absolute' right={3} top={1}>
-                        <IconButton icon={<Icon as={HiDownload} boxSize={5} />} aria-label='download' onClick={() => {
-                          let zip = new JSZip()
-                          task.files.forEach(file => zip.file(file.path, getContent(file)))
-                          zip.generateAsync({ type: 'blob' }).then(b => fileDownload(b, task.url + '.zip'))
-                        }} />
-                      </ButtonGroup>
-                      <AccordionPanel p={0} h='16vh' overflow='auto'>
-                        <FileTree data={task.files} value={currentFile.id}
-                                  onClick={file => setCurrentFile(updateFile(file, currentSubmission))} />
-                      </AccordionPanel>
-                    </AccordionItem>
-                  </Accordion>
-                </SplitVertical>
-                <Stack spacing={0} boxSize='full' overflow='auto' position='relative'>
-                  <Flex borderBottomWidth={1} borderColor='gray.200' p={1} pb={0} bg='blackAlpha.50'>
-                    <Reorder.Group as='ul' axis='x' onReorder={setOpenFiles} values={openFiles}
-                                   style={{ display: 'flex' }}>
-                      <AnimatePresence initial={false}>
-                        {openFiles.map(file =>
-                            <FileTab key={file.id} value={file} isSelected={file.id === currentFile.id}>
-                              <Text ml={3} my={2} fontFamily='Inter, Roboto, sans-serif' whiteSpace='nowrap'
-                                    onClick={() => setCurrentFile(file)} cursor='pointer' children={file.name} />
-                              <CloseButton size='sm' mx={2} isDisabled={file.id === currentFile.id}
-                                           onClick={() => setOpenFiles(files =>
-                                               files?.filter(openFile => openFile.id !== file.id))} />
-                            </FileTab>)}
-                      </AnimatePresence>
-                    </Reorder.Group>
-                  </Flex>
+            </HStack>
+            <Flex boxShadow='xs' bg='base' overflow='hidden'>
+              <SplitVertical>
+                <Accordion allowMultiple defaultIndex={[0, 1]}>
+                  <AccordionItem>
+                    <AccordionButton gap={2} borderBottomWidth={1}>
+                      <AccordionIcon />
+                      <FiAlignJustify />
+                      <Text fontWeight={500}>Instructions</Text>
+                    </AccordionButton>
+                    <AccordionPanel maxH='60vh' overflow='auto'>
+                      <MarkdownViewer children={task.instructions} data={task.files} />
+                    </AccordionPanel>
+                  </AccordionItem>
+                  <AccordionItem borderBottomColor='transparent' pos='relative'>
+                    <AccordionButton gap={2} borderBottomWidth={1}>
+                      <AccordionIcon />
+                      <FiFile />
+                      <Text fontWeight={500}>Files</Text>
+                    </AccordionButton>
+                    <ButtonGroup variant='ghost' size='sm' colorScheme='blackAlpha' pos='absolute' right={3} top={1}>
+                      <IconButton icon={<Icon as={HiDownload} boxSize={5} />} aria-label='download' onClick={() => {
+                        let zip = new JSZip()
+                        task.files.forEach(file => zip.file(file.path, getContent(file)))
+                        zip.generateAsync({ type: 'blob' }).then(b => fileDownload(b, task.url + '.zip'))
+                      }} />
+                    </ButtonGroup>
+                    <AccordionPanel p={0} h='16vh' overflow='auto'>
+                      <FileTree data={task.files} value={currentFile.id}
+                                onClick={file => setCurrentFile(updateFile(file, currentSubmission))} />
+                    </AccordionPanel>
+                  </AccordionItem>
+                </Accordion>
+                <Stack spacing={0} flexGrow={1} overflow='hidden'>
+                  <FileTabs values={openFiles} defaultValue={currentFile.id} onSelect={setCurrentFile}
+                            onReorder={setOpenFiles} />
                   <SplitHorizontal>
-                    <Editor loading={<Spinner />} path={getPath(currentFile.id)}
-                            language={currentFile.language === 'py' ? 'python' : currentFile.language}
-                            defaultValue={currentFile.content || currentFile.template}
-                            options={{ minimap: { enabled: false }, readOnly: !currentFile.editable }} />
-                    {currentFile.image &&
-                      <Center p={2} position='absolute' bottom={0} bg='white' boxSize='full' zIndex={2}>
-                        <Image src={`data:image/png;base64,${currentFile.bytes}`} h='auto' />
-                      </Center>}
+                    <Stack h='full' spacing={0} borderTopWidth={1} borderColor='blackAlpha.200' overflow='hidden'>
+                      <Editor path={getPath(currentFile.id)} defaultValue={currentFile.content || currentFile.template}
+                              language={currentFile.language === 'py' ? 'python' : currentFile.language}
+                              options={{ minimap: { enabled: false }, readOnly: !currentFile.editable }} />
+                      {currentFile.image && <ImagePanel src={currentFile.bytes} />}
+                    </Stack>
+                    <Stack flexGrow={1} flexDir='column-reverse' overflow='auto' px={2} bg='blackAlpha.800'>
+                      {task.submissions.map(submission =>
+                          <Box key={submission.id} py={2}>
+                            <HStack align='start'>
+                              <Code color='orange.300'>{'>'}</Code>
+                              <Code whiteSpace='pre-wrap'>{submission.name}</Code>
+                            </HStack>
+                            <HStack align='start'>
+                              <Code color='orange.300'>$</Code>
+                              <Code whiteSpace='pre-wrap' opacity={submission.output ? 1 : 0.8}>
+                                {submission.output || 'No output'}
+                              </Code>
+                            </HStack>
+                          </Box>)}
+                    </Stack>
                   </SplitHorizontal>
-                  <Stack boxSize='full' flexDir='column-reverse' overflowY='scroll' overflowX='auto'
-                         p={2} bg='blackAlpha.800'>
-                    {task.submissions.map(submission =>
-                        <Box pb={2} key={submission.id}>
-                          <HStack align='start'>
-                            <Code color='orange.300'>{'>'}</Code>
-                            <Code whiteSpace='pre-wrap'>{submission.name}</Code>
-                          </HStack>
-                          <HStack align='start'>
-                            <Code color='orange.300'>$</Code>
-                            <Code whiteSpace='pre-wrap' opacity={submission.output ? 1 : 0.8}>
-                              {submission.output || 'No output'}
-                            </Code>
-                          </HStack>
-                        </Box>)}
-                  </Stack>
                 </Stack>
-              </GridItem>
-              <GridItem as={Stack} bg='blackAlpha.100' borderLeftWidth={2} borderColor='blackAlpha.100' p={2}
-                        overflow='auto'>
-                <Heading fontSize='md' m={3}>Activity</Heading>
+              </SplitVertical>
+              <SidePanel>
                 {task.submissions.map(submission =>
                     <Flex key={submission.id} gap={2} fontSize='sm'>
                       <VStack>
@@ -233,18 +215,20 @@ export default function Task() {
                       <Stack mb={8}>
                         <HStack align='baseline' lineHeight={1.2}>
                           <Text fontWeight={500}>{submission.graded ? submission.name : 'Executed'}</Text>
-                          {!submission.graded && <Kbd m={0} px={1} rounded='sm' fontSize='95%'
-                                                      textTransform='capitalize'>{submission.type}</Kbd>}
+                          {!submission.graded &&
+                            <Kbd m={0} px={1} rounded='sm' fontSize='95%' textTransform='capitalize'>
+                              {submission.type}
+                            </Kbd>}
                           {!submission.valid && <Badge colorScheme='red'>Not valid</Badge>}
                         </HStack>
-                        <Text whiteSpace='nowrap' w='fit-content' pl={1} fontSize='0.7rem'>
+                        <Text whiteSpace='nowrap' w='fit-content' pl={1} fontSize='75%'>
                           {format(parseISO(submission.createdAt), 'dd.MM.yyyy HH:mm')}
                         </Text>
                         {submission.graded &&
                           <Box>
-                            <HStack spacing={1}>
-                              <Text fontWeight={600} fontSize='xl'>{submission.valid ? submission.points : '?'}</Text>
-                              <Text fontSize='lg' lineHeight={1}>/ {submission.maxPoints} Points</Text>
+                            <HStack spacing={1} fontSize={{ base: 'xs', xl: 'md' }}>
+                              <Text fontWeight={600} fontSize='lg'>{submission.valid ? submission.points : '?'}</Text>
+                              <Text fontSize='md' lineHeight={1}>/ {submission.maxPoints} Points</Text>
                             </HStack>
                             <ProgressBar value={submission.points} max={submission.maxPoints} />
                           </Box>}
@@ -277,8 +261,8 @@ export default function Task() {
                     <Text lineHeight={1.2} fontWeight={500}>Started task.</Text>
                   </Stack>
                 </Flex>
-              </GridItem>
-            </Grid>
+              </SidePanel>
+            </Flex>
           </Screen>}
       </AnimatePresence>
   )

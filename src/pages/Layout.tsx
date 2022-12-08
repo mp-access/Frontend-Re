@@ -1,7 +1,7 @@
 import { ChevronRightIcon } from '@chakra-ui/icons'
 import {
-  Avatar, Breadcrumb, BreadcrumbItem, Button, Center, Flex, HStack, Icon, IconButton, Menu, MenuButton, MenuItem,
-  MenuList, Spinner, Stack, Text
+  Avatar, Breadcrumb, BreadcrumbItem, Button, Flex, HStack, Icon, IconButton, Menu, MenuButton, MenuItem, MenuList,
+  SimpleGrid, Spinner, Text, useMediaQuery, VStack
 } from '@chakra-ui/react'
 import { useKeycloak } from '@react-keycloak/web'
 import { useQuery } from '@tanstack/react-query'
@@ -12,6 +12,7 @@ import { LogoButton } from '../components/Buttons'
 import { TimeCountDown } from '../components/Statistics'
 
 export default function Layout() {
+  const [showMyCourses] = useMediaQuery('(min-width: 1100px)')
   const location = useLocation()
   const { keycloak } = useKeycloak()
   const { courseURL, assignmentURL, taskURL } = useParams()
@@ -29,14 +30,17 @@ export default function Layout() {
     keycloak.clearToken()
 
   return (
-      <Stack spacing={0} bg='bg' minH='full'>
+      <SimpleGrid columns={1} templateRows='auto 1fr' bg='bg' boxSize='full'>
         <Flex justify='space-between' px={3} w='full' bg='base' borderBottomWidth={1} align='center' boxShadow='lg'>
           <HStack p={3}>
             <LogoButton />
             <Breadcrumb separator={<ChevronRightIcon color='gray.500' />}>
-              <BreadcrumbItem>
-                <Button as={Link} to='/' variant='nav' leftIcon={<Icon as={AiOutlineAppstore} />}>My Courses</Button>
-              </BreadcrumbItem>
+              {(!(taskURL && assignment?.active) || showMyCourses) &&
+                <BreadcrumbItem>
+                  <Button as={Link} to='/' variant='gradient-solid' leftIcon={<Icon as={AiOutlineAppstore} />}>
+                    My Courses
+                  </Button>
+                </BreadcrumbItem>}
               {courseURL && course &&
                 <BreadcrumbItem>
                   <Button as={Link} to={`/courses/${courseURL}`} variant='link'
@@ -54,8 +58,8 @@ export default function Layout() {
                   {assignment?.tasks.map(t =>
                       <IconButton key={t.id} variant='gradient' rounded='md' size='sm' mx={1} lineHeight={1} as={Link}
                                   to={`/courses/${courseURL}/assignments/${assignmentURL}/tasks/${t.url}`}
-                                  borderColor={t.id === task?.id ? 'transparent' : 'gray.300'}
-                                  icon={<Text fontSize='lg'>{t.ordinalNum}</Text>} aria-label='task' />)}
+                                  borderColor={t.id === task?.id ? 'transparent' : 'gray.300'} aria-label='task'
+                                  icon={<Text fontSize={{ base: 'md', xl: 'lg' }}>{t.ordinalNum}</Text>} />)}
                 </BreadcrumbItem>}
             </Breadcrumb>
           </HStack>
@@ -65,21 +69,20 @@ export default function Layout() {
               <TimeCountDown values={assignment.countDown} h={16} />
             </HStack>}
           <Menu>
-            <MenuButton as={Button} variant='ghost' fontWeight={400} rightIcon={<Avatar size='sm' bg='purple.100' />}>
-              {context.user?.name}
-            </MenuButton>
-            <MenuList minW='9rem'>
-              <MenuItem icon={<AiOutlineLogout fontSize='1.2rem' />} onClick={() => keycloak.logout()}>
+            <MenuButton as={Button} variant='ghost' fontWeight={400} minH={10}
+                        rightIcon={<Avatar size='sm' bg='purple.100' />} children={context.user?.name} />
+            <MenuList minW={40} zIndex={2}>
+              <MenuItem icon={<AiOutlineLogout fontSize='120%' />} onClick={() => keycloak.logout()}>
                 Logout
               </MenuItem>
             </MenuList>
           </Menu>
         </Flex>
-        <Center flexGrow={1} flexDir='column' overflow='hidden'>
+        <VStack justify='start' overflow='auto' spacing={0}>
           {taskURL && <Spinner pos='absolute' top='50%' />}
           <Outlet context={context} />
-        </Center>
-      </Stack>
+        </VStack>
+      </SimpleGrid>
   )
 }
 

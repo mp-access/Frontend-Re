@@ -32,12 +32,12 @@ export default function Course() {
   const collectEvents = (type: string) => course.events.filter(e => e.type === type).map(e => parseISO(e.date))
 
   return (
-      <Grid templateColumns='5fr 2fr' templateRows='auto auto 1fr' gap={6} w='container.xl'>
+      <Grid layerStyle='container' templateColumns='5fr 2fr' templateRows='auto auto 1fr' gap={6}>
         <GridItem as={Stack} layerStyle='segment'>
           <Flex>
             <Icon as={CourseIcon(0)} boxSize={16} mr={4} />
             <Stack>
-              <Heading fontSize='2xl'>{course.title}</Heading>
+              <Heading fontSize='xl'>{course.title}</Heading>
               <Wrap>
                 <Tag>
                   <TagLeftIcon as={AiOutlineCalendar} />
@@ -64,7 +64,7 @@ export default function Course() {
           </Flex>
           <Text flexGrow={1} noOfLines={5} fontSize='sm'>{course.description}</Text>
         </GridItem>
-        <GridItem as={VStack} colSpan={1} rowSpan={3} layerStyle='segment' fontSize='sm'>
+        <GridItem as={VStack} p={3} colSpan={1} rowSpan={3} layerStyle='segment' fontSize='sm'>
           {isSupervisor && <CourseController />}
           <DayPicker mode='single' required selected={day} weekStartsOn={2} showOutsideDays
                      onSelect={(day) => day && setSelectedDay([day, findEvent(formatISO(day))])}
@@ -72,19 +72,23 @@ export default function Course() {
                      modifiersStyles={{ selected: { color: 'inherit' } }}
                      modifiers={{ published: collectEvents('published'), due: collectEvents('due') }}
                      footer={event &&
-                       <HStack layerStyle='card' px={3} py={1} my={1} rounded='lg'>
-                         <Box boxSize={2} className={'cal-' + event.type} bgPos={0} />
-                         <Text>{event.description}</Text>
-                         <Text flexGrow={1} color='blackAlpha.600' textAlign='end'>{event.time}</Text>
+                       <HStack px={3} py={1} my={1} rounded='lg' justify='space-between'>
+                         <Flex>
+                           <Box boxSize={5} className={'cal-' + event.type} bgPos={0} />
+                           <Text>{event.description}</Text>
+                         </Flex>
+                         <Text color='blackAlpha.600' textAlign='end'>{event.time}</Text>
                        </HStack>} />
         </GridItem>
-        <GridItem layerStyle='segment'>
-          <HStack px={6} pb={4} justify='space-between'>
-            <HStack>
+        <GridItem layerStyle='segment' p={1}>
+          <HStack p={4} pl={6} pb={0} justify='space-between'>
+            <HStack whiteSpace='nowrap'>
               <Icon as={FcAlarmClock} boxSize={6} />
-              <Heading fontSize='2xl'>Active Assignments</Heading>
+              <Heading fontSize={{ base: 'lg', xl: 'xl' }}>
+                Active Assignments
+              </Heading>
               <Counter>{course.activeAssignments.length}</Counter>
-              <Button pt={1} w={20} as={Link} to='assignments' variant='link' size='lg'>View All</Button>
+              <Button as={Link} to='assignments' variant='link'>View All</Button>
             </HStack>
             <HStack spacing={4}>
               {course.activeAssignments.map((assignment, i) =>
@@ -92,13 +96,13 @@ export default function Course() {
                              isActive={feature.i === i} children={assignment.name} />)}
             </HStack>
           </HStack>
-          <Flex h='xs'>
+          <Flex h='xs' w='full' p={3} overflow='hidden' pos='relative'>
             {featured ?
                 <Feature custom={feature} as={Link} to={`assignments/${featured.url}`}>
                   <Flex flexGrow={1} gap={4} pb={4} justify='space-between'>
                     <Box>
                       <Text fontSize='xs'>ASSIGNMENT {featured.ordinalNum}</Text>
-                      <Heading whiteSpace='nowrap' fontSize='lg'>{featured.title}</Heading>
+                      <Heading wordBreak='break-all' fontSize='lg' noOfLines={1}>{featured.title}</Heading>
                       <Text fontSize='sm' noOfLines={2}>{featured.description}</Text>
                     </Box>
                     <HStack>
@@ -126,7 +130,7 @@ export default function Course() {
           <HStack px={6} justify='space-between' align='end'>
             <HStack>
               <Icon as={FcBullish} boxSize={6} />
-              <Heading fontSize='2xl'>My Progress</Heading>
+              <Heading fontSize='xl'>My Progress</Heading>
             </HStack>
           </HStack>
         </GridItem>

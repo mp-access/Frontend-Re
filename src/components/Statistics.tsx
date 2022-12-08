@@ -81,7 +81,7 @@ export const ProgressBar = ({ value = 0, max = 1, w = 24 }) =>
       <ResponsiveContainer>
         <BarChart data={[{ value }]} barSize={10} layout='vertical'>
           <XAxis hide type='number' domain={[0, max]} />
-          <Bar dataKey='value' fill='#3dcb99' dx={-5} shape={<HBar />} background={<HBar fill='#e1e1e1' />} />
+          <Bar dataKey='value' fill='#3dcb99' dx={-10} shape={<HBar />} background={<HBar fill='#e1e1e1' />} />
         </BarChart>
       </ResponsiveContainer>
     </Flex>

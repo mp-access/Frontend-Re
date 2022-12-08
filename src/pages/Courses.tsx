@@ -26,22 +26,22 @@ export default function Courses() {
     return <></>
 
   return (
-      <Grid templateColumns='2fr 1fr' gap={6} w='container.xl'>
-        <GridItem as={Stack} spacing={4} layerStyle='segment'>
-          <Heading fontWeight={400} fontSize='3xl'>Welcome, <b>{user.given_name}</b>!</Heading>
-          <HStack justify='space-between' p={2} pb={0} align='end'>
-            <Flex gap={2}>
-              <Icon as={FcGraduationCap} boxSize={7} />
-              <Heading fontSize='2xl'>My Courses</Heading>
+      <Grid layerStyle='container' templateColumns='2fr 1fr' gap={6}>
+        <GridItem as={Stack} layerStyle='segment'>
+          <Heading pb={2} fontWeight={400} fontSize='2xl'>Welcome, <b>{user.given_name}</b>!</Heading>
+          <HStack justify='space-between' align='end'>
+            <HStack>
+              <Icon as={FcGraduationCap} boxSize={6} />
+              <Heading fontSize='xl'>My Courses</Heading>
               <Counter>{enrolled.length}</Counter>
-            </Flex>
+            </HStack>
             {isCreator &&
               <Button as={Link} to='create' variant='gradient' leftIcon={<AddIcon />}>
                 Create Course
               </Button>}
           </HStack>
           <Divider borderColor='gray.300' />
-          <SimpleGrid columns={1} templateRows='1fr 1fr' h='lg' p={2} gap={6}>
+          <SimpleGrid columns={1} templateRows='1fr 1fr' maxH='lg' mt={2} gap={3}>
             {enrolled.map((course, i) =>
                 <Flex key={course.id} as={Link} to={`courses/${course.url}`} layerStyle='card' py={0}>
                   <Stack p={2} pt={5}>
@@ -91,14 +91,14 @@ export default function Courses() {
             {!enrolled.length && <Center boxSize='full' color='gray.500'>No courses found.</Center>}
           </SimpleGrid>
         </GridItem>
-        <GridItem layerStyle='segment'>
-          <HStack p={2}>
+        <GridItem as={Stack} layerStyle='segment'>
+          <HStack>
             <Icon as={FcOrgUnit} boxSize={5} />
             <Heading fontSize='xl'>Explore</Heading>
             <Heading pt={1} fontSize='2xl' fontWeight={400} fontFamily='"Courier Prime", monospace'>ACCESS</Heading>
           </HStack>
           <Divider borderColor='gray.300' />
-          <SimpleGrid columns={1} templateRows='1fr 1fr' h='xl' p={2} pt={4} gap={4}>
+          <SimpleGrid columns={1} templateRows='1fr 1fr' gap={4}>
             {featured.map(course =>
                 <Stack key={course.id} layerStyle='card'>
                   <Heading fontSize='xl'>{course.title}</Heading>
