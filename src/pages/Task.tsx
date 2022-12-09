@@ -51,6 +51,7 @@ export default function Task() {
 
   useEffect(() => {
     setCurrentFile(undefined)
+    setCurrentSubmission(undefined)
   }, [taskURL, userId])
 
   useEffect(() => {

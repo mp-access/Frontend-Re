@@ -116,7 +116,7 @@ export default function Course() {
                       <Text color='blackAlpha.500' fontSize='sm'>My Progress</Text>
                       <ProgressScore points={featured.points} max={featured.maxPoints}
                                      data={featured.tasks.filter(task => task.points)} />
-                      <GoToButton pt={4} alignSelf='end'>
+                      <GoToButton py={4} alignSelf='end'>
                         {featured.points ? 'Continue' : 'Start'}
                       </GoToButton>
                     </VStack>
