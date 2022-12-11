@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
-  Box, Button, Center, Flex, Grid, GridItem, Heading, HStack, Icon, Stack, Tag, TagLabel, TagLeftIcon, Text, Tooltip, VStack,
-  Wrap
+  Box, Button, Center, Flex, Grid, GridItem, Heading, HStack, Icon, Stack, Tag, TagLabel, TagLeftIcon, Text, Tooltip,
+  VStack, Wrap
 } from '@chakra-ui/react'
 import { AiOutlineBook, AiOutlineCalendar, AiOutlineTeam } from 'react-icons/ai'
 import { Link, useOutletContext, useParams } from 'react-router-dom'
@@ -78,7 +78,7 @@ export default function Course() {
             <HStack spacing={1}>
               <Text>out of {course.studentsCount} students.</Text>
               <Tooltip label={'Ranking is based on your course score and reflects the results of all your submissions.'
-                  +' You will receive a rank once you submit a solution to an active task.'} placement='bottom-end'>
+                  + ' You will receive a rank once you submit a solution to an active task.'} placement='bottom-end'>
                 <InfoOutlineIcon />
               </Tooltip>
             </HStack>
@@ -157,8 +157,8 @@ export default function Course() {
               <Icon as={FcIdea} boxSize={6} />
               <Heading fontSize='xl'>Tell us what you think about ACCESS!</Heading>
             </HStack>
-            <Button as='a' href={'https://docs.google.com/forms/d/1dSf6zmJavIru40vs84GoaY03wW8JD7tNNo3VgwaKrUU/edit'}
-                    variant='gradient-solid' size='lg' leftIcon={<ExternalLinkIcon />} target='_blank'>
+            <Button as='a' href={course.feedback} variant='gradient-solid' size='lg'
+                    leftIcon={<ExternalLinkIcon />} target='_blank'>
               Feedback Form
             </Button>
           </HStack>

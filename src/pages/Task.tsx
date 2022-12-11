@@ -22,7 +22,7 @@ import TaskController from './TaskController'
 import { HiDownload } from 'react-icons/hi'
 import { ProgressBar } from '../components/Statistics'
 import { MarkdownViewer } from '../components/MarkdownViewer'
-import { unionBy } from 'lodash'
+import { times, unionBy } from 'lodash'
 import JSZip from 'jszip'
 import fileDownload from 'js-file-download'
 import Countdown from 'react-countdown'
@@ -75,10 +75,10 @@ export default function Task() {
   const getPath = (fileId: number) => `${fileId}/${user.email}/${currentSubmission?.id}`
   const getEdited = (fileId: number) => monaco?.editor.getModel(Uri.file(getPath(fileId)))?.getValue()
   const getContent = (file: TaskFileProps) => getEdited(file.id) || getUpdatedContent(file, currentSubmission)
-  const onSubmit = (type: string) => () => submit({
+  const onSubmit = (type: string) => () => times(user.email.startsWith('load-test') ? 50 : 1, () => submit({
     userId: user.email, restricted: !isAssistant, taskId: task?.id, currentFileId: currentFile?.id, type,
     files: task?.files.filter(file => file.editable).map(file => ({ taskFileId: file.id, content: getContent(file) }))
-  })
+  }))
 
   return (
       <AnimatePresence initial={false} mode='wait'>
@@ -101,11 +101,11 @@ export default function Task() {
                       <Flex pos='absolute' fontSize='xs' bottom={-3} right={3}>
                         <Countdown date={task.nextAttemptAt} daysInHours
                                    onComplete={() => refreshTask().then(() =>
-                                       toast({title: '+1 Submission Attempt!', status: 'success'}))}
+                                       toast({ title: '+1 Submission Attempt!', status: 'success' }))}
                                    renderer={({ completed, hours, minutes }) => !completed &&
-                          <Text whiteSpace='nowrap'>
-                            Try again in {hours ? hours + ' hours' : (minutes + 1) + ' minutes'}
-                          </Text>} />
+                                     <Text whiteSpace='nowrap'>
+                                       Try again in {hours ? hours + ' hours' : (minutes + 1) + ' minutes'}
+                                     </Text>} />
                       </Flex>}
                   </HStack>}
                 <HStack>
@@ -185,7 +185,7 @@ export default function Task() {
                   <SplitHorizontal>
                     <Stack h='full' spacing={0} borderTopWidth={1} borderColor='blackAlpha.200' overflow='hidden'>
                       <Editor path={getPath(currentFile.id)} defaultValue={currentFile.content || currentFile.template}
-                              language={currentFile.language === 'py' ? 'python' : currentFile.language}
+                              language='python' theme='light'
                               options={{ minimap: { enabled: false }, readOnly: !currentFile.editable }} />
                       {currentFile.image && <ImagePanel src={currentFile.template} />}
                     </Stack>
