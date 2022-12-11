@@ -22,7 +22,7 @@ import TaskController from './TaskController'
 import { HiDownload } from 'react-icons/hi'
 import { ProgressBar } from '../components/Statistics'
 import { MarkdownViewer } from '../components/MarkdownViewer'
-import { times, unionBy } from 'lodash'
+import { unionBy } from 'lodash'
 import JSZip from 'jszip'
 import fileDownload from 'js-file-download'
 import Countdown from 'react-countdown'
@@ -44,8 +44,10 @@ export default function Task() {
   const [openFiles, setOpenFiles] = useState<TaskFileProps[]>([])
 
   const { data: task, refetch: refreshTask } = useQuery<TaskProps>(['tasks', taskURL, 'users', userId])
-  const { mutate: submit, isLoading } = useMutation<any, any, object>(['submit'],
-      { onMutate: () => setUserId(user.email), onSettled: refreshTask, onSuccess: onClose })
+  const { mutate: submit, isLoading } = useMutation<any, any, object>(['submit'], {
+    onMutate: () => setUserId(user.email), onSettled: refreshTask, onSuccess: onClose,
+    onError: (error) => toast({ title: error.response.data.message, status: 'error' })
+  })
 
   useEffect(() => {
     setCurrentFile(undefined)
@@ -75,10 +77,10 @@ export default function Task() {
   const getPath = (fileId: number) => `${fileId}/${user.email}/${currentSubmission?.id}`
   const getEdited = (fileId: number) => monaco?.editor.getModel(Uri.file(getPath(fileId)))?.getValue()
   const getContent = (file: TaskFileProps) => getEdited(file.id) || getUpdatedContent(file, currentSubmission)
-  const onSubmit = (type: string) => () => times(user.email.startsWith('load-test') ? 50 : 1, () => submit({
+  const onSubmit = (type: string) => () => submit({
     userId: user.email, restricted: !isAssistant, taskId: task?.id, currentFileId: currentFile?.id, type,
     files: task?.files.filter(file => file.editable).map(file => ({ taskFileId: file.id, content: getContent(file) }))
-  }))
+  })
 
   return (
       <AnimatePresence initial={false} mode='wait'>
@@ -115,7 +117,7 @@ export default function Task() {
                   <ProgressBar value={task.points} max={task.maxPoints} />
                 </HStack>
               </HStack>
-              <ButtonGroup variant='gradient'>
+              <ButtonGroup variant='gradient' isDisabled={isLoading}>
                 <Button leftIcon={<FaFlask />} children='Test' isLoading={isLoading} onClick={onSubmit('test')} />
                 <Button leftIcon={<FaTerminal />} children='Run' isLoading={isLoading} onClick={onSubmit('run')} />
                 <Button colorScheme='green' leftIcon={<AiOutlineSend />} onClick={onOpen} children='Submit'
