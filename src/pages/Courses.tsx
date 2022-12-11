@@ -41,10 +41,10 @@ export default function Courses() {
               </Button>}
           </HStack>
           <Divider borderColor='gray.300' />
-          <SimpleGrid columns={1} templateRows='1fr 1fr' maxH='lg' mt={2} gap={3}>
+          <SimpleGrid columns={1} templateRows='1fr 1fr' maxH='lg' py={2} gap={3}>
             {enrolled.map((course, i) =>
-                <Flex key={course.id} as={Link} to={`courses/${course.url}`} layerStyle='card' py={0}>
-                  <Stack p={2} pt={5}>
+                <Flex key={course.id} as={Link} to={`courses/${course.url}`} layerStyle='card' gap={4}>
+                  <Stack w='full'>
                     <Flex>
                       <Icon as={CourseIcon(i)} boxSize={16} mr={4} />
                       <Stack>
@@ -64,19 +64,19 @@ export default function Courses() {
                           </Tag>
                           <Tag>
                             <TagLeftIcon as={AiOutlineTeam} />
-                            <TagLabel>5 Students</TagLabel>
+                            <TagLabel>{course.studentsCount} Students</TagLabel>
                           </Tag>
                           <Tag color='green.600' bg='green.50'>
                             <TagLeftIcon as={BsFillCircleFill} boxSize={2} />
-                            <TagLabel>5 Online</TagLabel>
+                            <TagLabel>{course.onlineCount} Online</TagLabel>
                           </Tag>
                         </Wrap>
                       </Stack>
                     </Flex>
-                    <Text flexGrow={1} noOfLines={5} fontSize='sm'>{course.description}</Text>
+                    <Text noOfLines={5} fontSize='sm'>{course.description}</Text>
                     <GoToButton>Go To Course</GoToButton>
                   </Stack>
-                  <Stack w='2xs' spacing={0} py={5}>
+                  <Stack w='2xs' spacing={0}>
                     <HStack w='full' justify='end' mb={5}>
                       <Tag colorScheme='purple'>
                         <TagLeftIcon as={BsCheck2} />
@@ -124,8 +124,8 @@ export default function Courses() {
                   <Divider borderColor='gray.300' />
                   <ButtonGroup>
                     <Button w='full' variant='ghost'>Read More</Button>
-                    <Button w='full' variant='nav' leftIcon={<Icon as={GoMortarBoard} />}
-                            onClick={() => enroll([course.url, 'enroll'])} isLoading={isLoading}>
+                    <Button w='full' variant='gradient-solid' leftIcon={<Icon as={GoMortarBoard} />}
+                            onClick={() => enroll([course.url, 'students', user.email])} isLoading={isLoading}>
                       Enroll
                     </Button>
                   </ButtonGroup>

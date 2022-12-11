@@ -2,8 +2,8 @@ import React from 'react'
 import { Link, useOutletContext, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
-  Box, Button, Center, Divider, Flex, Grid, GridItem, Heading, HStack, Icon, Stack, Tag, TagLabel, TagLeftIcon, Text,
-  VStack, Wrap, WrapItem
+  Box, Button, Divider, Flex, Grid, GridItem, Heading, HStack, Icon, Stack, Tag, TagLabel, TagLeftIcon, Text, VStack,
+  Wrap, WrapItem
 } from '@chakra-ui/react'
 import { AiOutlineCalendar } from 'react-icons/ai'
 import { CgInfinity } from 'react-icons/cg'
@@ -32,7 +32,7 @@ export default function Assignment() {
                 <Tag>{assignment.tasksCount} Tasks</Tag>
                 <Tag>
                   <TagLeftIcon as={AiOutlineCalendar} />
-                  <TagLabel>{assignment.activeRange}</TagLabel>
+                  <TagLabel>{assignment.duration}</TagLabel>
                 </Tag>
                 <Tag colorScheme={assignment.active ? 'green' : 'purple'}>
                   Submission {assignment.active ? 'Open' : 'Closed'}
@@ -55,8 +55,9 @@ export default function Assignment() {
         <Divider borderColor='gray.300' />
         <Stack px={2}>
           {assignment.tasks.map(task =>
-              <Grid as={Center} key={task.id} templateColumns='3fr 2fr 2fr 1fr' layerStyle='card' gap={4}>
-                <GridItem>
+              <Grid key={task.id} alignItems='center' justifyItems='center'
+                    templateColumns='4fr 2fr 2fr 1fr' layerStyle='card' gap={4}>
+                <GridItem w='full' overflow='hidden'>
                   <Text fontSize='xs'>TASK {task.ordinalNum}</Text>
                   <Heading fontSize='lg' noOfLines={1} wordBreak='break-all'>{task.title}</Heading>
                   <Text fontSize='sm' noOfLines={3}>{task.instructions}</Text>
@@ -82,7 +83,7 @@ export default function Assignment() {
                   </HStack>
                   <ProgressBar value={task.points} max={task.maxPoints} />
                 </GridItem>
-                <GridItem>
+                <GridItem w='full'>
                   <Button w='full' colorScheme='green' as={Link} to={`tasks/${task.url}`}>
                     {task.points ? 'Continue' : 'Start'}
                   </Button>

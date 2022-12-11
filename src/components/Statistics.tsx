@@ -5,7 +5,7 @@ import { Flex, SimpleGrid, Stack, Tag, TagLabel, TagLeftIcon } from '@chakra-ui/
 import { BsFillCircleFill } from 'react-icons/bs'
 
 type ScoreProps = { data: Array<Partial<{ points: number, name: string }>>, points: number, max: number }
-type TimeCounterProps = { values: Array<TimeCountProps>, h?: number }
+type TimeCounterProps = { values: Array<TimerProps>, h?: number }
 
 const VBar = ({ x, y, height, width, fill }: SVGProps<any>) =>
     <rect x={x} y={y} height={height} width={width || 1} rx={10} fill={fill} />
@@ -20,7 +20,7 @@ const tooltipStyle = {
   cursor: { fill: 'transparent', cursor: 'pointer' }
 }
 
-const TimeCount = ({ current, max, name }: TimeCountProps) =>
+const TimeCount = ({ current, max, name }: TimerProps) =>
     <ResponsiveContainer>
       <PieChart>
         <Pie data={[{ current }, { current: max - current }]} dataKey='current' innerRadius='50%' outerRadius='65%'
@@ -63,7 +63,7 @@ export const TaskOverview = ({ points, maxPoints, avgPoints, name }: TaskOvervie
 
 export const TasksOverview = ({ data }: { data: Array<TaskOverview> }) =>
     <SimpleGrid boxSize='full' templateColumns={`auto repeat(${data.length}, 1fr)`}>
-      <Stack justify='center'>
+      <Stack justify='center' whiteSpace='nowrap'>
         <Tag colorScheme='whiteAlpha' color='green.600'>
           <TagLeftIcon as={BsFillCircleFill} boxSize={2} />
           <TagLabel>My Score</TagLabel>

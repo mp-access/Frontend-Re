@@ -15,10 +15,10 @@ const CodeHighlighter = ({ inline, children, ...props }: CodeProps) =>
                      {...(inline && { display: 'inline !important', p: '3px !important', PreTag: 'code' })} />
 
 const ImgRenderer = ({ src }: ImageProps) =>
-    <Image src={`data:image/png;base64,${src}`} h='auto' pr={3} />
+    <Image src={src} h='auto' pr={3} />
 
 export const MarkdownViewer = ({ children, data }: ComponentProps<typeof MarkdownBase>) =>
-    <MarkdownBase children={children} fontSize='90%' remarkPlugins={[remarkGfm]}
+    <MarkdownBase children={children} fontSize='90%' remarkPlugins={[remarkGfm]} p={2}
                   wordBreak='break-word' whiteSpace='pre-wrap' overflow='auto' boxSize='full'
                   components={{
                     code: CodeHighlighter,
@@ -29,5 +29,5 @@ export const MarkdownViewer = ({ children, data }: ComponentProps<typeof Markdow
                     ul: ({ children }) => <UnorderedList children={children} />,
                     ol: ({ children }) => <OrderedList children={children} />,
                     img: ({ src }) =>
-                        <ImgRenderer src={data.find((file: TaskFileProps) => file.name === src)?.bytes} />
+                        <ImgRenderer src={data.find((file: TaskFileProps) => file.name === src)?.template} />
                   }} />

@@ -33,7 +33,7 @@ export default function Assignments() {
                 <GridItem as={VStack}>
                   <Tag bg='transparent'>
                     <TagLeftIcon as={AiOutlineClockCircle} marginBottom={1} />
-                    <TagLabel>{assignment.activeRange}</TagLabel>
+                    <TagLabel>{assignment.duration}</TagLabel>
                   </Tag>
                   <Text color='blackAlpha.600' fontSize='xs'>TIME REMAINING</Text>
                   <TimeCountDown values={assignment.countDown} />
@@ -70,13 +70,13 @@ export default function Assignments() {
                   <Tag bg='transparent'>
                     <TagLeftIcon as={AiOutlineCalendar} />
                     <TagLabel fontWeight={400}>
-                      Started: <b>{assignment.activeRange.split('~')[0]}</b>
+                      Started: <b>{assignment.duration.split('~')[0]}</b>
                     </TagLabel>
                   </Tag>
                   <Tag bg='transparent'>
                     <TagLeftIcon as={AiOutlineCalendar} />
                     <TagLabel fontWeight={400}>
-                      Ended: <b>{assignment.activeRange.split('~')[1]}</b>
+                      Ended: <b>{assignment.duration.split('~')[1]}</b>
                     </TagLabel>
                   </Tag>
                 </GridItem>

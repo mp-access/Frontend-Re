@@ -7,12 +7,14 @@ declare interface CourseFeature {
   semester: string;
   startDate: string;
   endDate: string;
+  studentsCount: number;
+  onlineCount: number;
+  feedback: string;
 }
 
 declare interface CourseOverview extends CourseFeature {
   maxPoints: number;
   points: number;
-  avgPoints: number;
   assignmentsCount: number;
   events: Array<CourseEventProps>;
 }
@@ -20,6 +22,7 @@ declare interface CourseOverview extends CourseFeature {
 declare interface CourseProps extends CourseOverview {
   activeAssignments: Array<AssignmentProps>;
   pastAssignments: Array<AssignmentOverview>;
+  rank: number;
 }
 
 declare interface AssignmentOverview {
@@ -31,14 +34,13 @@ declare interface AssignmentOverview {
   description: string;
   startDate: string;
   endDate: string;
-  activeRange: string;
-  countDown: Array<TimeCountProps>;
+  duration: string;
+  countDown: Array<TimerProps>;
   published: boolean;
   pastDue: boolean;
   active: boolean;
   maxPoints: number;
   points: number;
-  avgPoints: number;
   tasksCount: number;
 }
 
@@ -63,6 +65,7 @@ declare interface TaskOverview {
 }
 
 declare interface TaskProps extends TaskOverview {
+  nextAttemptAt: string;
   files: Array<TaskFileProps>;
   submissions: Array<SubmissionProps>;
 }
@@ -71,12 +74,10 @@ declare interface TaskFileProps {
   id: number;
   name: string;
   path: string;
-  mime: string;
   language: string;
   editable: boolean;
   open: boolean;
   image: boolean;
-  bytes: string;
   template: string;
   content: string;
 }
@@ -88,7 +89,6 @@ declare interface SubmissionProps {
   valid: boolean;
   graded: boolean;
   createdAt: string;
-  nextAttemptAt: string;
   points: number;
   maxPoints: number;
   output: string;
@@ -108,7 +108,7 @@ declare interface StudentProps {
   points: number;
 }
 
-declare interface TimeCountProps {
+declare interface TimerProps {
   name: string;
   current: number;
   max: number;
@@ -123,7 +123,12 @@ declare interface CourseEventProps {
 
 declare interface UserContext {
   isCreator: boolean;
-  user: KeycloakTokenParsed;
+  user: CurrentUser;
   isAssistant: boolean;
   isSupervisor: boolean;
+}
+
+declare interface CurrentUser {
+  given_name: string;
+  email: string;
 }

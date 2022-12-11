@@ -34,10 +34,10 @@ export const LanugageIcon = (language: string) => {
 export const CourseIcon = (index: number) => {
   switch (index.toString()) {
     case '0':
-      return Course1Icon
-    case '1':
       return Course2Icon
-    case '2':
+    case '1':
       return Course3Icon
+    case '2':
+      return Course1Icon
   }
 }

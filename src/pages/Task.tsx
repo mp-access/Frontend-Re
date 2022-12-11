@@ -1,12 +1,12 @@
 import {
   Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel, Badge, Box, Button, ButtonGroup, Code,
-  Divider, Flex, Heading, HStack, Icon, IconButton, Kbd, Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader,
+  Divider, Flex, Heading, HStack, Icon, IconButton, Modal, ModalBody, ModalCloseButton, ModalContent, ModalHeader,
   ModalOverlay, Popover, PopoverArrow, PopoverBody, PopoverContent, PopoverTrigger, Stack, Text, useDisclosure,
   useToast, VStack
 } from '@chakra-ui/react'
 import Editor, { useMonaco } from '@monaco-editor/react'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { format, isAfter, parseISO } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import { AnimatePresence } from 'framer-motion'
 import { Uri } from 'monaco-editor'
 import React, { useEffect, useState } from 'react'
@@ -22,13 +22,11 @@ import TaskController from './TaskController'
 import { HiDownload } from 'react-icons/hi'
 import { ProgressBar } from '../components/Statistics'
 import { MarkdownViewer } from '../components/MarkdownViewer'
-import { findLast, unionBy } from 'lodash'
+import { unionBy } from 'lodash'
 import JSZip from 'jszip'
 import fileDownload from 'js-file-download'
 import Countdown from 'react-countdown'
 
-const getNextAttemptAt = (values: Array<string>) =>
-    findLast(values, d => isAfter(parseISO(d), new Date()))
 const getUpdatedContent = (file: TaskFileProps, submission?: SubmissionProps) =>
     submission?.files.find(submitted => submitted.taskFileId === file.id)?.content || file.content || file.template
 const updateFile = (file: TaskFileProps, submission?: SubmissionProps) =>
@@ -68,8 +66,7 @@ export default function Task() {
   }, [currentFile])
 
   const reload = (submission: SubmissionProps) => {
-    const title = 'Reloaded ' + (submission.graded ? submission.name : 'execution')
-    toast({ title, status: 'success', isClosable: true })
+    toast({ title: 'Reloaded ' + submission.name, isClosable: true })
     setOpenFiles(files => files.map(file => updateFile(file, submission)))
     setCurrentFile(file => file && updateFile(file, submission))
     setCurrentSubmission(submission)
@@ -102,8 +99,10 @@ export default function Task() {
                     <Icon as={BsCircleFill} boxSize={1} color='gray.300' mx={4} />
                     {!task.remainingAttempts &&
                       <Flex pos='absolute' fontSize='xs' bottom={-3} right={3}>
-                        <Countdown date={getNextAttemptAt(task.submissions.map(s => s.nextAttemptAt))} daysInHours
-                                   onComplete={refreshTask} renderer={({ completed, hours, minutes }) => !completed &&
+                        <Countdown date={task.nextAttemptAt} daysInHours
+                                   onComplete={() => refreshTask().then(() =>
+                                       toast({title: '+1 Submission Attempt!', status: 'success'}))}
+                                   renderer={({ completed, hours, minutes }) => !completed &&
                           <Text whiteSpace='nowrap'>
                             Try again in {hours ? hours + ' hours' : (minutes + 1) + ' minutes'}
                           </Text>} />
@@ -148,19 +147,20 @@ export default function Task() {
             </HStack>
             <Flex boxShadow='xs' bg='base' overflow='hidden'>
               <SplitVertical>
-                <Accordion allowMultiple defaultIndex={[0, 1]}>
-                  <AccordionItem>
-                    <AccordionButton gap={2} borderBottomWidth={1}>
+                <Accordion h='full' allowMultiple defaultIndex={[0, 1]}>
+                  <AccordionItem h='75%'>
+                    <AccordionButton h={10} gap={2} borderBottomWidth={1}>
                       <AccordionIcon />
                       <FiAlignJustify />
                       <Text fontWeight={500}>Instructions</Text>
                     </AccordionButton>
-                    <AccordionPanel maxH='60vh' overflow='auto'>
+                    <AccordionPanel p={0} h='full' overflow='auto'
+                                    motionProps={{ endingHeight: 'calc(100% - 2.5rem)' }}>
                       <MarkdownViewer children={task.instructions} data={task.files} />
                     </AccordionPanel>
                   </AccordionItem>
-                  <AccordionItem borderBottomColor='transparent' pos='relative'>
-                    <AccordionButton gap={2} borderBottomWidth={1}>
+                  <AccordionItem h='25%' borderBottomColor='transparent' pos='relative'>
+                    <AccordionButton h={10} gap={2} borderBottomWidth={1}>
                       <AccordionIcon />
                       <FiFile />
                       <Text fontWeight={500}>Files</Text>
@@ -172,7 +172,8 @@ export default function Task() {
                         zip.generateAsync({ type: 'blob' }).then(b => fileDownload(b, task.url + '.zip'))
                       }} />
                     </ButtonGroup>
-                    <AccordionPanel p={0} h='16vh' overflow='auto'>
+                    <AccordionPanel p={0} h='full' overflow='auto'
+                                    motionProps={{ endingHeight: 'calc(100% - 2.5rem)' }}>
                       <FileTree data={task.files} value={currentFile.id}
                                 onClick={file => setCurrentFile(updateFile(file, currentSubmission))} />
                     </AccordionPanel>
@@ -186,7 +187,7 @@ export default function Task() {
                       <Editor path={getPath(currentFile.id)} defaultValue={currentFile.content || currentFile.template}
                               language={currentFile.language === 'py' ? 'python' : currentFile.language}
                               options={{ minimap: { enabled: false }, readOnly: !currentFile.editable }} />
-                      {currentFile.image && <ImagePanel src={currentFile.bytes} />}
+                      {currentFile.image && <ImagePanel src={currentFile.template} />}
                     </Stack>
                     <Stack flexGrow={1} flexDir='column-reverse' overflow='auto' px={2} bg='blackAlpha.800'>
                       {task.submissions.map(submission =>
@@ -215,11 +216,7 @@ export default function Task() {
                       </VStack>
                       <Stack mb={8}>
                         <HStack align='baseline' lineHeight={1.2}>
-                          <Text fontWeight={500}>{submission.graded ? submission.name : 'Executed'}</Text>
-                          {!submission.graded &&
-                            <Kbd m={0} px={1} rounded='sm' fontSize='95%' textTransform='capitalize'>
-                              {submission.type}
-                            </Kbd>}
+                          <Text fontWeight={500}>{submission.name}</Text>
                           {!submission.valid && <Badge colorScheme='red'>Not valid</Badge>}
                         </HStack>
                         <Text whiteSpace='nowrap' w='fit-content' pl={1} fontSize='75%'>

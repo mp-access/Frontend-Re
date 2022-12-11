@@ -11,7 +11,7 @@ type RootNodeProps = NodeProps & { data: Array<TaskFileProps> }
 const File = ({ data, value, onClick }: FileNodeProps) =>
     <AccordionItem border='0 solid transparent' bg={value === data.id ? 'blackAlpha.100' : 'inherit'}>
       <AccordionButton borderWidth={0} onClick={() => onClick(data)} fontSize='sm'>
-        <Icon as={LanugageIcon(data.language)} ml={data.path.split('/').length * 7} mr={2} boxSize={4} />
+        <Icon as={LanugageIcon(data.language)} ml={data.path.split('/').length * 6} mr={2} boxSize={4} />
         <Text>{data.name}</Text>
       </AccordionButton>
     </AccordionItem>

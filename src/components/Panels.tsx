@@ -45,13 +45,13 @@ export const SplitVertical = ({ children }: PropsWithChildren<any>) => {
 }
 
 export const SplitHorizontal = ({ children }: PropsWithChildren<any>) => {
-  const h = useBreakpointValue({ base: 400, lg: 500 }) || 400
+  const h = window.innerHeight * 0.6
   const y = useMotionValue(h)
   return (
       <Stack as={motion.div} pl={1} spacing={1} flexGrow={1} overflow='hidden'>
         <motion.div style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
           <motion.div style={{ height: y }} children={children[0]} />
-          <SplitBar drag='y' dragConstraints={{ top: 300, bottom: h + 20 }} style={{ y }} h={1} cursor='row-resize' />
+          <SplitBar drag='y' dragConstraints={{ top: 200, bottom: h * 1.1 }} style={{ y }} h={1} cursor='row-resize' />
         </motion.div>
         {children[1]}
       </Stack>
@@ -78,7 +78,7 @@ export const Feature = ({ custom, ...props }: ComponentProps<any>) =>
 
 export const ImagePanel = ({ src }: ImageProps) =>
     <Center p={2} position='absolute' bottom={0} bg='white' boxSize='full' zIndex={3}>
-      <Image src={`data:image/png;base64,${src}`} h='auto' />
+      <Image src={src} h='auto' />
     </Center>
 
 export const Screen = (props: SimpleGridProps) =>
