@@ -7,9 +7,9 @@ import React from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
 import { AiOutlineBook, AiOutlineCalendar, AiOutlineTeam } from 'react-icons/ai'
 import { ProgressScore } from '../components/Statistics'
-import { AddIcon } from '@chakra-ui/icons'
-import { BsCheck2, BsFillCircleFill } from 'react-icons/bs'
-import { FcGraduationCap, FcOrgUnit } from 'react-icons/fc'
+import { AddIcon, ExternalLinkIcon } from '@chakra-ui/icons'
+import { BsCheck2, BsCircleFill, BsFillCircleFill } from 'react-icons/bs'
+import { FcAdvertising, FcGraduationCap, FcOrgUnit } from 'react-icons/fc'
 import { CourseIcon } from '../components/Icons'
 import { Counter, GoToButton } from '../components/Buttons'
 import { GoMortarBoard } from 'react-icons/go'
@@ -26,8 +26,8 @@ export default function Courses() {
     return <></>
 
   return (
-      <Grid layerStyle='container' templateColumns='2fr 1fr' gap={6}>
-        <GridItem as={Stack} layerStyle='segment'>
+      <Grid layerStyle='container' templateColumns='2fr 1fr' templateRows='1fr auto' gap={6}>
+        <GridItem as={Stack} layerStyle='segment' colSpan={1} rowSpan={2}>
           <Heading pb={2} fontWeight={400} fontSize='2xl'>Welcome, <b>{user.given_name}</b>!</Heading>
           <HStack justify='space-between' align='end'>
             <HStack>
@@ -93,6 +93,40 @@ export default function Courses() {
         </GridItem>
         <GridItem as={Stack} layerStyle='segment'>
           <HStack>
+            <Icon as={FcAdvertising} boxSize={5} />
+            <Heading fontSize='xl'>Notice Board</Heading>
+          </HStack>
+          <Divider borderColor='gray.300' />
+          <Stack py={2}>
+            <Flex gap={2} fontSize='sm'>
+              <VStack>
+                <Icon as={BsCircleFill} mx={2} mt={1} boxSize={2} color='purple.500' />
+                <Divider orientation='vertical' borderColor='gray.500' />
+              </VStack>
+              <Stack mb={8}>
+                <Text lineHeight={1.2} fontWeight={500}>What do you think?</Text>
+                <Text>
+                  You can share your feedback with us (anonymously) by filling out
+                  <Button variant='link' size='sm' leftIcon={<ExternalLinkIcon />} as='a' target='_blank'
+                          href={enrolled[0]?.feedback} p={0} ml={1} colorScheme='telegram' alignItems='baseline'
+                          iconSpacing={1} children='this form' />.
+                </Text>
+              </Stack>
+            </Flex>
+            <Flex gap={2} fontSize='sm'>
+              <VStack>
+                <Icon as={BsCircleFill} mx={2} mt={1} boxSize={2} color='purple.500' />
+                <Divider orientation='vertical' borderColor='gray.500' />
+              </VStack>
+              <Stack mb={8}>
+                <Text lineHeight={1.2} fontWeight={500}>Welcome to the new version of ACCESS!</Text>
+                <Text>Check the course Informatics 1 (Demo) and submit your solutions to the available tasks.</Text>
+              </Stack>
+            </Flex>
+          </Stack>
+        </GridItem>
+        <GridItem as={Stack} layerStyle='segment'>
+          <HStack>
             <Icon as={FcOrgUnit} boxSize={5} />
             <Heading fontSize='xl'>Explore</Heading>
             <Heading pt={1} fontSize='2xl' fontWeight={400} fontFamily='"Courier Prime", monospace'>ACCESS</Heading>
@@ -131,7 +165,7 @@ export default function Courses() {
                   </ButtonGroup>
                 </Stack>)}
             {!featured.length &&
-              <VStack justify='center' spacing={4} color='blackAlpha.400'>
+              <VStack justify='center' spacing={4} pt={6} color='blackAlpha.400'>
                 <Icon as={FiSend} boxSize={16} opacity={0.3} />
                 <Text>More courses <br /> coming soon!</Text>
               </VStack>}

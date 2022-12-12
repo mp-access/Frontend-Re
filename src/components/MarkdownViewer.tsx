@@ -27,7 +27,7 @@ export const MarkdownViewer = ({ children, data }: ComponentProps<typeof Markdow
                   components={{
                     code: CodeHighlighter,
                     p: (props) => <Text {...props} />,
-                    a: (props) => <Link color='blue.500' fontSize='95%' {...props} />,
+                    a: (props) => <Link color='blue.500' {...props} />,
                     h3: (props) => <Heading fontSize='lg' {...props} />,
                     h2: (props) => <Heading fontSize='xl' {...props} />,
                     li: ({ children }) =>

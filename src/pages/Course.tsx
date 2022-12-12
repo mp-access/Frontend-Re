@@ -83,7 +83,7 @@ export default function Course() {
               </Tooltip>
             </HStack>
           </VStack>
-          <DayPicker mode='single' required selected={day} weekStartsOn={2} showOutsideDays
+          <DayPicker mode='single' required selected={day} showOutsideDays weekStartsOn={1}
                      onSelect={(day) => day && setSelectedDay([day, findEvent(formatISO(day))])}
                      modifiersClassNames={{ published: 'cal-published', due: 'cal-due' }}
                      modifiersStyles={{ selected: { color: 'inherit' } }}
