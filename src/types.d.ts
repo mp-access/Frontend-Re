@@ -95,6 +95,8 @@ declare interface SubmissionProps {
   files: Array<SubmissionFileProps>;
 }
 
+declare type WorkspaceProps = Partial<SubmissionProps>
+
 declare interface SubmissionFileProps {
   id: number;
   content: string;

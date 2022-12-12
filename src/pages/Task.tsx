@@ -27,9 +27,9 @@ import JSZip from 'jszip'
 import fileDownload from 'js-file-download'
 import Countdown from 'react-countdown'
 
-const getUpdatedContent = (file: TaskFileProps, submission?: SubmissionProps) =>
-    submission?.files.find(submitted => submitted.taskFileId === file.id)?.content || file.content || file.template
-const updateFile = (file: TaskFileProps, submission?: SubmissionProps) =>
+const getUpdatedContent = (file: TaskFileProps, submission?: WorkspaceProps) =>
+    submission?.files?.find(submitted => submitted.taskFileId === file.id)?.content || file.content || file.template
+const updateFile = (file: TaskFileProps, submission?: WorkspaceProps) =>
     ({ ...file, content: getUpdatedContent(file, submission) })
 
 export default function Task() {
@@ -39,7 +39,7 @@ export default function Task() {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const { isAssistant, user } = useOutletContext<UserContext>()
   const [userId, setUserId] = useState(user.email)
-  const [currentSubmission, setCurrentSubmission] = useState<SubmissionProps>()
+  const [currentSubmission, setCurrentSubmission] = useState<WorkspaceProps>()
   const [currentFile, setCurrentFile] = useState<TaskFileProps>()
   const [openFiles, setOpenFiles] = useState<TaskFileProps[]>([])
 
@@ -72,6 +72,14 @@ export default function Task() {
     setOpenFiles(files => files.map(file => updateFile(file, submission)))
     setCurrentFile(file => file && updateFile(file, submission))
     setCurrentSubmission(submission)
+  }
+
+  const reset = () => {
+    toast({ title: 'Reset files to template ', isClosable: true })
+    console.log(openFiles)
+    setOpenFiles(files => files.map(file => ({ ...file, content: file.template })))
+    setCurrentFile(file => file && ({ ...file, content: file.template }))
+    setCurrentSubmission({ id: -1 })
   }
 
   const getPath = (fileId: number) => `${fileId}/${user.email}/${currentSubmission?.id}`
@@ -245,8 +253,7 @@ export default function Task() {
                               </PopoverBody>
                             </PopoverContent>
                           </Popover>
-                          <Button leftIcon={<AiOutlineReload />}
-                                  onClick={() => reload(submission)}>
+                          <Button leftIcon={<AiOutlineReload />} onClick={() => reload(submission)}>
                             Reload
                           </Button>
                         </ButtonGroup>
@@ -259,6 +266,9 @@ export default function Task() {
                   </VStack>
                   <Stack mb={8}>
                     <Text lineHeight={1.2} fontWeight={500}>Started task.</Text>
+                    <Button size='xs' leftIcon={<AiOutlineReload />} onClick={reset}>
+                      Reset
+                    </Button>
                   </Stack>
                 </Flex>
               </SidePanel>
