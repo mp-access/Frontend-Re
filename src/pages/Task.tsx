@@ -38,7 +38,7 @@ export default function Task() {
   const { taskURL } = useParams()
   const { isOpen, onOpen, onClose } = useDisclosure()
   const { isAssistant, user } = useOutletContext<UserContext>()
-  const [isSubmitting, setSubmitting] = useState(false)
+  const [isSubmitting, setSubmitting] = useState<number>()
   const [userId, setUserId] = useState(user.email)
   const [currentSubmission, setCurrentSubmission] = useState<WorkspaceProps>()
   const [currentFile, setCurrentFile] = useState<TaskFileProps>()
@@ -48,7 +48,7 @@ export default function Task() {
   const { data: task, refetch: refreshTask } = useQuery<TaskProps>(['tasks', taskURL, 'users', userId],
       { enabled: !isSubmitting, onSettled: () => isOpen && onClose() })
   const { mutate: submit } = useMutation<any, any, object>(['submit'], {
-    onMutate: () => setUserId(user.email), onSettled: () => refreshTask().then(() => setSubmitting(false)),
+    onMutate: () => setUserId(user.email), onSettled: () => refreshTask().then(() => setSubmitting(undefined)),
     onError: (error) => toast({ title: error.response.data.message, status: 'error' })
   })
 
@@ -88,7 +88,7 @@ export default function Task() {
   const getEdited = (fileId: number) => monaco?.editor.getModel(Uri.file(getPath(fileId)))?.getValue()
   const getContent = (file: TaskFileProps) => getEdited(file.id) || getUpdatedContent(file, currentSubmission)
   const onSubmit = (type: string) => () => {
-    setSubmitting(true)
+    setSubmitting(Date.now() + 30000)
     submit({
       userId: user.email, restricted: !isAssistant, taskId: task?.id, currentFileId: currentFile?.id, type,
       files: task?.files.filter(file => file.editable).map(file => ({ taskFileId: file.id, content: getContent(file) }))
@@ -130,11 +130,11 @@ export default function Task() {
                   <ProgressBar value={task.points} max={task.maxPoints} />
                 </HStack>
               </HStack>
-              <ButtonGroup variant='gradient' isDisabled={isSubmitting}>
-                <Button leftIcon={<FaFlask />} children='Test' isLoading={isSubmitting} onClick={onSubmit('test')} />
-                <Button leftIcon={<FaTerminal />} children='Run' isLoading={isSubmitting} onClick={onSubmit('run')} />
+              <ButtonGroup variant='gradient' isDisabled={!!isSubmitting}>
+                <Button leftIcon={<FaFlask />} children='Test' isLoading={!!isSubmitting} onClick={onSubmit('test')} />
+                <Button leftIcon={<FaTerminal />} children='Run' isLoading={!!isSubmitting} onClick={onSubmit('run')} />
                 <Button colorScheme='green' leftIcon={<AiOutlineSend />} onClick={onOpen} children='Submit'
-                        isDisabled={isSubmitting || (!isAssistant && (task.remainingAttempts <= 0 || !task.active))} />
+                        isDisabled={!!isSubmitting || (!isAssistant && (task.remainingAttempts <= 0 || !task.active))} />
                 <Modal size='sm' isOpen={isOpen} onClose={onClose} isCentered closeOnOverlayClick={!isSubmitting}>
                   <ModalOverlay />
                   <ModalContent>
@@ -145,12 +145,12 @@ export default function Task() {
                     <ModalBody>
                       <VStack p={3} justify='space-between' fontSize='lg'>
                         <Text textAlign='center'>Are you sure you want to submit?</Text>
-                        {isSubmitting &&
-                          <Countdown date={Date.now() + 30000} daysInHours renderer={({ formatted }) =>
-                                <Text>Time Remaining: <b>{formatted.minutes}:{formatted.seconds}</b></Text>} />}
+                        {!!isSubmitting &&
+                          <Countdown date={isSubmitting} daysInHours renderer={({ formatted }) =>
+                              <Text>Time Remaining: <b>{formatted.minutes}:{formatted.seconds}</b></Text>} />}
                         <ButtonGroup variant='round' pt={3}>
-                          <Button variant='border' isLoading={isSubmitting} onClick={onClose}>Cancel</Button>
-                          <Button isLoading={isSubmitting} onClick={onSubmit('grade')}>Confirm</Button>
+                          <Button variant='border' isLoading={!!isSubmitting} onClick={onClose}>Cancel</Button>
+                          <Button isLoading={!!isSubmitting} onClick={onSubmit('grade')}>Confirm</Button>
                         </ButtonGroup>
                       </VStack>
                     </ModalBody>
