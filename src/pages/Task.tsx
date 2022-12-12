@@ -38,14 +38,17 @@ export default function Task() {
   const { taskURL } = useParams()
   const { isOpen, onOpen, onClose } = useDisclosure()
   const { isAssistant, user } = useOutletContext<UserContext>()
+  const [isSubmitting, setSubmitting] = useState(false)
   const [userId, setUserId] = useState(user.email)
   const [currentSubmission, setCurrentSubmission] = useState<WorkspaceProps>()
   const [currentFile, setCurrentFile] = useState<TaskFileProps>()
   const [openFiles, setOpenFiles] = useState<TaskFileProps[]>([])
 
-  const { data: task, refetch: refreshTask } = useQuery<TaskProps>(['tasks', taskURL, 'users', userId])
-  const { mutate: submit, isLoading } = useMutation<any, any, object>(['submit'], {
-    onMutate: () => setUserId(user.email), onSettled: refreshTask, onSuccess: onClose,
+
+  const { data: task, refetch: refreshTask } = useQuery<TaskProps>(['tasks', taskURL, 'users', userId],
+      { enabled: !isSubmitting, onSettled: () => isOpen && onClose() })
+  const { mutate: submit } = useMutation<any, any, object>(['submit'], {
+    onMutate: () => setUserId(user.email), onSettled: () => refreshTask().then(() => setSubmitting(false)),
     onError: (error) => toast({ title: error.response.data.message, status: 'error' })
   })
 
@@ -76,7 +79,6 @@ export default function Task() {
 
   const reset = () => {
     toast({ title: 'Reset files to template ', isClosable: true })
-    console.log(openFiles)
     setOpenFiles(files => files.map(file => ({ ...file, content: file.template })))
     setCurrentFile(file => file && ({ ...file, content: file.template }))
     setCurrentSubmission({ id: -1 })
@@ -85,10 +87,13 @@ export default function Task() {
   const getPath = (fileId: number) => `${fileId}/${user.email}/${currentSubmission?.id}`
   const getEdited = (fileId: number) => monaco?.editor.getModel(Uri.file(getPath(fileId)))?.getValue()
   const getContent = (file: TaskFileProps) => getEdited(file.id) || getUpdatedContent(file, currentSubmission)
-  const onSubmit = (type: string) => () => submit({
-    userId: user.email, restricted: !isAssistant, taskId: task?.id, currentFileId: currentFile?.id, type,
-    files: task?.files.filter(file => file.editable).map(file => ({ taskFileId: file.id, content: getContent(file) }))
-  })
+  const onSubmit = (type: string) => () => {
+    setSubmitting(true)
+    submit({
+      userId: user.email, restricted: !isAssistant, taskId: task?.id, currentFileId: currentFile?.id, type,
+      files: task?.files.filter(file => file.editable).map(file => ({ taskFileId: file.id, content: getContent(file) }))
+    })
+  }
 
   return (
       <AnimatePresence initial={false} mode='wait'>
@@ -125,12 +130,12 @@ export default function Task() {
                   <ProgressBar value={task.points} max={task.maxPoints} />
                 </HStack>
               </HStack>
-              <ButtonGroup variant='gradient' isDisabled={isLoading}>
-                <Button leftIcon={<FaFlask />} children='Test' isLoading={isLoading} onClick={onSubmit('test')} />
-                <Button leftIcon={<FaTerminal />} children='Run' isLoading={isLoading} onClick={onSubmit('run')} />
+              <ButtonGroup variant='gradient' isDisabled={isSubmitting}>
+                <Button leftIcon={<FaFlask />} children='Test' isLoading={isSubmitting} onClick={onSubmit('test')} />
+                <Button leftIcon={<FaTerminal />} children='Run' isLoading={isSubmitting} onClick={onSubmit('run')} />
                 <Button colorScheme='green' leftIcon={<AiOutlineSend />} onClick={onOpen} children='Submit'
-                        isDisabled={isLoading || (!isAssistant && (task.remainingAttempts <= 0 || !task.active))} />
-                <Modal size='sm' isOpen={isOpen} onClose={onClose} isCentered closeOnOverlayClick={!isLoading}>
+                        isDisabled={isSubmitting || (!isAssistant && (task.remainingAttempts <= 0 || !task.active))} />
+                <Modal size='sm' isOpen={isOpen} onClose={onClose} isCentered closeOnOverlayClick={!isSubmitting}>
                   <ModalOverlay />
                   <ModalContent>
                     <ModalHeader>
@@ -139,13 +144,13 @@ export default function Task() {
                     </ModalHeader>
                     <ModalBody>
                       <VStack p={3} justify='space-between' fontSize='lg'>
-                        {isLoading
-                            ? <Countdown date={Date.now() + 120000} daysInHours renderer={({ formatted }) =>
-                                <Text>Time Remaining: <b>{formatted.minutes}:{formatted.seconds}</b></Text>} />
-                            : <Text textAlign='center'>Are you sure you want to submit?</Text>}
+                        <Text textAlign='center'>Are you sure you want to submit?</Text>
+                        {isSubmitting &&
+                          <Countdown date={Date.now() + 30000} daysInHours renderer={({ formatted }) =>
+                                <Text>Time Remaining: <b>{formatted.minutes}:{formatted.seconds}</b></Text>} />}
                         <ButtonGroup variant='round' pt={3}>
-                          <Button variant='border' isLoading={isLoading} onClick={onClose}>Cancel</Button>
-                          <Button isLoading={isLoading} onClick={onSubmit('grade')}>Confirm</Button>
+                          <Button variant='border' isLoading={isSubmitting} onClick={onClose}>Cancel</Button>
+                          <Button isLoading={isSubmitting} onClick={onSubmit('grade')}>Confirm</Button>
                         </ButtonGroup>
                       </VStack>
                     </ModalBody>
