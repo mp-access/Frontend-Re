@@ -49,7 +49,7 @@ export default function Task() {
       { enabled: !isSubmitting, onSettled: () => isOpen && onClose() })
   const { mutate: submit } = useMutation<any, any, object>(['submit'], {
     onMutate: () => setUserId(user.email), onSettled: () => refreshTask().then(() => setSubmitting(undefined)),
-    onError: (error) => toast({ title: error.response.data.message, status: 'error' })
+    onError: (error) => toast({ title: error?.response?.data?.message || 'Evaluation error', status: 'error' })
   })
 
   useEffect(() => {
