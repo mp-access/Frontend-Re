@@ -84,6 +84,7 @@ export default function Task() {
     setCurrentSubmission({ id: -1 })
   }
 
+  const getTemplate = (filename: string) => task?.files.find(file => file.name === filename)?.template || ''
   const getPath = (fileId: number) => `${fileId}/${user.email}/${currentSubmission?.id}`
   const getEdited = (fileId: number) => monaco?.editor.getModel(Uri.file(getPath(fileId)))?.getValue()
   const getContent = (file: TaskFileProps) => getEdited(file.id) || getUpdatedContent(file, currentSubmission)
@@ -169,9 +170,8 @@ export default function Task() {
                       <FiAlignJustify />
                       <Text fontWeight={500}>Instructions</Text>
                     </AccordionButton>
-                    <AccordionPanel p={0} h='full' overflow='auto'
-                                    motionProps={{ endingHeight: 'calc(100% - 2.5rem)' }}>
-                      <MarkdownViewer children={task.instructions} data={task.files} />
+                    <AccordionPanel h='full' overflow='auto' motionProps={{ endingHeight: 'calc(100% - 2.5rem)' }}>
+                      <MarkdownViewer children={task.instructions} transformImageUri={getTemplate} />
                     </AccordionPanel>
                   </AccordionItem>
                   <AccordionItem h='25%' borderBottomColor='transparent' pos='relative'>
