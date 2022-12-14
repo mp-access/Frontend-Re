@@ -26,7 +26,7 @@ export default function Courses() {
     return <></>
 
   return (
-      <Grid layerStyle='container' templateColumns='2fr 1fr' templateRows='1fr auto' gap={6}>
+      <Grid layerStyle='container' templateColumns='2fr 1fr' templateRows='auto 1fr' gap={6}>
         <GridItem as={Stack} layerStyle='segment' colSpan={1} rowSpan={2}>
           <Heading pb={2} fontWeight={400} fontSize='2xl'>Welcome, <b>{user.given_name}</b>!</Heading>
           <HStack justify='space-between' align='end'>
@@ -73,7 +73,7 @@ export default function Courses() {
                         </Wrap>
                       </Stack>
                     </Flex>
-                    <Text noOfLines={5} fontSize='sm'>{course.description}</Text>
+                    <Text noOfLines={3} flexGrow={1} fontSize='sm'>{course.description}</Text>
                     <GoToButton>Go To Course</GoToButton>
                   </Stack>
                   <Stack w='2xs' spacing={0}>
@@ -132,7 +132,7 @@ export default function Courses() {
             <Heading pt={1} fontSize='2xl' fontWeight={400} fontFamily='"Courier Prime", monospace'>ACCESS</Heading>
           </HStack>
           <Divider borderColor='gray.300' />
-          <SimpleGrid columns={1} templateRows='1fr 1fr' gap={4}>
+          <SimpleGrid columns={1} gap={4}>
             {featured.map(course =>
                 <Stack key={course.id} layerStyle='card'>
                   <Heading fontSize='xl'>{course.title}</Heading>

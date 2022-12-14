@@ -10,7 +10,7 @@ import Keycloak from 'keycloak-js'
 import { Center, ChakraProvider, ColorModeScript, Spinner } from '@chakra-ui/react'
 import { ReactKeycloakProvider, useKeycloak } from '@react-keycloak/web'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { compact, flattenDeep, join, tail, takeRight } from 'lodash'
+import { compact, flattenDeep, join } from 'lodash'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, LoaderFunctionArgs, RouterProvider } from 'react-router-dom'
 import Layout from './pages/Layout'
@@ -41,28 +41,30 @@ function App() {
     return <Center h='full'><Spinner /></Center>
 
   setAuthToken(keycloak.token)
-  const client = new QueryClient({ defaultOptions: { queries: { refetchOnWindowFocus: false } } })
-
   const fetchURL = (...path: any[]) => join(compact(flattenDeep(path)), '/')
-  const setQuery = (...path: any[]) => client.setQueryDefaults(takeRight(path),
-      { queryFn: context => axios.get(fetchURL(path, tail(context.queryKey))) })
-  const setMutation = (...path: any[]) => client.setMutationDefaults(takeRight(path),
-      { mutationFn: (data) => axios.post(fetchURL('courses', path), data) })
-  client.setDefaultOptions({ mutations: { mutationFn: (path) => axios.post(fetchURL('courses', path)) } })
+  const client = new QueryClient()
+  client.setDefaultOptions({
+    queries: { refetchOnWindowFocus: false, queryFn: context => axios.get(fetchURL(context.queryKey)) },
+    mutations: { mutationFn: (path) => axios.post(fetchURL('courses', path)) }
+  })
 
-  const loadCourses = () => setQuery('courses')
-  const loadCreator = () => setMutation('create')
+  const setQuery = (keys: string[], ...path: any[]) => keys.map(key => client.setQueryDefaults([key],
+      { queryFn: context => axios.get(fetchURL('courses', path, context.queryKey)) }))
+  const setMutation = (keys: string[], ...path: any[]) => keys.map(key => client.setMutationDefaults([key],
+      { mutationFn: (data) => axios.post(fetchURL('courses', path, key), data) }))
+
+  const loadCreator = () => setMutation(['create'])
   const loadStudents = ({ params }: LoaderFunctionArgs) =>
-      setQuery('courses', params.courseURL, 'students')
+      setQuery(['students'], params.courseURL)
   const loadCourse = ({ params }: LoaderFunctionArgs) =>
-      ['students', 'pull', 'submit'].forEach(key => setMutation(params.courseURL, key))
+      setMutation(['students', 'pull', 'submit'], params.courseURL)
   const loadAssignments = ({ params }: LoaderFunctionArgs) =>
-      ['assignments', 'students'].forEach(key => setQuery('courses', params.courseURL, key))
+      setQuery(['assignments', 'students'], params.courseURL)
   const loadTasks = ({ params }: LoaderFunctionArgs) =>
-      setQuery('courses', params.courseURL, 'assignments', params.assignmentURL, 'tasks')
+      setQuery(['tasks'], params.courseURL, 'assignments', params.assignmentURL)
 
   const router = createBrowserRouter([{
-    path: '/', element: <Layout />, loader: loadCourses, errorElement: <Error />, children: [
+    path: '/', element: <Layout />, errorElement: <Error />, children: [
       { index: true, element: <Courses /> },
       { path: 'create', loader: loadCreator, element: <CourseCreator /> },
       {
