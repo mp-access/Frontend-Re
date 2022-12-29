@@ -1,28 +1,33 @@
-import { CloseButton, Flex, Text, UseDisclosureProps } from '@chakra-ui/react'
+import { Center, CloseButton, HStack, Text, UseDisclosureProps } from '@chakra-ui/react'
 import { AnimatePresence, Reorder } from 'framer-motion'
 import React from 'react'
+import { LanugageIcon } from './Icons'
 
-type FileTabProps = UseDisclosureProps & { value: TaskFileProps }
+type FileTabProps = UseDisclosureProps & { file: TaskFileProps }
 type FileTabsProps = {
-  values: TaskFileProps[], defaultValue: number,
-  onSelect: (file: TaskFileProps) => void, onReorder: (files: TaskFileProps[]) => void
+  files: TaskFileProps[], id: number,
+  onSelect: (file: TaskFileProps) => void,
+  onReorder: (files: TaskFileProps[]) => void
 }
 
-export const FileTab = ({ value, isOpen, onOpen, onClose }: FileTabProps) =>
-    <Flex as={Reorder.Item} value={value} id={value.id.toString()} whileDrag={{ opacity: 1 }}
-          alignItems='baseline' borderColor='blackAlpha.200' borderWidth={1} borderBottomWidth={0} bg='base'
-          px={2} py={1} roundedTop='lg' cursor='pointer' layerStyle='file' pos='relative' lineHeight={1.8}
-          initial={{ opacity: 0, y: 30 }} exit={{ opacity: 0, y: 20, transition: { duration: 0.3 } }}
-          animate={{ opacity: isOpen ? 1 : 0.6, y: 0, transition: { duration: 0.15 } }}>
-      <Text whiteSpace='nowrap' px={1} onClick={onOpen} children={value.name} />
-      <CloseButton size='sm' isDisabled={isOpen} onClick={onClose} />
-    </Flex>
+export const FileTab = ({ file, isOpen, onOpen, onClose }: FileTabProps) =>
+    <Center as={Reorder.Item} value={file} id={file.id.toString()} cursor='pointer' bg='base' borderWidth={1}
+            borderBottomWidth={2} borderBottomColor={isOpen ? 'purple.400' : ''} fontFamily='file'
+            whileHover={{ opacity: 1 }}
+            initial={{ opacity: 0, y: 30 }} exit={{ opacity: 0, y: 20, transition: { duration: 0.3 } }}
+            animate={{ opacity: isOpen ? 1 : 0.6, y: 0, transition: { duration: 0.15 } }} whileDrag={{ opacity: 1 }}>
+      <HStack p={3} pr={1} onClick={onOpen}>
+        <LanugageIcon name={file.language} />
+        <Text fontSize='sm' lineHeight={1} whiteSpace='nowrap'>{file.name}</Text>
+      </HStack>
+      <CloseButton mr={1} size='sm' fontSize={9} fontWeight={500} isDisabled={isOpen} onClick={onClose} />
+    </Center>
 
-export const FileTabs = ({ values, defaultValue, onReorder, onSelect }: FileTabsProps) =>
-    <Reorder.Group as='ul' axis='x' onReorder={onReorder} values={values} className='filetabs'>
+export const FileTabs = ({ files, id, onReorder, onSelect }: FileTabsProps) =>
+    <Reorder.Group as='ul' axis='x' onReorder={onReorder} values={files} style={{ display: 'flex' }}>
       <AnimatePresence initial={false}>
-        {values.map(value =>
-            <FileTab key={value.id} value={value} isOpen={value.id === defaultValue} onOpen={() => onSelect(value)}
-                     onClose={() => onReorder(values.filter(openFile => openFile.id !== value.id))} />)}
+        {files.map(file =>
+            <FileTab key={file.id} file={file} isOpen={file.id === id} onOpen={() => onSelect(file)}
+                     onClose={() => onReorder(files.filter(openFile => openFile.id !== file.id))} />)}
       </AnimatePresence>
     </Reorder.Group>

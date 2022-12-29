@@ -3,22 +3,22 @@ import { dropRight, isMap, range } from 'lodash'
 import React from 'react'
 import { FolderIcon, LanugageIcon } from './Icons'
 
-type NodeProps = { value: number, onClick: (file: TaskFileProps) => void }
-type FileNodeProps = NodeProps & { data: TaskFileProps }
+type NodeProps = { id: number, onClick: (file: TaskFileProps) => void }
+type FileNodeProps = NodeProps & { file: TaskFileProps }
 type FolderNodeProps = NodeProps & { name: string, node: Map<string, any> }
-type RootNodeProps = NodeProps & { data: Array<TaskFileProps> }
+type RootNodeProps = NodeProps & { files: Array<TaskFileProps> }
 
-const File = ({ data, value, onClick }: FileNodeProps) =>
-    <AccordionItem border='0 solid transparent' bg={value === data.id ? 'blackAlpha.100' : 'inherit'}>
-      <AccordionButton borderWidth={0} onClick={() => onClick(data)} fontSize='sm'>
-        <Icon as={LanugageIcon(data.language)} ml={data.path.split('/').length * 6} mr={2} boxSize={4} />
-        <Text>{data.name}</Text>
+const File = ({ file, id, onClick }: FileNodeProps) =>
+    <AccordionItem border='0 solid transparent' bg={id === file.id ? 'blackAlpha.100' : 'inherit'}>
+      <AccordionButton borderWidth={0} onClick={() => onClick(file)} fontSize='sm'>
+        <LanugageIcon name={file.language} ml={file.path.split('/').length * 6} mr={2} boxSize={4} />
+        <Text>{file.name}</Text>
       </AccordionButton>
     </AccordionItem>
 
 const Folder = ({ name, node, ...props }: FolderNodeProps) => {
   if (!isMap(node))
-    return <File {...props} data={node} />
+    return <File {...props} file={node} />
   return (
       <AccordionItem borderWidth={0}>
         <AccordionButton borderWidth={0} fontSize='sm'>
@@ -33,13 +33,12 @@ const Folder = ({ name, node, ...props }: FolderNodeProps) => {
   )
 }
 
-export function FileTree({ data, ...props }: RootNodeProps) {
+export function FileTree({ files, ...props }: RootNodeProps) {
   const taskTree = new Map()
-  data.forEach(file => dropRight(file.path.split('/')).reduce((tree, folder) =>
+  files.forEach(file => dropRight(file.path.split('/')).reduce((tree, folder) =>
       tree.set(folder, tree.get(folder) || new Map()).get(folder), taskTree).set(file.name, file))
   return (
-      <Accordion fontFamily='Inter, Roboto, sans-serif' color='gray.600' allowMultiple
-                 defaultIndex={range(taskTree.size)} border='0 solid transparent'>
+      <Accordion fontFamily='file' color='gray.600' allowMultiple defaultIndex={range(taskTree.size)}>
         {[...taskTree.entries()].map(([folder, node]) => <Folder key={folder} name={folder} node={node} {...props} />)}
       </Accordion>
   )

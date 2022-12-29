@@ -1,43 +1,26 @@
+import { ReactComponent as CourseAlt } from '../assets/course-alt.svg'
 import { ReactComponent as File } from '../assets/file.svg'
 import { ReactComponent as Folder } from '../assets/folder.svg'
-import { ReactComponent as GitHub } from '../assets/github.svg'
 import { ReactComponent as Python } from '../assets/python.svg'
 import { ReactComponent as R } from '../assets/r.svg'
 import { ReactComponent as Robot } from '../assets/robot.svg'
-import { ReactComponent as Star } from '../assets/star.svg'
-import { ReactComponent as Course1 } from '../assets/course-1.svg'
-import { ReactComponent as Course2 } from '../assets/course-2.svg'
-import { ReactComponent as Course3 } from '../assets/course-3.svg'
+import { ReactComponent as Test } from '../assets/test.svg'
+import { ReactComponent as Run } from '../assets/run.svg'
+import { ReactComponent as SWITCH } from '../assets/switch-edu-id.svg'
+import { AvatarProps, Icon, IconProps, Image } from '@chakra-ui/react'
+import React from 'react'
 
 export const FolderIcon = Folder
 export const FileIcon = File
 export const RobotIcon = Robot
-export const PythonIcon = Python
-export const RIcon = R
-export const StarIcon = Star
-export const GitHubIcon = GitHub
-export const Course1Icon = Course1
-export const Course2Icon = Course2
-export const Course3Icon = Course3
+export const SWITCHIcon = SWITCH
 
-export const LanugageIcon = (language: string) => {
-  switch (language) {
-    case 'python':
-      return PythonIcon
-    case 'r':
-      return RIcon
-    default:
-      return FileIcon
-  }
-}
+const actions: Record<string, any> = { 'Test': Test, 'Run': Run }
+const languages: Record<string, any> = { 'python': Python, 'r': R }
 
-export const CourseIcon = (index: number) => {
-  switch (index.toString()) {
-    case '0':
-      return Course2Icon
-    case '1':
-      return Course3Icon
-    case '2':
-      return Course1Icon
-  }
-}
+export const LanugageIcon = ({ name = '', ...props }: IconProps) => <Icon as={languages[name] || FileIcon} {...props} />
+
+export const ActionIcon = ({ name = '', ...props }: IconProps) => <Icon as={actions[name] || Run} {...props} />
+
+export const CourseAvatar = ({ src }: AvatarProps) =>
+    <Image src={src} fallback={<Icon as={CourseAlt} rounded='2xl' boxSize={36} />} rounded='2xl' boxSize={36} />

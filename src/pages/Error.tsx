@@ -15,7 +15,7 @@ export default function Error() {
           <LogoButton />
           <VStack>
             <Heading>Oh no, something went wrong...</Heading>
-            <Text>The page you are looking for does not exist.</Text>
+            <Text>{'The page you are looking for does not exist.'}</Text>
           </VStack>
           <Button as={Link} to={-1 as any} variant='solid' colorScheme='blue' size='lg' leftIcon={<GrUndo />}>
             Go Back

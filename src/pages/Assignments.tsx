@@ -1,12 +1,14 @@
-import { Link, useParams } from 'react-router-dom'
+import {
+  Button, Divider, Heading, HStack, Icon, Stack, Table, TableContainer, Tag, TagLabel, TagLeftIcon, Tbody, Td, Tr,
+  VStack
+} from '@chakra-ui/react'
 import { useQuery } from '@tanstack/react-query'
 import React from 'react'
-import {
-  Button, Center, Divider, Grid, GridItem, Heading, HStack, Icon, Stack, Tag, TagLabel, TagLeftIcon, Text, VStack
-} from '@chakra-ui/react'
-import { FcAlarmClock, FcLock } from 'react-icons/fc'
 import { AiOutlineCalendar, AiOutlineClockCircle } from 'react-icons/ai'
-import { ProgressBar, TimeCountDown } from '../components/Statistics'
+import { FcAlarmClock, FcLock } from 'react-icons/fc'
+import { Link, useParams } from 'react-router-dom'
+import { ScoreBar, TimeCountDown } from '../components/Statistics'
+import { fork } from 'radash'
 
 export default function Assignments() {
   const { courseURL } = useParams()
@@ -15,86 +17,87 @@ export default function Assignments() {
   if (!course)
     return <></>
 
+  const [activeAssignments, pastAssignments] = fork(course.assignments, a => a.active)
+
   return (
-      <Stack spacing={4} p={2} maxW='container.lg' h='full'>
-        <HStack p={4} pb={0}>
-          <Icon as={FcAlarmClock} boxSize={6} />
-          <Heading fontSize='2xl'>Active Assignments</Heading>
-        </HStack>
-        <Divider borderColor='gray.300' />
-        <Stack p={2}>
-          {course.activeAssignments.map(assignment =>
-              <Grid key={assignment.id} as={Center} templateColumns='4fr 3fr 2fr 1fr' layerStyle='card' gap={4}>
-                <GridItem h='full'>
-                  <Text fontSize='xs'>ASSIGNMENT {assignment.ordinalNum}</Text>
-                  <Heading fontSize='lg' noOfLines={1} wordBreak='break-all'>{assignment.title}</Heading>
-                  <Text wordBreak='break-all' fontSize='sm' noOfLines={4}>{assignment.description}</Text>
-                </GridItem>
-                <GridItem as={VStack}>
-                  <Tag bg='transparent'>
-                    <TagLeftIcon as={AiOutlineClockCircle} marginBottom={1} />
-                    <TagLabel>{assignment.duration}</TagLabel>
-                  </Tag>
-                  <Text color='blackAlpha.600' fontSize='xs'>TIME REMAINING</Text>
-                  <TimeCountDown values={assignment.countDown} />
-                </GridItem>
-                <GridItem>
-                  <HStack px={2}>
-                    <Text whiteSpace='nowrap'>Score:</Text>
-                    <Text fontSize='120%' fontWeight={600}>{assignment.points}</Text>
-                    <Text whiteSpace='nowrap'>{` / ${assignment.maxPoints}`}</Text>
-                  </HStack>
-                  <ProgressBar value={assignment.points} max={assignment.maxPoints} />
-                </GridItem>
-                <GridItem>
-                  <Button w='full' colorScheme='green' as={Link} to={assignment.url}>
-                    View
-                  </Button>
-                </GridItem>
-              </Grid>)}
-        </Stack>
-        <HStack p={4} pb={0}>
-          <Icon as={FcLock} boxSize={6} />
-          <Heading fontSize='2xl'>Closed Assignments</Heading>
-        </HStack>
-        <Divider borderColor='gray.300' />
-        <Stack p={2}>
-          {course.pastAssignments.map(assignment =>
-              <Grid key={assignment.id} as={Center} templateColumns='4fr 2fr 2fr 1fr' layerStyle='card' gap={4}>
-                <GridItem h='full'>
-                  <Text fontSize='xs'>ASSIGNMENT {assignment.ordinalNum}</Text>
-                  <Heading fontSize='lg' noOfLines={1} wordBreak='break-all'>{assignment.title}</Heading>
-                  <Text wordBreak='break-all' fontSize='sm' noOfLines={4}>{assignment.description}</Text>
-                </GridItem>
-                <GridItem>
-                  <Tag bg='transparent'>
-                    <TagLeftIcon as={AiOutlineCalendar} />
-                    <TagLabel fontWeight={400}>
-                      Started: <b>{assignment.duration.split('~')[0]}</b>
-                    </TagLabel>
-                  </Tag>
-                  <Tag bg='transparent'>
-                    <TagLeftIcon as={AiOutlineCalendar} />
-                    <TagLabel fontWeight={400}>
-                      Ended: <b>{assignment.duration.split('~')[1]}</b>
-                    </TagLabel>
-                  </Tag>
-                </GridItem>
-                <GridItem>
-                  <HStack px={2}>
-                    <Text whiteSpace='nowrap'>Final Score:</Text>
-                    <Text fontSize='120%' fontWeight={600}>{assignment.points}</Text>
-                    <Text whiteSpace='nowrap'>{` / ${assignment.maxPoints}`}</Text>
-                  </HStack>
-                  <ProgressBar value={assignment.points} max={assignment.maxPoints} />
-                </GridItem>
-                <GridItem>
-                  <Button w='full' colorScheme='green' as={Link} to={assignment.url}>
-                    View
-                  </Button>
-                </GridItem>
-              </Grid>)}
-        </Stack>
+      <Stack layerStyle='container' spacing={4}>
+        <TableContainer layerStyle='segment'>
+          <HStack>
+            <Icon as={FcAlarmClock} boxSize={6} />
+            <Heading fontSize='2xl'>Active Assignments</Heading>
+          </HStack>
+          <Divider borderColor='gray.300' my={4} />
+          <Table>
+            <Tbody>
+              {activeAssignments.map(assignment =>
+                  <Tr key={assignment.id}>
+                    <Td p={0} whiteSpace='nowrap' fontSize='sm'>{assignment.ordinalNum}</Td>
+                    <Td>
+                      <Heading fontSize='lg'>{assignment.title}</Heading>
+                    </Td>
+                    <Td>
+                      <VStack>
+                        <Tag bg='transparent'>
+                          <TagLeftIcon as={AiOutlineClockCircle} marginBottom={1} />
+                          <TagLabel>{assignment.duration}</TagLabel>
+                        </Tag>
+                        <TimeCountDown values={assignment.countDown} />
+                      </VStack>
+                    </Td>
+                    <Td maxW='3xs'>
+                      <ScoreBar value={assignment.points} max={assignment.maxPoints} />
+                    </Td>
+                    <Td>
+                      <Button w='full' colorScheme='green' as={Link} to={assignment.url}>
+                        {assignment.points ? 'Continue' : 'Start'}
+                      </Button>
+                    </Td>
+                  </Tr>)}
+            </Tbody>
+          </Table>
+        </TableContainer>
+        <TableContainer layerStyle='segment'>
+          <HStack>
+            <Icon as={FcLock} boxSize={6} />
+            <Heading fontSize='2xl'>Closed Assignments</Heading>
+          </HStack>
+          <Divider borderColor='gray.300' my={4} />
+          <Table>
+            <Tbody>
+              {pastAssignments.map(assignment =>
+                  <Tr key={assignment.id}>
+                    <Td p={0} whiteSpace='nowrap' fontSize='sm'>{assignment.ordinalNum}</Td>
+                    <Td>
+                      <Heading fontSize='lg'>{assignment.title}</Heading>
+                    </Td>
+                    <Td>
+                      <Stack>
+                        <Tag bg='transparent'>
+                          <TagLeftIcon as={AiOutlineCalendar} />
+                          <TagLabel fontWeight={400}>
+                            Started: <b>{assignment.duration.split('~')[0]}</b>
+                          </TagLabel>
+                        </Tag>
+                        <Tag bg='transparent'>
+                          <TagLeftIcon as={AiOutlineCalendar} />
+                          <TagLabel fontWeight={400}>
+                            Ended: <b>{assignment.duration.split('~')[1]}</b>
+                          </TagLabel>
+                        </Tag>
+                      </Stack>
+                    </Td>
+                    <Td maxW='3xs'>
+                      <ScoreBar value={assignment.points} max={assignment.maxPoints} />
+                    </Td>
+                    <Td>
+                      <Button w='full' colorScheme='green' as={Link} to={assignment.url}>
+                        View
+                      </Button>
+                    </Td>
+                  </Tr>)}
+            </Tbody>
+          </Table>
+        </TableContainer>
       </Stack>
   )
 }

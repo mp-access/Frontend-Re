@@ -1,87 +1,89 @@
-import React, { SVGProps } from 'react'
-import { range, round } from 'lodash'
+import { SimpleGrid, Stack, Text, VStack } from '@chakra-ui/react'
+import { round } from 'lodash'
+import React from 'react'
 import { Bar, BarChart, Cell, Label, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { Flex, SimpleGrid, Stack, Tag, TagLabel, TagLeftIcon } from '@chakra-ui/react'
-import { BsFillCircleFill } from 'react-icons/bs'
 
-type ScoreProps = { data: Array<Partial<{ points: number, name: string }>>, points: number, max: number }
-type TimeCounterProps = { values: Array<TimerProps>, h?: number }
-
-const VBar = ({ x, y, height, width, fill }: SVGProps<any>) =>
-    <rect x={x} y={y} height={height} width={width || 1} rx={10} fill={fill} />
-const HBar = ({ x, height, width, fill }: SVGProps<any>) =>
-    <rect x={x} height={height} width={width} rx={5} fill={fill} />
+const green = 'var(--chakra-colors-green-400)'
+const purple = 'var(--chakra-colors-purple-400)'
+const bg = { opacity: 0.5, clipPath: 'inset(0 round 10)' }
+type TimeCounterProps = { values: Array<TimerProps> }
 
 const toPercent = (value = 0, max = 1) => `${round((value * 100.0) / max, 2)}%`
-const roundedStyle = { shape: <VBar />, background: <VBar /> }
-const tooltipStyle = {
-  contentStyle: { borderRadius: 8, background: '#ffffffa3', border: 'none', fontSize: '80%', fontWeight: 600 },
-  wrapperStyle: { outline: 'none' }, itemStyle: { padding: 1 },
-  cursor: { fill: 'transparent', cursor: 'pointer' }
-}
+const clipPath = (value: number, max: number) => `inset(0 round ${value < (0.9 * max) ? '0 0 10 10' : '10'})`
+
+const RoundBar = ({ x, y, height, width, background, color }: any) =>
+    <g clipPath='inset(0 round 6)'>
+      <rect x={x} y={y} height={background.height} width={background.width} opacity={0.05} />
+      <rect x={x} y={y} height={height} width={width} color={color} fill='currentColor' />
+    </g>
 
 const TimeCount = ({ current, max, name }: TimerProps) =>
     <ResponsiveContainer>
-      <PieChart>
-        <Pie data={[{ current }, { current: max - current }]} dataKey='current' innerRadius='50%' outerRadius='65%'
-             startAngle={90} endAngle={-270} fill='#00000014' cy='40%'>
-          <Cell key='cell-0' fill='#3dcb99' />
-          <Label value={current} fill='#3dcb99' fontWeight={600} position='center' />
-          <Label value={name} fill='#0000007a' fontSize='75%' position='bottom' dy={12} />
+      <PieChart height={120} width={100}>
+        <Pie data={[{ current }, { current: max - current }]} dataKey='current' innerRadius='80%' outerRadius='100%'
+             startAngle={90} endAngle={-270} cy='35%'>
+          <Cell key='cell-0' color={green} fill='currentColor' />
+          <Cell key='cell-1' opacity={0.15} />
+          <Label value={current} color={green} fill='currentColor' fontWeight={600} position='center' />
+          <Label value={name} opacity={0.7} fontSize='75%' position='bottom' dy={12} />
         </Pie>
       </PieChart>
     </ResponsiveContainer>
 
-export const TimeCountDown = ({ values, h = 20 }: TimeCounterProps) =>
-    <SimpleGrid h={h} w={h * 3} columns={3}>
+export const TimeCountDown = ({ values }: TimeCounterProps) =>
+    <SimpleGrid h={16} w={40} columns={3}>
       {values.map((counter, i) =>
           <TimeCount key={i} current={counter.current} max={counter.max} name={counter.name} />)}
     </SimpleGrid>
 
-export const ProgressScore = ({ data, points = 0, max = 1 }: ScoreProps) =>
+export const ScorePie = ({ value = 0, max = 1 }) =>
     <ResponsiveContainer>
       <PieChart>
-        <Tooltip {...tooltipStyle} formatter={(value) => `${value} Points`} />
-        <Pie dataKey='points' innerRadius='65%' outerRadius='100%' startAngle={90} endAngle={-270} nameKey='name'
-             data={[...data, { points: max - points, name: 'Remaining' }]} fill='#00000014'>
-          {range(data.length).map(i => <Cell key={`cell-${i}`} fill='#3dcb99' />)}
-          <Label value={toPercent(points, max)} fill='#3dcb99' fontWeight={600} position='center' />
+        <Pie dataKey='value' innerRadius='65%' outerRadius='100%' startAngle={90} endAngle={-270}
+             data={[{ value }, { value: max - value }]}>
+          <Cell key='cell-0' color={green} fill='currentColor' />
+          <Cell key='cell-1' opacity={0.15} />
+          <Label value={toPercent(value, max)} color={green} fill='currentColor' fontWeight={600} position='center' />
         </Pie>
       </PieChart>
     </ResponsiveContainer>
 
-export const TaskOverview = ({ points, maxPoints, avgPoints, name }: TaskOverview) =>
-    <ResponsiveContainer>
-      <BarChart data={[{ points, avgPoints, name }]} barSize={15}>
-        <YAxis hide type='number' domain={[0, maxPoints]} />
-        <XAxis axisLine={false} tickLine={false} tick={{ fontSize: '80%', fontWeight: 600 }} dataKey='name' />
-        <Tooltip formatter={(value) => `${value} / ${maxPoints}`} {...tooltipStyle} />
-        <Bar dataKey='points' name='My Score' minPointSize={5} fill='#3dcb99' {...roundedStyle} />
-        <Bar dataKey='avgPoints' name='Average' minPointSize={5} fill='#9576ff' {...roundedStyle} />
+export const Scores = ({ value = 0, max = 1, avg = 0, name = '' }) =>
+    <VStack px={4} flexGrow={1}>
+      <ResponsiveContainer width={50}>
+        <BarChart data={[{ value, name: 'Me' }, { value: avg, name: 'Avg.' }]} margin={{}} barCategoryGap={5}>
+          <XAxis hide type='category' dataKey='name' />
+          <YAxis hide type='number' dataKey='value' domain={[0, max || 1]} />
+          <Tooltip />
+          <Bar dataKey='value' minPointSize={5} fill='currentColor' background={bg}>
+            <Cell key='cell-0' color={green} clipPath={clipPath(value, max)} />
+            <Cell key='cell-1' color={purple} clipPath={clipPath(avg, max)} />
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+      <Text fontSize='sm' fontWeight={500}>{name}</Text>
+    </VStack>
+
+export const Score = ({ value = 0, max = 1, avg = 0 }) =>
+    <ResponsiveContainer minHeight={50}>
+      <BarChart data={[{ value, name: 'Me' }, { value: avg, name: 'Avg.' }]} barSize={15} layout='vertical'>
+        <XAxis hide type='number' dataKey='value' domain={[0, max || 1]} />
+        <YAxis axisLine={false} tickLine={false} interval={0} fontSize='small' type='category' dataKey='name' />
+        <Bar dataKey='value' minPointSize={5} shape={RoundBar}>
+          <Cell key='cell-0' color={green} />
+          <Cell key='cell-1' color={purple} />
+        </Bar>
       </BarChart>
     </ResponsiveContainer>
 
-export const TasksOverview = ({ data }: { data: Array<TaskOverview> }) =>
-    <SimpleGrid boxSize='full' templateColumns={`auto repeat(${data.length}, 1fr)`}>
-      <Stack justify='center' whiteSpace='nowrap'>
-        <Tag colorScheme='whiteAlpha' color='green.600'>
-          <TagLeftIcon as={BsFillCircleFill} boxSize={2} />
-          <TagLabel>My Score</TagLabel>
-        </Tag>
-        <Tag colorScheme='whiteAlpha' color='purple.600'>
-          <TagLeftIcon as={BsFillCircleFill} boxSize={2} />
-          <TagLabel>Average</TagLabel>
-        </Tag>
-      </Stack>
-      {data.map((task, i) => <TaskOverview key={i} {...task} />)}
-    </SimpleGrid>
-
-export const ProgressBar = ({ value = 0, max = 1, w = 24 }) =>
-    <Flex minW={w} h={3}>
-      <ResponsiveContainer>
-        <BarChart data={[{ value }]} barSize={10} layout='vertical'>
-          <XAxis hide type='number' domain={[0, max]} />
-          <Bar dataKey='value' fill='#3dcb99' dx={-10} shape={<HBar />} background={<HBar fill='#e1e1e1' />} />
+export const ScoreBar = ({ value = 0, max = 1 }) =>
+    <Stack flexGrow={1} align='end' justify='end' spacing={0}>
+      <Text textAlign='end' px={2} fontSize='sm' fontWeight={500}>{value} / {max} Points</Text>
+      <ResponsiveContainer height={17}>
+        <BarChart data={[{ value, name: 'Score' }]} margin={{}} barSize={15} layout='vertical'>
+          <XAxis hide type='number' dataKey='value' domain={[0, max || 1]} />
+          <YAxis hide type='category' dataKey='name' />
+          <Bar dataKey='value' color={green} shape={RoundBar} />
         </BarChart>
       </ResponsiveContainer>
-    </Flex>
+    </Stack>

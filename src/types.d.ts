@@ -1,34 +1,29 @@
-declare interface CourseFeature {
+declare interface CourseOverview {
   id: number;
   url: string;
   title: string;
-  description: string;
+  avatar: string;
   university: string;
   semester: string;
   startDate: string;
   endDate: string;
+  duration: string;
   studentsCount: number;
   onlineCount: number;
-  feedback: string;
-}
-
-declare interface CourseOverview extends CourseFeature {
   maxPoints: number;
   points: number;
-  assignmentsCount: number;
-  events: Array<CourseEventProps>;
 }
 
 declare interface CourseProps extends CourseOverview {
-  activeAssignments: Array<AssignmentProps>;
-  pastAssignments: Array<AssignmentOverview>;
+  description: string;
+  assignments: Array<AssignmentProps>;
+  events: Array<CourseEventProps>;
   rank: number;
 }
 
-declare interface AssignmentOverview {
+declare interface AssignmentProps {
   id: number;
   url: string;
-  name: string;
   title: string;
   ordinalNum: number;
   description: string;
@@ -41,51 +36,55 @@ declare interface AssignmentOverview {
   active: boolean;
   maxPoints: number;
   points: number;
-  tasksCount: number;
-}
-
-declare interface AssignmentProps extends AssignmentOverview {
   tasks: Array<TaskOverview>;
 }
 
 declare interface TaskOverview {
   id: number;
+  assignmentId: number;
   url: string;
-  name: string;
-  title: string;
   ordinalNum: number;
-  instructions: string;
-  active: boolean;
-  published: boolean;
-  avgPoints: number;
+  title: string;
   maxPoints: number;
   maxAttempts: number;
+  active: boolean;
+  avgPoints: number;
   remainingAttempts: number;
   points: number;
 }
 
 declare interface TaskProps extends TaskOverview {
-  nextAttemptAt: string;
+  instructions: string;
   files: Array<TaskFileProps>;
   submissions: Array<SubmissionProps>;
+  nextAttemptAt: string;
+}
+
+declare interface TemplateFileProps {
+  id: number;
+  path: string;
+  name: string;
+  language: string;
+  image: boolean;
+  content: string;
 }
 
 declare interface TaskFileProps {
   id: number;
-  name: string;
   path: string;
+  name: string;
   language: string;
   editable: boolean;
-  open: boolean;
   image: boolean;
   template: string;
-  content: string;
+  latest: string;
 }
 
 declare interface SubmissionProps {
   id: number;
+  ordinalNum: number;
   name: string;
-  type: string;
+  command: string;
   valid: boolean;
   graded: boolean;
   createdAt: string;
@@ -117,7 +116,7 @@ declare interface TimerProps {
 }
 
 declare interface CourseEventProps {
-  type: string;
+  category: string;
   description: string;
   date: string;
   time: string;

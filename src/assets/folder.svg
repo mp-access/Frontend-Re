@@ -1,9 +1,9 @@
 <svg width="20px" height="16px" viewBox="0 0 20 16">
     <g id="components" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Components-Tree" transform="translate(-192.000000, -1496.000000)" fill-rule="nonzero">
-            <g id="Group-30" transform="translate(127.000000, 1189.000000)">
+        <g id="Components-Tree" transform="translate(-192, -1496)" fill-rule="nonzero">
+            <g id="Group-30" transform="translate(127, 1189)">
                 <g id="folderClosed"
-                   transform="translate(75.000000, 315.000000) scale(-1, 1) translate(-75.000000, -315.000000) translate(65.000000, 307.000000)">
+                   transform="translate(75, 315) scale(-1, 1) translate(-75, -315) translate(65, 307)">
                     <path d="M14.3289979,9.00445902 L0,9.00445902 L0,3.2077377 C0,2.30325683 0.715266525,1.57001093 1.5975693,1.57001093 L14.3289979,1.57001093 L14.3289979,9.00445902 L14.3289979,9.00445902 Z"
                           id="Path" fill="#F6C358"/>
                     <rect id="Rectangle" fill="#EBF0F3" x="2.41607676" y="2.68834973" width="15.6158635"

@@ -20,4 +20,4 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
-          tags: sealuzh/access-frontend:re
+          tags: sealuzh/access-frontend:x

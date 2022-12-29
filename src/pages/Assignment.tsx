@@ -1,16 +1,15 @@
-import React from 'react'
-import { Link, useOutletContext, useParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
 import {
-  Box, Button, Divider, Flex, Grid, GridItem, Heading, HStack, Icon, Stack, Tag, TagLabel, TagLeftIcon, Text, VStack,
-  Wrap, WrapItem
+  Box, Button, Center, Divider, Flex, Heading, HStack, Icon, SimpleGrid, Stack, Table, TableContainer, Tag, TagLabel,
+  TagLeftIcon, Tbody, Td, Text, Tr, Wrap
 } from '@chakra-ui/react'
-import { AiOutlineCalendar } from 'react-icons/ai'
-import { CgInfinity } from 'react-icons/cg'
-import { ProgressBar, TimeCountDown } from '../components/Statistics'
+import { useQuery } from '@tanstack/react-query'
 import { range } from 'lodash'
+import React from 'react'
+import { AiOutlineCalendar } from 'react-icons/ai'
 import { FcTodoList } from 'react-icons/fc'
+import { Link, useOutletContext, useParams } from 'react-router-dom'
 import { Counter } from '../components/Buttons'
+import { Score, TimeCountDown } from '../components/Statistics'
 
 export default function Assignment() {
   const { assignmentURL } = useParams()
@@ -29,7 +28,7 @@ export default function Assignment() {
               <Heading>{assignment.title}</Heading>
               <Wrap my={2}>
                 {!assignment.published && <Tag colorScheme='red'>Draft</Tag>}
-                <Tag>{assignment.tasksCount} Tasks</Tag>
+                <Tag>{assignment.tasks.length} Tasks</Tag>
                 <Tag>
                   <TagLeftIcon as={AiOutlineCalendar} />
                   <TagLabel>{assignment.duration}</TagLabel>
@@ -39,57 +38,48 @@ export default function Assignment() {
                 </Tag>
               </Wrap>
             </Box>
-            {assignment.active &&
-              <VStack>
-                <Text color='blackAlpha.600' fontSize='xs'>TIME REMAINING</Text>
-                <TimeCountDown values={assignment.countDown} />
-              </VStack>}
+            {assignment.active && <TimeCountDown values={assignment.countDown} />}
           </Flex>
-          <Text flexGrow={1} fontSize='sm'>{assignment.description}</Text>
+          <Text flexGrow={1} noOfLines={2} fontSize='sm'>{assignment.description}</Text>
         </Stack>
-        <HStack p={4} pb={0}>
-          <Icon as={FcTodoList} boxSize={6} />
-          <Heading fontSize='2xl'>Tasks</Heading>
-          <Counter>{assignment.tasks.length}</Counter>
-        </HStack>
-        <Divider borderColor='gray.300' />
-        <Stack px={2}>
-          {assignment.tasks.map(task =>
-              <Grid key={task.id} alignItems='center' justifyItems='center'
-                    templateColumns='4fr 2fr 2fr 1fr' layerStyle='card' gap={4}>
-                <GridItem w='full' overflow='hidden'>
-                  <Text fontSize='xs'>TASK {task.ordinalNum}</Text>
-                  <Heading fontSize='lg' noOfLines={1} wordBreak='break-all'>{task.title}</Heading>
-                  <Text fontSize='sm' noOfLines={3}>{task.instructions}</Text>
-                </GridItem>
-                <GridItem>
-                  <Wrap my={2} maxW={44} maxH={12} overflow='hidden'>
-                    {range(Math.min(task.maxAttempts, 12)).map(i =>
-                        <WrapItem key={i} rounded='full' boxSize={5} borderWidth={2} borderColor='purple.500'
-                                  bg={(isAssistant || i < task.remainingAttempts) ? 'purple.500' : 'transparent'} />)}
-                  </Wrap>
-                  <HStack>
-                    <Text fontSize='120%' fontWeight={600}>
-                      {isAssistant ? <CgInfinity /> : task.remainingAttempts}
-                    </Text>
-                    <Text noOfLines={1}>/ {task.maxAttempts} Submissions left</Text>
-                  </HStack>
-                </GridItem>
-                <GridItem>
-                  <HStack px={2}>
-                    <Text whiteSpace='nowrap'>Best Score:</Text>
-                    <Text fontSize='120%' fontWeight={600}>{task.points}</Text>
-                    <Text whiteSpace='nowrap'>{` / ${task.maxPoints}`}</Text>
-                  </HStack>
-                  <ProgressBar value={task.points} max={task.maxPoints} />
-                </GridItem>
-                <GridItem w='full'>
-                  <Button w='full' colorScheme='green' as={Link} to={`tasks/${task.url}`}>
-                    {task.points ? 'Continue' : 'Start'}
-                  </Button>
-                </GridItem>
-              </Grid>)}
-        </Stack>
+        <TableContainer layerStyle='segment'>
+          <HStack>
+            <Icon as={FcTodoList} boxSize={6} />
+            <Heading fontSize='2xl'>Tasks</Heading>
+            <Counter>{assignment.tasks.length}</Counter>
+          </HStack>
+          <Divider borderColor='gray.300' my={4} />
+          <Table>
+            <Tbody>
+              {assignment.tasks.map(task =>
+                  <Tr key={task.id}>
+                    <Td p={0} whiteSpace='nowrap' fontSize='sm'>{task.ordinalNum}</Td>
+                    <Td>
+                      <Heading fontSize='lg'>{task.title}</Heading>
+                    </Td>
+                    <Td>
+                      <SimpleGrid columns={5} gap={1} w='fit-content'>
+                        {range(Math.min(task.maxAttempts, 10)).map(i =>
+                            <Center key={i} rounded='full' boxSize={5} borderWidth={2} borderColor='purple.500'
+                                    bg={(isAssistant || i < task.remainingAttempts) ? 'purple.500' : 'transparent'} />)}
+                      </SimpleGrid>
+                      <Text fontSize='sm'>
+                        <b>{isAssistant ? '∞' : task.remainingAttempts}</b>
+                        {` / ${task.maxAttempts} Submissions left`}
+                      </Text>
+                    </Td>
+                    <Td w='xs'>
+                      <Score value={task.points} max={task.maxPoints} avg={task.avgPoints} />
+                    </Td>
+                    <Td>
+                      <Button w='full' colorScheme='green' as={Link} to={`tasks/${task.url}`}>
+                        {task.points ? 'Continue' : 'Start'}
+                      </Button>
+                    </Td>
+                  </Tr>)}
+            </Tbody>
+          </Table>
+        </TableContainer>
       </Stack>
   )
 }
