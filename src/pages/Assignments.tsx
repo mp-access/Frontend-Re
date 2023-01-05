@@ -2,17 +2,16 @@ import {
   Button, Divider, Heading, HStack, Icon, Stack, Table, TableContainer, Tag, TagLabel, TagLeftIcon, Tbody, Td, Tr,
   VStack
 } from '@chakra-ui/react'
-import { useQuery } from '@tanstack/react-query'
 import React from 'react'
 import { AiOutlineCalendar, AiOutlineClockCircle } from 'react-icons/ai'
 import { FcAlarmClock, FcLock } from 'react-icons/fc'
-import { Link, useParams } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { ScoreBar, TimeCountDown } from '../components/Statistics'
 import { fork } from 'radash'
+import { useCourse } from '../components/Hooks'
 
 export default function Assignments() {
-  const { courseURL } = useParams()
-  const { data: course } = useQuery<CourseProps>(['courses', courseURL])
+  const { data: course } = useCourse()
 
   if (!course)
     return <></>

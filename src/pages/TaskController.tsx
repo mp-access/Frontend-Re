@@ -1,10 +1,10 @@
 import { HStack, Stack } from '@chakra-ui/react'
-import { useQuery } from '@tanstack/react-query'
 import { Select } from 'chakra-react-select'
 import React, { ComponentProps } from 'react'
+import { useStudents } from '../components/Hooks'
 
 export default function TaskController({ value, defaultValue, onChange }: ComponentProps<any>) {
-  const { data: students } = useQuery<StudentProps[]>(['students'])
+  const { data: students } = useStudents()
   return (
       <HStack pos='absolute'>
         <Stack w='2xs' fontSize='sm' bg='base' rounded='lg'>

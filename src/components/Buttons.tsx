@@ -1,6 +1,6 @@
 import {
-  Box, BoxProps, Button, ButtonProps, Center, Flex, HStack, Input, Stack, TabProps, Tag, TagLabel, TagLeftIcon, Text,
-  Tooltip
+  Box, BoxProps, Button, ButtonProps, Center, Flex, HStack, IconButton, IconButtonProps, Input, Stack, TabProps, Tag,
+  TagLabel, TagLeftIcon, Text, Tooltip
 } from '@chakra-ui/react'
 import { motion } from 'framer-motion'
 import React from 'react'
@@ -12,17 +12,28 @@ import { EditIcon, InfoOutlineIcon } from '@chakra-ui/icons'
 import { FormState } from 'react-hook-form'
 import Dropzone from 'react-dropzone'
 import { ImDownload } from 'react-icons/im'
+import { useImport } from './Hooks'
+import { flatMap, get, keys } from 'lodash'
 
 const transitionStyle = { repeat: Infinity, repeatDelay: .7, duration: .5, ease: 'easeInOut' }
 type SaveButtonProps = ButtonProps & { formState: FormState<any> }
+type EventBoxProps = { selected: string, events: Record<string, Record<string, any[]>> }
 
 export const LogoButton = () =>
     <Box as={Link} to='/courses' fontFamily='monospace' fontSize='4xl' pt={2}
          _hover={{ color: 'purple.500' }} children='ACCESS.' />
 
+export const TooltipButton = ({ 'aria-label': label, icon, ...props }: IconButtonProps) =>
+    <Tooltip placement='bottom-end' label={label}>
+      <IconButton aria-label={label} icon={icon} fontSize='120%' {...props} rounded='md' />
+    </Tooltip>
+
 export const EditButton = ({ to, ...props }: NavigateProps & ButtonProps) =>
     <Button as={Link} to={to} variant='ghost' size='sm' leftIcon={<EditIcon />} children='Edit' {...props} />
 
+export const NavButton = ({ onClick, icon, left, right, className }: Partial<IconButtonProps>) =>
+    <IconButton aria-label='nav' size='sm' pos='absolute' bottom={-10} variant='ghost' p={1}
+                icon={icon} onClick={onClick} left={left} right={right} isDisabled={className?.includes('disabled')} />
 export const SaveButton = ({ formState: { isSubmitting }, ...props }: SaveButtonProps) =>
     <Button alignSelf='center' type='submit' {...props} isLoading={isSubmitting} children='Save' />
 
@@ -33,13 +44,15 @@ export const GoToButton = ({ children, ...props }: BoxProps) =>
       <BsArrowRight />
     </HStack>
 
-export const UploadButton = ({ onSubmit }: { onSubmit: Function }) =>
-    <Dropzone onDrop={(dropped) => dropped[0]?.text().then(data => onSubmit(JSON.parse(data)))} multiple={false}
-              children={({ getRootProps, getInputProps }) =>
-                  <Center h='full' {...getRootProps()}>
-                    <Button leftIcon={<ImDownload />}>Import</Button>
-                    <Input {...getInputProps()} size='sm' type='file' />
-                  </Center>} />
+export const ImportButton = () => {
+  const { onImport, isLoading } = useImport()
+  return <Dropzone onDrop={(dropped) => dropped[0]?.text().then(data => onImport(JSON.parse(data)))}
+                   multiple={false} children={({ getRootProps, getInputProps }) =>
+      <Center h='full' {...getRootProps()}>
+        <Button isLoading={isLoading} leftIcon={<ImDownload />}>Import</Button>
+        <Input {...getInputProps()} size='sm' type='file' />
+      </Center>} />
+}
 export const Counter = ({ children }: BoxProps) =>
     <Center rounded='md' bg='purple.100' px={2} py={0.5} color='purple.600' fontSize='sm'
             fontWeight={600} children={children} />
@@ -50,18 +63,20 @@ export const ActionButton = ({ name, ...props }: ButtonProps) =>
 export const ActionTab = ({ name }: TabProps) =>
     <HStack>{ActionIcon({ name })}<Text>{name}</Text></HStack>
 
-export const EventBox = ({ event }: { event?: CourseEventProps }) =>
+export const EventBox = ({ selected, events }: EventBoxProps) =>
     <Stack p={2}>
       <HStack><FcCalendar /><Text fontWeight={500}>Events Today</Text></HStack>
-      {!event && <Text p={1} fontSize='sm' color='blackAlpha.500'>No events planned.</Text>}
-      {event &&
-        <HStack py={1} rounded='lg' justify='space-between'>
-          <Flex>
-            <Box boxSize={5} className={'cal-' + event.category} bgPos={0} />
-            <Text>{event.description}</Text>
-          </Flex>
-          <Text color='blackAlpha.600' textAlign='end'>{event.time}</Text>
-        </HStack>}
+      <Stack h={12} pos='relative' spacing={0}>
+        <Text pos='absolute' top={0} left={5} fontSize='sm' color='blackAlpha.500'>No events planned.</Text>
+        {flatMap(keys(events), key => get(events, [key, selected])?.map(a =>
+            <HStack key={a.ordinalNum} rounded='lg' justify='space-between' pb={2} bg='base' zIndex={1}>
+              <Flex>
+                <Box boxSize={5} className={`cal-${key}`} bgPos={0} />
+                <Text>{`Assignment ${a.ordinalNum} is ${key}.`}</Text>
+              </Flex>
+              <Text color='blackAlpha.600' textAlign='end'>{get(a, key + 'Time')}</Text>
+            </HStack>))}
+      </Stack>
     </Stack>
 
 export const RankingInfo = () =>

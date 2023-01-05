@@ -24,7 +24,8 @@ export const FileTab = ({ file, isOpen, onOpen, onClose }: FileTabProps) =>
     </Center>
 
 export const FileTabs = ({ files, id, onReorder, onSelect }: FileTabsProps) =>
-    <Reorder.Group as='ul' axis='x' onReorder={onReorder} values={files} style={{ display: 'flex' }}>
+    <Reorder.Group as='ul' axis='x' onReorder={onReorder} values={files}
+                   style={{ display: 'flex', borderBottomWidth: '1px' }}>
       <AnimatePresence initial={false}>
         {files.map(file =>
             <FileTab key={file.id} file={file} isOpen={file.id === id} onOpen={() => onSelect(file)}

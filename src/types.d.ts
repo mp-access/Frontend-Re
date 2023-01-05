@@ -21,14 +21,24 @@ declare interface CourseProps extends CourseOverview {
   rank: number;
 }
 
+declare interface CourseEventProps {
+  id: number;
+  category: string;
+  description: string;
+  date: string;
+  time: string;
+}
+
 declare interface AssignmentProps {
   id: number;
   url: string;
   title: string;
   ordinalNum: number;
   description: string;
-  startDate: string;
-  endDate: string;
+  publishedDate: string;
+  publishedTime: string;
+  dueDate: string;
+  dueTime: string;
   duration: string;
   countDown: Array<TimerProps>;
   published: boolean;
@@ -41,7 +51,6 @@ declare interface AssignmentProps {
 
 declare interface TaskOverview {
   id: number;
-  assignmentId: number;
   url: string;
   ordinalNum: number;
   title: string;
@@ -60,15 +69,6 @@ declare interface TaskProps extends TaskOverview {
   nextAttemptAt: string;
 }
 
-declare interface TemplateFileProps {
-  id: number;
-  path: string;
-  name: string;
-  language: string;
-  image: boolean;
-  content: string;
-}
-
 declare interface TaskFileProps {
   id: number;
   path: string;
@@ -78,6 +78,40 @@ declare interface TaskFileProps {
   image: boolean;
   template: string;
   latest: string;
+}
+
+declare interface TaskInfo {
+  id: number;
+  assignmentId: number;
+  url: string;
+  ordinalNum: number;
+  title: string;
+  maxPoints: number;
+  maxAttempts: number;
+  dockerImage: string;
+  runCommand: string;
+  testCommand: string;
+  gradeCommand: string;
+  timeLimit: number;
+  taskFiles: Array<TaskFileInfo>;
+}
+
+declare interface TaskFileInfo {
+  id: number;
+  context: string;
+  editable: boolean;
+  templateId: string;
+  templatePath: string;
+}
+
+declare interface TemplateFileProps {
+  id: number;
+  path: string;
+  name: string;
+  language: string;
+  image: boolean;
+  content: string;
+  link: string;
 }
 
 declare interface SubmissionProps {
@@ -94,6 +128,12 @@ declare interface SubmissionProps {
   files: Array<SubmissionFileProps>;
 }
 
+declare interface NewSubmissionProps {
+  restricted: boolean,
+  command: string,
+  files: Array<{ taskFileId: number, content: string }>
+}
+
 declare type WorkspaceProps = Partial<SubmissionProps>
 
 declare interface SubmissionFileProps {
@@ -102,24 +142,17 @@ declare interface SubmissionFileProps {
   taskFileId: number;
 }
 
-declare interface StudentProps {
-  firstName: string;
-  lastName: string;
-  email: string;
-  points: number;
-}
-
 declare interface TimerProps {
   name: string;
   current: number;
   max: number;
 }
 
-declare interface CourseEventProps {
-  category: string;
-  description: string;
-  date: string;
-  time: string;
+declare interface StudentProps {
+  firstName: string;
+  lastName: string;
+  email: string;
+  points: number;
 }
 
 declare interface UserContext {

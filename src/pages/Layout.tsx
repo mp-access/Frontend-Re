@@ -3,12 +3,11 @@ import {
   Avatar, Breadcrumb, BreadcrumbItem, Button, Flex, HStack, Menu, MenuButton, MenuItem, MenuList, SimpleGrid, Spinner
 } from '@chakra-ui/react'
 import { useKeycloak } from '@react-keycloak/web'
-import { useQuery } from '@tanstack/react-query'
 import React from 'react'
 import { AiOutlineLogout } from 'react-icons/ai'
 import { Link, Outlet, useMatches, useParams } from 'react-router-dom'
 import { LogoButton } from '../components/Buttons'
-import { findLast } from 'lodash'
+import { useAssignment, useCourse } from '../components/Hooks'
 
 export default function Layout() {
   const { keycloak } = useKeycloak()
@@ -17,7 +16,7 @@ export default function Layout() {
   if (!keycloak.token)
     return <Spinner pos='absolute' left='50%' top='50%' />
 
-  if (!!courseURL && !keycloak.hasRealmRole(courseURL))
+  if (courseURL && !keycloak.hasRealmRole(courseURL))
     throw new Response('Not Found', { status: 404 })
 
   const context = {
@@ -50,32 +49,23 @@ export default function Layout() {
 function CourseNav() {
   const matches = useMatches()
   const { courseURL, assignmentURL, taskURL } = useParams()
-  const { data: course } = useQuery<CourseProps>(['courses', courseURL])
-  const { data: assignment } = useQuery<AssignmentProps>(['assignments', assignmentURL], { enabled: !!assignmentURL })
+  const { data: course } = useCourse()
+  const { data: assignment } = useAssignment()
   const task = assignment?.tasks.find(task => task.url === taskURL)
-  const crumb = findLast(matches, m => !!m.handle)?.handle as string
 
   if (!course)
     return <></>
 
   return (
-      <Breadcrumb layerStyle='float' separator={<ChevronRightIcon color='gray.500' />}>
+      <Breadcrumb layerStyle='float' separator={<ChevronRightIcon color='gray.500' />} pr={3}>
         <BreadcrumbItem>
           <Button as={Link} to={`/courses/${courseURL}`} variant='gradient' children={course.title} />
         </BreadcrumbItem>
-        {!assignmentURL && crumb &&
-          <BreadcrumbItem>
-            <Button variant='link' mr={2} colorScheme='gray' children={crumb} />
-          </BreadcrumbItem>}
-        {assignmentURL && assignment &&
-          <BreadcrumbItem>
-            <Button as={Link} to={`/courses/${courseURL}/assignments/${assignment.url}`} variant='link' mr={1}
-                    colorScheme='gray' children={`Assignment ${assignment.ordinalNum}`} />
-          </BreadcrumbItem>}
-        {assignmentURL && !taskURL && crumb &&
-          <BreadcrumbItem>
-            <Button variant='link' mr={2} colorScheme='gray' children={crumb} />
-          </BreadcrumbItem>}
+        {matches.filter(match => match.handle).map(match =>
+            <BreadcrumbItem key={match.id}>
+              <Button as={Link} to={match.pathname} variant='link' colorScheme='gray'
+                      children={`${assignment && match.handle === 'assignment' ? 'Assignment ' + assignment.ordinalNum : match.handle}`} />
+            </BreadcrumbItem>)}
         {taskURL && task &&
           <BreadcrumbItem>
             <Button as={Link} to={`/courses/${courseURL}/assignments/${assignmentURL}/tasks/${task.url}`}

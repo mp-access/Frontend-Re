@@ -6,6 +6,7 @@ const theme = extendTheme({
     colors: {
       bg: { default: 'linear-gradient(180deg,#f8f7f8,#f5f3f7)', _dark: 'linear-gradient(180deg,#f8f7f8,#f5f3f7)' },
       base: { default: 'white', _dark: 'blackAlpha.900' },
+      contra: { default: 'blackAlpha.900', _dark: 'whiteAlpha.900' },
       tone: { default: '#a09dab26' },
       mid: { default: '#d6c9ff73', _dark: 'blackAlpha.600' }
     }
@@ -99,6 +100,9 @@ const theme = extendTheme({
     NumberInput: {
       defaultProps: { variant: 'filled', focusBorderColor: 'purple.200', errorBorderColor: 'red.200' }
     },
+    Select: {
+      defaultProps: { focusBorderColor: 'purple.200', errorBorderColor: 'red.200' }
+    },
     Textarea: {
       defaultProps: { variant: 'filled', focusBorderColor: 'purple.200', errorBorderColor: 'red.200' },
       variants: { filled: { field: { rounded: '3xl', borderWidth: 2, borderColor: 'transparent' } } }
@@ -134,6 +138,11 @@ const theme = extendTheme({
       '.cal-due': {
         backgroundPosition: '0 -1em', backgroundRepeat: 'no-repeat', fontWeight: 500,
         backgroundImage: 'radial-gradient(var(--chakra-colors-red-400) 3px, transparent 0)'
+      },
+      '.cal-due.cal-published': {
+        backgroundImage: 'radial-gradient(var(--chakra-colors-red-400) 3px, transparent 0),' +
+            'radial-gradient(var(--chakra-colors-green-400) 3px, transparent 0)',
+        backgroundPosition: '-5px -1em, 5px -1em'
       }
     }
   }

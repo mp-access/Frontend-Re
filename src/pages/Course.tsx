@@ -1,35 +1,34 @@
 import {
   Button, Center, Flex, Grid, GridItem, Heading, HStack, Icon, Stack, Tag, TagLabel, TagLeftIcon, Text, VStack, Wrap
 } from '@chakra-ui/react'
-import { useQuery } from '@tanstack/react-query'
-import { formatISO, parseISO } from 'date-fns'
-import { fork } from 'radash'
+import { fork, mapEntries, objectify } from 'radash'
 import React, { useState } from 'react'
 import { DayPicker } from 'react-day-picker'
 import { AiOutlineBook, AiOutlineCalendar, AiOutlineTeam } from 'react-icons/ai'
 import { BsFillCircleFill } from 'react-icons/bs'
 import { FcAlarmClock, FcBullish, FcCollaboration } from 'react-icons/fc'
-import { Link, useOutletContext, useParams } from 'react-router-dom'
+import { Link, useOutletContext } from 'react-router-dom'
 import { Counter, Detail, EditButton, EventBox, GoToButton, RankingInfo } from '../components/Buttons'
 import { CourseAvatar } from '../components/Icons'
 import { Feature, Underline } from '../components/Panels'
 import { ScorePie, Scores, TimeCountDown } from '../components/Statistics'
+import { useCourse } from '../components/Hooks'
+import { get, groupBy, keys, omit } from 'lodash'
+import { format, parseISO } from 'date-fns'
 
 export default function Course() {
-  const { courseURL } = useParams()
+  const { data: course } = useCourse()
   const { user, isSupervisor } = useOutletContext<UserContext>()
-  const { data: course } = useQuery<CourseProps>(['courses', courseURL])
   const [feature, setFeature] = useState({ i: 0, r: 1 })
-  const [[day, event], setSelectedDay] = useState<[Date, CourseEventProps?]>([new Date()])
+  const [selectedDay, setSelectedDay] = useState(new Date())
 
   if (!course)
     return <></>
 
   const [activeAssignments, pastAssignments] = fork(course.assignments, a => a.active)
   const featured = activeAssignments[feature.i]
-  const findEvent = (when: string) => course.events.find(e => when.startsWith(e.date))
-  const collectEvents = (category: string) =>
-      course.events.filter(e => e.category === category).map(e => parseISO(e.date))
+  const collectEvents = (prop: string) => groupBy(omit(course.assignments, 'tasks'), a => get(a, prop + 'Date'))
+  const events = objectify(['published', 'due'], key => key, key => collectEvents(key))
 
   return (
       <Grid layerStyle='container' templateColumns='5fr 2fr' templateRows='auto auto 1fr' gap={6}>
@@ -53,32 +52,32 @@ export default function Course() {
             <Text noOfLines={3} fontSize='sm'>{course.description}</Text>
           </Stack>
         </GridItem>
-        <GridItem as={VStack} colSpan={1} rowSpan={3} layerStyle='segment' fontSize='sm' justifyContent='space-between'>
-          {isSupervisor &&
-            <Stack w='full' layerStyle='segment' borderStyle='dashed' borderWidth={2}>
-              <Heading fontSize='lg' textAlign='center'>Supervisor Zone</Heading>
-              <Button as={Link} to='supervisor/plan' variant='gradient'>Course Planner</Button>
-              <Button as={Link} to='supervisor/students' variant='gradient'>Students</Button>
-            </Stack>}
-          <VStack>
-            <HStack py={3}>
-              <Icon as={FcCollaboration} boxSize={6} />
-              <Heading fontSize='xl'>Class Rank</Heading>
-            </HStack>
-            <Text><b>{user.given_name}</b>, your rank is</Text>
-            <Center h={16}>
-              <Heading color={course.rank ? 'inherit' : 'blackAlpha.300'}>{course.rank || '?'}</Heading>
-            </Center>
-            <HStack spacing={1}>
-              <Text>{`out of ${course.studentsCount} students.`}</Text>
-              <RankingInfo />
-            </HStack>
-          </VStack>
-          <DayPicker mode='single' required selected={day} showOutsideDays weekStartsOn={1}
-                     onSelect={(day) => day && setSelectedDay([day, findEvent(formatISO(day))])}
+        <GridItem rowSpan={3} layerStyle='segment' fontSize='sm' display='grid' alignContent='space-between'>
+          {isSupervisor ?
+              <Stack w='full' layerStyle='segment' borderStyle='dashed' borderWidth={2}>
+                <Heading fontSize='lg' textAlign='center'>Supervisor Zone</Heading>
+                <Button as={Link} to='supervisor' variant='gradient'>Course Planner</Button>
+                <Button as={Link} to='supervisor/students' variant='gradient'>Students</Button>
+              </Stack>
+              : <VStack>
+                <HStack py={3}>
+                  <Icon as={FcCollaboration} boxSize={6} />
+                  <Heading fontSize='xl'>Class Rank</Heading>
+                </HStack>
+                <Text><b>{user.given_name}</b>, your rank is</Text>
+                <Center h={16}>
+                  <Heading color={course.rank ? 'inherit' : 'blackAlpha.300'}>{course.rank || '?'}</Heading>
+                </Center>
+                <HStack spacing={1}>
+                  <Text>{`out of ${course.studentsCount} students.`}</Text>
+                  <RankingInfo />
+                </HStack>
+              </VStack>}
+          <DayPicker mode='single' required selected={selectedDay} showOutsideDays weekStartsOn={1} fixedWeeks
+                     onSelect={(_, day) => setSelectedDay(day)} modifiersStyles={{ selected: { color: 'inherit' } }}
                      modifiersClassNames={{ published: 'cal-published', due: 'cal-due' }}
-                     modifiersStyles={{ selected: { color: 'inherit' } }} footer={<EventBox event={event} />}
-                     modifiers={{ published: collectEvents('published'), due: collectEvents('due') }} />
+                     footer={<EventBox selected={format(selectedDay, 'yyyy-MM-dd')} events={events} />}
+                     modifiers={mapEntries(events, (key, value) => [key, keys(value).map(k => parseISO(k))])} />
 
         </GridItem>
         <GridItem as={Stack} layerStyle='segment' p={0} spacing={0}>
@@ -91,7 +90,7 @@ export default function Course() {
             </HStack>
             <HStack spacing={4}>
               {activeAssignments.map((assignment, i) =>
-                  <Underline key={i} onClick={() => setFeature({ i, r: feature.i < i ? -1 : 1 })}
+                  <Underline key={assignment.id} onClick={() => setFeature({ i, r: feature.i < i ? -1 : 1 })}
                              isActive={feature.i === i} children={`Assignment ${assignment.ordinalNum}`} />)}
             </HStack>
           </HStack>

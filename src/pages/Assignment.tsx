@@ -2,19 +2,18 @@ import {
   Box, Button, Center, Divider, Flex, Heading, HStack, Icon, SimpleGrid, Stack, Table, TableContainer, Tag, TagLabel,
   TagLeftIcon, Tbody, Td, Text, Tr, Wrap
 } from '@chakra-ui/react'
-import { useQuery } from '@tanstack/react-query'
 import { range } from 'lodash'
 import React from 'react'
 import { AiOutlineCalendar } from 'react-icons/ai'
 import { FcTodoList } from 'react-icons/fc'
-import { Link, useOutletContext, useParams } from 'react-router-dom'
+import { Link, useOutletContext } from 'react-router-dom'
 import { Counter } from '../components/Buttons'
 import { Score, TimeCountDown } from '../components/Statistics'
+import { useAssignment } from '../components/Hooks'
 
 export default function Assignment() {
-  const { assignmentURL } = useParams()
   const { isAssistant } = useOutletContext<UserContext>()
-  const { data: assignment } = useQuery<AssignmentProps>(['assignments', assignmentURL])
+  const { data: assignment } = useAssignment()
 
   if (!assignment)
     return <></>
@@ -64,8 +63,7 @@ export default function Assignment() {
                                     bg={(isAssistant || i < task.remainingAttempts) ? 'purple.500' : 'transparent'} />)}
                       </SimpleGrid>
                       <Text fontSize='sm'>
-                        <b>{isAssistant ? '∞' : task.remainingAttempts}</b>
-                        {` / ${task.maxAttempts} Submissions left`}
+                        <b>{isAssistant ? '∞' : task.remainingAttempts}</b> {task.maxAttempts} Submissions left
                       </Text>
                     </Td>
                     <Td w='xs'>

@@ -13,7 +13,7 @@ import { compact, flattenDeep, join } from 'lodash'
 import React from 'react'
 import 'react-day-picker/dist/style.css'
 import { createRoot } from 'react-dom/client'
-import { createBrowserRouter, LoaderFunctionArgs, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import Assignment from './pages/Assignment'
 import Assignments from './pages/Assignments'
 import Course from './pages/Course'
@@ -25,8 +25,9 @@ import Task from './pages/Task'
 import theme from './Theme'
 import Layout from './pages/Layout'
 import Planner from './pages/Planner'
-import TaskCreator from './pages/TaskCreator'
-import { AssignmentCreator, AssignmentEditor, CourseCreator, CourseEditor } from './pages/Creator'
+import {
+  AssignmentCreator, AssignmentEditor, CourseCreator, CourseEditor, TaskCreator, TaskEditor
+} from './pages/Creator'
 
 const authClient = new Keycloak({
   url: process.env.REACT_APP_AUTH_SERVER_URL || window.location.origin + ':8443',
@@ -45,18 +46,8 @@ function App() {
   const client = new QueryClient()
   client.setDefaultOptions({
     queries: { refetchOnWindowFocus: false, queryFn: context => axios.get(toURL(context.queryKey)) },
-    mutations: { mutationFn: (data) => axios.post('courses', data), onError }
+    mutations: { mutationFn: (data: any) => axios.post(toURL(data[0]), data[1]), onError }
   })
-
-  const setQuery = (keys: string[], ...path: any[]) => keys.map(key => {
-    client.setMutationDefaults([key || 'course'], { mutationFn: data => axios.post(toURL(path, key), data) })
-    return client.setQueryDefaults([key || 'course'], { queryFn: ctx => axios.get(toURL(path, ctx.queryKey)) })
-  })
-
-  const loadCourse = ({ params }: LoaderFunctionArgs) =>
-      setQuery(['', 'assignments', 'students', 'files', 'import', 'submit'], 'courses', params.courseURL)
-  const loadTasks = ({ params }: LoaderFunctionArgs) =>
-      setQuery(['tasks'], 'courses', params.courseURL, 'assignments', params.assignmentURL)
 
   const router = createBrowserRouter([
     { path: '/', element: <Landing />, errorElement: <Error /> },
@@ -65,13 +56,13 @@ function App() {
         { index: true, element: <Courses /> },
         { path: 'create', element: <CourseCreator /> },
         {
-          path: ':courseURL', loader: loadCourse, children: [
+          path: ':courseURL', children: [
             { index: true, element: <Course />, handle: 'Dashboard' },
             {
               path: 'assignments', children: [
                 { index: true, element: <Assignments />, handle: 'Assignments' },
                 {
-                  path: ':assignmentURL', loader: loadTasks, children: [
+                  path: ':assignmentURL', handle: 'assignment', children: [
                     { index: true, element: <Assignment /> },
                     { path: 'tasks/:taskURL', element: <Task /> }
                   ]
@@ -79,17 +70,22 @@ function App() {
               ]
             },
             {
-              path: 'supervisor', children: [
+              path: 'supervisor', handle: 'Supervisor Zone', children: [
+                { index: true, element: <Planner />, handle: 'Course Planner' },
                 { path: 'edit', element: <CourseEditor />, handle: 'Course Editor' },
-                { path: 'plan', element: <Planner />, handle: 'Course Planner' },
                 { path: 'students', element: <Students />, handle: 'Students' },
                 {
                   path: 'assignments', children: [
                     { index: true, element: <AssignmentCreator />, handle: 'Create Assignment' },
                     {
-                      path: ':assignmentURL', loader: loadTasks, children: [
+                      path: ':assignmentURL', handle: 'assignment', children: [
                         { index: true, element: <AssignmentEditor />, handle: 'Assignment Editor' },
-                        { path: 'tasks', element: <TaskCreator />, handle: 'Create Task' }
+                        {
+                          path: 'tasks', children: [
+                            { index: true, element: <TaskCreator />, handle: 'Create Task' },
+                            { path: ':taskURL', element: <TaskEditor />, handle: 'Task Editor' }
+                          ]
+                        }
                       ]
                     }
                   ]

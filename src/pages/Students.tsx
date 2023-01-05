@@ -1,9 +1,9 @@
 import { Center, Heading, Table, TableCaption, TableContainer, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react'
-import { useQuery } from '@tanstack/react-query'
 import React from 'react'
+import { useStudents } from '../components/Hooks'
 
 export default function Students() {
-  const { data: students } = useQuery<StudentProps[]>(['students'])
+  const { data: students } = useStudents()
   if (!students)
     return <></>
   return (

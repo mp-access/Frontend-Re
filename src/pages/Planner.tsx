@@ -1,99 +1,86 @@
 import {
-  Box, Button, ButtonGroup, Center, Heading, HStack, Stack, Table, TableCaption, TableContainer, Tag, TagLabel,
-  TagLeftIcon, Tbody, Td, Text, Th, Thead, Tr
+  Box, Button, ButtonGroup, Center, Divider, Heading, HStack, SimpleGrid, Stack, Tag, TagLabel, TagLeftIcon, Text
 } from '@chakra-ui/react'
-import React, { useState } from 'react'
-import { useMutation, useQuery } from '@tanstack/react-query'
-import { Link, useParams } from 'react-router-dom'
-import { AddIcon } from '@chakra-ui/icons'
+import React from 'react'
+import { Link } from 'react-router-dom'
+import { AddIcon, ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons'
 import { AiOutlineCalendar } from 'react-icons/ai'
-import { Reorder } from 'framer-motion'
-import { EditButton, UploadButton } from '../components/Buttons'
-
+import { EditButton, ImportButton, NavButton } from '../components/Buttons'
+import { useCourse } from '../components/Hooks'
+import Slider from 'react-slick'
+import 'slick-carousel/slick/slick.css'
+import 'slick-carousel/slick/slick-theme.css'
 
 export default function Planner() {
-  const { courseURL } = useParams()
-  const [assignments, setAssignments] = useState<AssignmentProps[]>()
-  const { data: course } = useQuery<CourseProps>(['courses', courseURL],
-      { onSuccess: data => setAssignments(data.assignments) })
-  const { mutateAsync: onImport } = useMutation<string, object, any>(['import'],
-      { onSuccess: () => window.location.reload() })
+  const { data: course } = useCourse()
 
-  if (!course || !assignments)
+  if (!course)
     return <></>
 
-  const onReorder = (tasks: any[]) =>
-      tasks[0] && setAssignments(assignments.map(a => a.id === tasks[0].assignmentId ? { ...a, tasks } : a))
-
   return (
-      <TableContainer p={8} my={4} layerStyle='segment' minW='container.lg'>
-        <ButtonGroup variant='ghost' w='full' pb={4}>
+      <Stack my={4} layerStyle='segment' p={0} maxW='container.lg' h='container.md'>
+        <ButtonGroup variant='ghost' w='full' p={8} pb={2}>
           <Heading m={2} mt={0} fontSize='3xl'>Course Planner</Heading>
-          <Button as={Link} to='../assignments' leftIcon={<AddIcon />}>
-            Assignment
-          </Button>
+          <Button as={Link} to='assignments' leftIcon={<AddIcon />}>Assignment</Button>
           <Box flexGrow={1} />
-          <UploadButton onSubmit={onImport} />
+          <ImportButton />
         </ButtonGroup>
-        <Table maxW='md'>
-          <Thead>
-            <Tr>
-              <Th w={16}></Th>
-              {assignments.map(assignment =>
-                  <Th key={assignment.id} py={1}>
-                    <HStack>
-                      <Text>{`Assignment ${assignment.ordinalNum}`}</Text>
-                      <EditButton to={`../assignments/${assignment.url}`} textTransform='capitalize' />
-                    </HStack>
-                  </Th>)}
-            </Tr>
-          </Thead>
-          <Tbody>
-            <Tr>
-              <Td fontWeight={500}>Title</Td>
-              {assignments.map(assignment => <Td key={assignment.id}>{assignment.title}</Td>)}
-            </Tr>
-            <Tr>
-              <Td fontWeight={500}>Dates</Td>
-              {assignments.map(assignment =>
-                  <Td key={assignment.id}>
-                    <Stack>
-                      <Tag bg='transparent'>
-                        <TagLeftIcon as={AiOutlineCalendar} />
-                        <TagLabel fontWeight={400}>
-                          Start: <b>{assignment.duration.split('~')[0]}</b>
-                        </TagLabel>
-                      </Tag>
-                      <Tag bg='transparent'>
-                        <TagLeftIcon as={AiOutlineCalendar} />
-                        <TagLabel fontWeight={400}>
-                          End: <b>{assignment.duration.split('~')[1]}</b>
-                        </TagLabel>
-                      </Tag>
-                    </Stack>
-                  </Td>)}
-            </Tr>
-            <Tr verticalAlign='baseline'>
-              <Td fontWeight={500}>Tasks</Td>
-              {assignments.map(assignment =>
-                  <Td key={assignment.id}>
-                    <Reorder.Group values={assignment.tasks} onReorder={onReorder} style={{ display: 'grid', gap: 6 }}>
+        <Divider mb={2} />
+        <Stack p={10} pt={0} sx={{ '.slick-arrow::before': { color: 'purple.500' } }}>
+          <Slider dots slidesToShow={3} infinite={false}>
+            {course.assignments.map(assignment =>
+                <SimpleGrid columns={1} key={assignment.id} px={3}>
+                  <HStack px={2} h={12} justify='space-between'>
+                    <Text fontSize='sm' textTransform='uppercase' color='blackAlpha.600' fontWeight={600}>
+                      {`Assignment ${assignment.ordinalNum}`}
+                    </Text>
+                    <ButtonGroup isAttached size='sm'>
+                      <EditButton to={`assignments/${assignment.url}`} textTransform='capitalize' />
+                      <Button leftIcon={<AddIcon />} variant='ghost' as={Link} size='sm'
+                              to={`assignments/${assignment.url}/tasks`} children='Task' />
+                    </ButtonGroup>
+                  </HStack>
+                  <Divider mb={2} />
+                  <Text px={2} h={8} fontWeight={500}>{assignment.title}</Text>
+                  <Divider />
+                  <Stack py={2} spacing={0} justify='center'>
+                    <Tag bg='transparent'>
+                      <TagLeftIcon as={AiOutlineCalendar} />
+                      <TagLabel fontWeight={400}>
+                        Start: <b>{assignment.duration.split('~')[0]}</b>
+                      </TagLabel>
+                    </Tag>
+                    <Tag bg='transparent'>
+                      <TagLeftIcon as={AiOutlineCalendar} />
+                      <TagLabel fontWeight={400}>
+                        End: <b>{assignment.duration.split('~')[1]}</b>
+                      </TagLabel>
+                    </Tag>
+                  </Stack>
+                  <Divider mb={2} />
+                  <Stack maxH='md' spacing={0}>
+                    <Slider vertical verticalSwiping slidesToShow={4} infinite={false}
+                            nextArrow={<NavButton icon={<ChevronDownIcon boxSize='full' />} right='39%' />}
+                            prevArrow={<NavButton icon={<ChevronUpIcon boxSize='full' />} left='39%' />}>
                       {assignment.tasks.map(task =>
-                          <Reorder.Item key={task.id} drag value={task} id={`${task.assignmentId}-${task.id}`}>
-                            <Center w='2xs' p={4} bg='purple.200'>
-                              <Text>{task.title}</Text>
-                            </Center>
-                          </Reorder.Item>)}
-                    </Reorder.Group>
-                    <Button w='2xs' my={2} leftIcon={<AddIcon />} variant='ghost' as={Link}
-                            to={`../assignments/${assignment.url}/tasks`} children='Task' />
-                  </Td>)}
-            </Tr>
-          </Tbody>
-          <TableCaption>
-            {!assignments.length && <Center color='gray.400'>No assignments yet.</Center>}
-          </TableCaption>
-        </Table>
-      </TableContainer>
+                          <Stack key={task.id} layerStyle='card' fontSize='sm' rounded='lg' spacing={1}>
+                            <HStack>
+                              <Text>{task.ordinalNum}</Text>
+                              <Text overflow='hidden' textOverflow='ellipsis' fontSize='md'>{task.title}</Text>
+                            </HStack>
+                            <HStack justify='space-between'>
+                              <Tag>{task.maxAttempts} Attempts</Tag>
+                              <Tag>{task.maxPoints} Points</Tag>
+                              <EditButton to={`assignments/${assignment.url}/tasks/${task.url}`} />
+                            </HStack>
+                          </Stack>)}
+                    </Slider>
+                  </Stack>
+                  {!assignment.tasks.length && <Center fontSize='sm' minH={12} color='gray.400'>No tasks yet.</Center>}
+                </SimpleGrid>)}
+          </Slider>
+        </Stack>
+        {!course.assignments.length && <Center fontSize='sm' minH={12} color='gray.400'>No assignments yet.</Center>}
+      </Stack>
   )
 }
