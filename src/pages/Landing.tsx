@@ -6,6 +6,7 @@ import React from 'react'
 import Typewriter from 'typewriter-effect'
 import { LogoButton } from '../components/Buttons'
 import { SWITCHIcon } from '../components/Icons'
+import { Link } from 'react-router-dom'
 
 export function Landing() {
   const { keycloak } = useKeycloak()
@@ -16,7 +17,7 @@ export function Landing() {
         <HStack w='full' px={3} justify='space-between'>
           <LogoButton />
           <ButtonGroup variant='ghost'>
-            <Button>Contact</Button>
+            <Button as={Link} to='/contact'>Contact</Button>
           </ButtonGroup>
         </HStack>
         <Center flexGrow={1}>
@@ -43,11 +44,10 @@ export function Landing() {
             </VStack>
             <Box w='full' pos='relative' textAlign='center'>
               <Divider borderColor='gray.300' py={2} />
-              <Text pos='absolute' px={1} top={1} textShadow='float' marginInline='auto' left={0} right={0}>or</Text>
             </Box>
             <VStack p={2} textAlign='center'>
-              <Text>{'Want to create a new course?'}</Text>
-              <Button size='lg' variant='outline' onClick={() => keycloak.login({ idpHint, redirectUri })}>
+              <Text fontSize='sm'>{'Would you like to create a new course?'}</Text>
+              <Button variant='outline' as={Link} to='/contact'>
                 Get Started
               </Button>
             </VStack>

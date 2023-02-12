@@ -4,14 +4,15 @@ import {
 } from '@chakra-ui/react'
 import { useQuery } from '@tanstack/react-query'
 import React from 'react'
-import { AiOutlineCalendar, AiOutlineTeam } from 'react-icons/ai'
+import { AiOutlineTeam } from 'react-icons/ai'
 import { BsCircleFill, BsFillCircleFill } from 'react-icons/bs'
 import { FcAdvertising, FcGraduationCap, FcOrgUnit } from 'react-icons/fc'
 import { FiSend } from 'react-icons/fi'
 import { Link, useOutletContext } from 'react-router-dom'
-import { Counter } from '../components/Buttons'
+import { Counter, Detail } from '../components/Buttons'
 import { ScoreBar } from '../components/Statistics'
 import { CourseAvatar } from '../components/Icons'
+import { HiOutlineCalendarDays } from 'react-icons/hi2'
 
 export default function Courses() {
   const { user } = useOutletContext<UserContext>()
@@ -21,7 +22,7 @@ export default function Courses() {
     return <></>
 
   return (
-      <Grid layerStyle='container' templateColumns='2fr 1fr' templateRows='auto 1fr' gap={6}>
+      <Grid templateColumns='2fr 1fr' templateRows='auto 1fr' gap={6} m='auto'>
         <GridItem as={Stack} layerStyle='segment' colSpan={1} rowSpan={2} spacing={3}>
           <Heading pb={4} fontWeight={400} fontSize='2xl'>Welcome, <b>{user.given_name}</b>!</Heading>
           <HStack>
@@ -30,35 +31,30 @@ export default function Courses() {
             <Counter>{courses.length}</Counter>
           </HStack>
           <Divider borderColor='gray.300' />
-          <SimpleGrid columns={1} maxH='lg' py={2} gap={3}>
+          <Stack py={2} spacing={3} maxW='full'>
             {courses.map(course =>
-                <Flex key={course.id} as={Link} to={course.url} layerStyle='card' gap={4}>
-                  <CourseAvatar src={course.avatar} />
-                  <Stack>
-                    <Heading fontSize='2xl'>{course.title}</Heading>
-                    <Wrap>
-                      <Tag>
-                        <TagLeftIcon as={AiOutlineCalendar} />
-                        <TagLabel>{course.semester}</TagLabel>
-                      </Tag>
-                      <Tag>
-                        <TagLeftIcon as={AiOutlineCalendar} />
-                        <TagLabel>{course.duration}</TagLabel>
-                      </Tag>
-                      <Tag>
-                        <TagLeftIcon as={AiOutlineTeam} />
-                        <TagLabel>{course.studentsCount} Students</TagLabel>
-                      </Tag>
-                      <Tag color='green.600' bg='green.50'>
-                        <TagLeftIcon as={BsFillCircleFill} boxSize={2} />
-                        <TagLabel>{course.onlineCount} Online</TagLabel>
-                      </Tag>
-                    </Wrap>
-                    <ScoreBar value={course.points} max={course.maxPoints} />
-                  </Stack>
-                </Flex>)}
+                <SimpleGrid key={course.id} as={Link} to={course.url} templateRows='repeat(4, auto)'
+                            columnGap={4} templateColumns='auto 1fr' layerStyle='card'>
+                  <CourseAvatar src={course.avatar} gridRow='span 4' />
+                  <HStack justify='space-between'>
+                    <Heading fontSize='2xl' noOfLines={1}>{course.title}</Heading>
+                    <Tag color='green.600' bg='green.50'>
+                      <TagLeftIcon as={BsFillCircleFill} boxSize={2} />
+                      <TagLabel whiteSpace='nowrap'>{course.onlineCount} Online</TagLabel>
+                    </Tag>
+                  </HStack>
+                  <Wrap>
+                    <Tag bg='purple.75'>{course.university}</Tag>
+                    {course.supervisors.map(s => <Tag key={s.name}>{s.name}</Tag>)}
+                  </Wrap>
+                  <Wrap mt='auto' spacing={4}>
+                    <Detail as={HiOutlineCalendarDays} title={course.duration} />
+                    <Detail as={AiOutlineTeam} title={`${course.studentsCount} Students`} />
+                  </Wrap>
+                  <ScoreBar value={course.points} max={course.maxPoints} />
+                </SimpleGrid>)}
             {!courses.length && <Center boxSize='full' color='gray.500'>No courses found.</Center>}
-          </SimpleGrid>
+          </Stack>
         </GridItem>
         <GridItem as={Stack} layerStyle='segment'>
           <HStack>
@@ -73,8 +69,7 @@ export default function Courses() {
                 <Divider orientation='vertical' borderColor='gray.500' />
               </VStack>
               <Stack mb={8}>
-                <Text lineHeight={1.2} fontWeight={500}>Welcome to the new version of ACCESS!</Text>
-                <Text>Check the course Informatics 1 (Demo) and submit your solutions to the available tasks.</Text>
+                <Text lineHeight={1.2} fontWeight={500}>{'Welcome to the new version of ACCESS!'}</Text>
               </Stack>
             </Flex>
           </Stack>
@@ -86,7 +81,7 @@ export default function Courses() {
             <Heading pt={1} fontSize='2xl' fontWeight={400} fontFamily='monospace'>ACCESS</Heading>
           </HStack>
           <Divider borderColor='gray.300' />
-          <VStack justify='center' spacing={4} pt={6} color='blackAlpha.400'>
+          <VStack justify='center' spacing={4} minH='xs' color='blackAlpha.400'>
             <Icon as={FiSend} boxSize={16} opacity={0.3} />
             <Text>More courses <br /> coming soon!</Text>
           </VStack>

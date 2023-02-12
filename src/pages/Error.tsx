@@ -10,14 +10,14 @@ import { RobotIcon } from '../components/Icons'
 export default function Error() {
   let error = useRouteError() as any
   return (
-      <Center h='full' bg='gray.100'>
+      <Center h='full' bg='bg'>
         <VStack p={8} minH='container.sm' justify='space-between' bg='base' rounded='3xl' pos='relative'>
           <LogoButton />
           <VStack>
             <Heading>Oh no, something went wrong...</Heading>
             <Text>{'The page you are looking for does not exist.'}</Text>
           </VStack>
-          <Button as={Link} to={-1 as any} variant='solid' colorScheme='blue' size='lg' leftIcon={<GrUndo />}>
+          <Button as={Link} to={-1 as any} variant='solid' size='lg' leftIcon={<GrUndo />}>
             Go Back
           </Button>
           <Icon as={RobotIcon} boxSize='2xs' />

@@ -21,9 +21,9 @@ import { FileTree } from '../components/FileTree'
 import { Markdown, Screen, SplitHorizontal, SplitVertical } from '../components/Panels'
 import { ScoreBar, ScorePie } from '../components/Statistics'
 import { FcFile, FcInspection, FcTimeline, FcTodoList } from 'react-icons/fc'
-import TaskController from './TaskController'
-import { ActionButton, ActionTab, TooltipButton } from '../components/Buttons'
+import { ActionButton, ActionTab, TooltipIconButton } from '../components/Buttons'
 import { useCodeEditor, useTask } from '../components/Hooks'
+import { TaskController } from './Supervisor'
 
 const commands = ['test', 'run', 'grade']
 
@@ -120,7 +120,7 @@ export default function Task() {
             {isAssistant && <TaskController value={userId} defaultValue={user.email} onChange={setUserId} />}
             <SplitVertical bg='base' borderTopWidth={1}>
               <Accordion display='flex' flexDir='column' h='full' allowMultiple defaultIndex={[0, 1]}>
-                <AccordionItem display='flex' flexDir='column' overflow='hidden'>
+                <AccordionItem display='flex' flexDir='column' overflow='hidden' flexGrow={1}>
                   <AccordionButton>
                     <AccordionIcon />
                     <FcTodoList />
@@ -145,8 +145,8 @@ export default function Task() {
                     }} />
                   </ButtonGroup>
                   <AccordionPanel p={0} overflow='auto'>
-                    <FileTree files={task.files} id={currentFile.id}
-                              onClick={file => setCurrentFile(find(editableFiles, { id: file.id }) || file)} />
+                    <FileTree files={task.files} selected={currentFile.path}
+                              onSelect={file => setCurrentFile(find(editableFiles, { id: file.id }) || file)} />
                   </AccordionPanel>
                 </AccordionItem>
               </Accordion>
@@ -155,9 +155,12 @@ export default function Task() {
                 <Editor path={getPath(currentFile.id)} defaultValue={currentFile.latest || currentFile.template}
                         language={currentFile.language}
                         options={{ minimap: { enabled: false }, readOnly: !currentFile.editable }} />
+                <Center position='absolute' bottom={0} zIndex={currentFile.image ? 2 : -2} bg='base'>
+                  {currentFile.image && <Image src={currentFile.template} h='auto' />}
+                </Center>
                 <Tabs display='flex' flexDir='column' flexGrow={1} colorScheme='purple'
                       borderTopWidth={1} index={currentTab} onChange={setCurrentTab}>
-                  <TabList>
+                  <TabList overflow='hidden'>
                     <Tab><ActionTab name='Test' /></Tab>
                     <Tab><ActionTab name='Run' /></Tab>
                     <Tab><HStack><FcInspection /><Text>Submit</Text></HStack></Tab>
@@ -181,9 +184,6 @@ export default function Task() {
                         </TabPanel>)}
                   </TabPanels>
                 </Tabs>
-                <Center position='absolute' bottom={0} zIndex={currentFile.image ? 2 : -2}>
-                  {currentFile.image && <Image src={currentFile.template} h='auto' />}
-                </Center>
               </SplitHorizontal>
               <Accordion minW='3xs' display='flex' flexDir='column' h='full' allowMultiple defaultIndex={[0]}>
                 <SimpleGrid columns={2} w='full' fontSize='sm'>
@@ -227,19 +227,19 @@ export default function Task() {
                           <ButtonGroup size='sm' variant='ghost' spacing={1}>
                             <Popover placement='left'>
                               <PopoverTrigger>
-                                <TooltipButton isDisabled={!submission.output} bg='gray.10' color='contra'
-                                               aria-label={submission.graded ? 'Hint' : 'Output'}
-                                               icon={submission.graded ? <AiOutlineBulb /> : <AiOutlineCode />} />
+                                <IconButton isDisabled={!submission.output} bg='gray.10' color='contra' rounded='md'
+                                            aria-label={submission.graded ? 'Hint' : 'Output'} fontSize='120%'
+                                            icon={submission.graded ? <AiOutlineBulb /> : <AiOutlineCode />} />
                               </PopoverTrigger>
-                              <PopoverContent w='fit-content' bg='yellow.50'>
+                              <PopoverContent w='fit-content' maxW='xl' bg='yellow.50'>
                                 <PopoverArrow />
                                 <PopoverBody overflow='auto' fontSize='sm' whiteSpace='pre-wrap' maxH='2xs'>
                                   {submission.output}
                                 </PopoverBody>
                               </PopoverContent>
                             </Popover>
-                            <TooltipButton onClick={() => reload(submission)} aria-label='Reload' bg='gray.10'
-                                           color='contra' icon={<AiOutlineReload />} />
+                            <TooltipIconButton onClick={() => reload(submission)} aria-label='Reload' bg='gray.10'
+                                               color='contra' icon={<AiOutlineReload />} />
                           </ButtonGroup>
                           <Stack gridColumn='span 2' py={2} mb={4}>
                             {submission.graded &&

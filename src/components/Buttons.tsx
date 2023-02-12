@@ -1,17 +1,16 @@
 import {
-  Box, BoxProps, Button, ButtonProps, Center, Flex, HStack, IconButton, IconButtonProps, Input, Stack, TabProps, Tag,
-  TagLabel, TagLeftIcon, Text, Tooltip
+  Box, BoxProps, Button, ButtonProps, Center, Flex, HStack, Icon, IconButton, IconButtonProps, Input, Stack, TabProps,
+  Text, Tooltip
 } from '@chakra-ui/react'
 import { motion } from 'framer-motion'
 import React from 'react'
-import { BsArrowRight } from 'react-icons/bs'
+import { BsArrowRight, BsCloudDownload, BsPencilSquare } from 'react-icons/bs'
 import { Link, NavigateProps } from 'react-router-dom'
 import { ActionIcon } from './Icons'
 import { FcCalendar } from 'react-icons/fc'
-import { EditIcon, InfoOutlineIcon } from '@chakra-ui/icons'
+import { InfoOutlineIcon } from '@chakra-ui/icons'
 import { FormState } from 'react-hook-form'
 import Dropzone from 'react-dropzone'
-import { ImDownload } from 'react-icons/im'
 import { useImport } from './Hooks'
 import { flatMap, get, keys } from 'lodash'
 
@@ -23,19 +22,26 @@ export const LogoButton = () =>
     <Box as={Link} to='/courses' fontFamily='monospace' fontSize='4xl' pt={2}
          _hover={{ color: 'purple.500' }} children='ACCESS.' />
 
-export const TooltipButton = ({ 'aria-label': label, icon, ...props }: IconButtonProps) =>
+export const TooltipIconButton = ({ 'aria-label': label, icon, ...props }: IconButtonProps) =>
     <Tooltip placement='bottom-end' label={label}>
-      <IconButton aria-label={label} icon={icon} fontSize='120%' {...props} rounded='md' />
+      <IconButton aria-label={label} icon={icon}  {...props} fontSize='120%' rounded='md' />
+    </Tooltip>
+
+export const TooltipButton = ({ title, ...props }: ButtonProps) =>
+    <Tooltip placement='bottom-end' label={title}>
+      <Button {...props} />
     </Tooltip>
 
 export const EditButton = ({ to, ...props }: NavigateProps & ButtonProps) =>
-    <Button as={Link} to={to} variant='ghost' size='sm' leftIcon={<EditIcon />} children='Edit' {...props} />
+    <Button as={Link} to={to} leftIcon={<BsPencilSquare fontSize='110%' />} h={8} rounded='lg' px={2}
+            children='Edit' {...props} />
 
 export const NavButton = ({ onClick, icon, left, right, className }: Partial<IconButtonProps>) =>
-    <IconButton aria-label='nav' size='sm' pos='absolute' bottom={-10} variant='ghost' p={1}
+    <IconButton aria-label='nav' size='sm' pos='absolute' top={-10} variant='ghost' p={1}
                 icon={icon} onClick={onClick} left={left} right={right} isDisabled={className?.includes('disabled')} />
+
 export const SaveButton = ({ formState: { isSubmitting }, ...props }: SaveButtonProps) =>
-    <Button alignSelf='center' type='submit' {...props} isLoading={isSubmitting} children='Save' />
+    <Button alignSelf='center' type='submit' children='Save' {...props} isLoading={isSubmitting} />
 
 export const GoToButton = ({ children, ...props }: BoxProps) =>
     <HStack as={motion.div} fontSize='lg' fontWeight={600} color='purple.600'
@@ -48,8 +54,8 @@ export const ImportButton = () => {
   const { onImport, isLoading } = useImport()
   return <Dropzone onDrop={(dropped) => dropped[0]?.text().then(data => onImport(JSON.parse(data)))}
                    multiple={false} children={({ getRootProps, getInputProps }) =>
-      <Center h='full' {...getRootProps()}>
-        <Button isLoading={isLoading} leftIcon={<ImDownload />}>Import</Button>
+      <Center {...getRootProps()}>
+        <Button isLoading={isLoading} leftIcon={<BsCloudDownload />}>Import</Button>
         <Input {...getInputProps()} size='sm' type='file' />
       </Center>} />
 }
@@ -85,4 +91,20 @@ export const RankingInfo = () =>
       <InfoOutlineIcon />
     </Tooltip>
 
-export const Detail = ({ name, as }: ButtonProps) => <Tag><TagLeftIcon as={as} /><TagLabel>{name}</TagLabel></Tag>
+export const UseContextInfo = () =>
+    <Tooltip placement='bottom-end' minW='md' label={
+      <Text p={1}>
+        <b>Task File</b>{` = Always visible, included in all evaluations.`}<br />
+        <b>Solution File</b>{` = Released after assignment deadline.`}<br />
+        <b>Instructions File</b>{` = Markdown content, always visible.`}<br />
+        <b>Grading File</b>{` = Included in graded evaluations, not released.`}
+      </Text>}>
+      <InfoOutlineIcon />
+    </Tooltip>
+
+export const Detail = ({ title, as }: ButtonProps) =>
+    <HStack>
+      <Icon boxSize={6} p={0.5} as={as} color='blackAlpha.500' bg='purple.75' rounded='full' />
+      <Text fontSize='sm' whiteSpace='nowrap' letterSpacing='tight'>{title}</Text>
+    </HStack>
+

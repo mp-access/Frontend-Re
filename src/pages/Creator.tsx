@@ -4,13 +4,13 @@ import {
   Button, Checkbox, FormControl, FormErrorMessage, HStack, InputProps, Select, SimpleGrid, Stack, Table, Tbody, Td,
   Text, Th, Thead, Tr
 } from '@chakra-ui/react'
-import { SaveButton } from '../components/Buttons'
+import { GoToButton, SaveButton, UseContextInfo } from '../components/Buttons'
 import React from 'react'
 import { FormField, selectOptions, TableField } from '../components/Fields'
 import { useCreator, useTemplateFiles } from '../components/Hooks'
-import { filter, keyBy } from 'lodash'
-import TemplateCreator from './TemplateCreator'
+import { compact, filter, get, keyBy, map } from 'lodash'
 import { CheckIcon, ExternalLinkIcon } from '@chakra-ui/icons'
+import { Link } from 'react-router-dom'
 
 const Creator = ({ prefix = '', enabled = false, children }: InputProps & UseQueryOptions<any>) => {
   const { form, create, isSuccess } = useCreator(prefix, enabled)
@@ -32,29 +32,29 @@ const Creator = ({ prefix = '', enabled = false, children }: InputProps & UseQue
 export const CourseCreator = ({ isEditor = false }) =>
     <Creator prefix='courses' enabled={isEditor}>
       {!isEditor && <Text fontSize='2xl' lineHeight='taller'>{'Set up your new course'}</Text>}
-      <SimpleGrid templateColumns='1fr 1fr' maxW='container.lg' gap={6}>
+      <SimpleGrid templateColumns='1fr 1fr' maxW='container.lg' columnGap={6}>
         <Stack>
           <SimpleGrid templateColumns='auto 1fr' gap={4}>
-            <FormField title='Avatar' type='avatar' />
+            <FormField title='Avatar' form='avatar' />
             <Stack w='full' flexGrow={1} spacing={4}>
               <FormField title='Title' />
               <FormField title='URL' isDisabled={isEditor} />
             </Stack>
           </SimpleGrid>
           <HStack>
-            <FormField title='University' />
+            <FormField title='University' isDisabled />
             <FormField title='Semester' />
           </HStack>
           <HStack>
             <FormField title='Start Date' type='date' />
             <FormField title='End Date' type='date' />
           </HStack>
-          <FormField title='Description' type='text' />
+          <FormField title='Description' form='text' />
         </Stack>
-        <Stack>
+        <SimpleGrid columns={1} templateRows='1fr 1fr' h='md'>
           <TableField name='supervisors' columns={['Name', 'Email']} />
           <TableField name='assistants' columns={['Name', 'Email']} />
-        </Stack>
+        </SimpleGrid>
       </SimpleGrid>
     </Creator>
 
@@ -73,7 +73,7 @@ export const AssignmentCreator = ({ isEditor = false }) =>
           <FormField title='Start Date' type='datetime-local' />
           <FormField title='End Date' type='datetime-local' />
         </HStack>
-        <FormField title='Description' type='text' />
+        <FormField title='Description' form='text' />
       </Stack>
     </Creator>
 
@@ -98,26 +98,32 @@ export const TaskCreator = ({ isEditor = false }) => {
             <FormField title='Title' />
             <FormField title='URL' />
             <HStack>
-              <FormField title='Max Attempts' type='number' />
-              <FormField title='Max Points' type='number' />
-              <FormField name='attemptWindow' title='Attempt Refill (Hours)' type='number' />
+              <FormField title='Max Attempts' form='number' max={10} />
+              <FormField title='Max Points' form='number' max={100} />
+              <FormField name='attemptWindow' title='Attempt Refill (Hours)' form='number' />
             </HStack>
             <HStack>
               <FormField title='Docker Image' />
-              <FormField name='timeLimit' title='Submission Timeout (Seconds)' type='number' />
+              <FormField name='timeLimit' title='Submission Timeout (Seconds)' form='number' max={300} />
             </HStack>
             <FormField title='Run Command' />
             <FormField title='Test Command' />
             <FormField title='Grade Command' />
           </Stack>
           <Stack layerStyle='feature'>
-            <FormControl isInvalid={!!form.formState?.errors?.files} as={HStack}
-                         justify='space-between' pb={4} pos='relative'>
-              <Text fontSize='xl' p={3}>{'Select task files'}</Text>
-              <FormErrorMessage pos='absolute' right={0} bottom={0}>
-                {form.formState?.errors?.files?.message?.toString() || ''}
+            <HStack justify='space-between'>
+              <Text fontSize='xl' p={3} pb={0}>{'Select task files'}</Text>
+              <Link to='../../../../files'><GoToButton>File Manager</GoToButton></Link>
+            </HStack>
+            <Text px={3} fontSize='sm'>
+              {'Mark the files that you want to include in this task and set their '}
+              <b>Use Context</b>{'. Tick the '}<b>Editable</b>{' box to allow students to edit the file.'}
+            </Text>
+            <FormControl isInvalid={!!form.formState?.errors?.files} h={6} pos='relative' w='full'>
+              <FormErrorMessage pos='absolute' right={0}>
+                {compact(map(form.formState.errors?.files, f => get(f, 'context.message')))[0] ||
+                    get(form.formState.errors, 'files.message')?.toString() || ''}
               </FormErrorMessage>
-              <TemplateCreator />
             </FormControl>
             <Table size='sm' maxH='xl' display='block' overflow='auto'>
               <Thead pos='sticky' bg='base' zIndex={1} top={0}>
@@ -125,7 +131,7 @@ export const TaskCreator = ({ isEditor = false }) => {
                   <Th><CheckIcon /></Th>
                   <Th>Template</Th>
                   <Th px={0}>Editable</Th>
-                  <Th>Use Context</Th>
+                  <Th>Use Context <UseContextInfo /></Th>
                 </Tr>
               </Thead>
               <Tbody fontSize='sm'>

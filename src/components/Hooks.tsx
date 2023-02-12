@@ -4,8 +4,9 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, UseQueryOptions } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { creatorForm } from './Fields'
 import { compact, concat, flatten } from 'lodash'
+import { yupResolver } from '@hookform/resolvers/yup/dist/yup'
+import { schemas } from './Fields'
 
 export const useCodeEditor = () => {
   const monaco = useMonaco()
@@ -19,14 +20,17 @@ const usePath = (prefix: string): any[] => {
       ['assignments', assignmentURL, prefix !== 'assignments' && ['tasks', taskURL]])))
 }
 
+export const useCreatorForm = (prefix: string) =>
+    useForm({ mode: 'onChange', resolver: yupResolver(schemas[prefix]), defaultValues: schemas[prefix].getDefault() })
+
 export function useCreator<TData = any>(prefix: string, enabled: boolean) {
-  const form = useForm(creatorForm(prefix))
+  const form = useCreatorForm(prefix)
   const navigate = useNavigate()
   const path = usePath(prefix)
   const { mutateAsync } = useMutation<string, object, any[]>(['create', ...path])
   const { data, isSuccess } = useQuery<TData>(path, { enabled, onSuccess: form.reset })
   const create = (data: object) => mutateAsync([path, data])
-      .then(() => navigate('/courses' + (path[1] ? `/${path[1]}/supervisor` : '')))
+      .then(() => navigate('/courses' + (path[1] ? `/${path[1]}/supervisor` : ''), { state: { refresh: !path[1] } }))
   return { form, create, data, isSuccess }
 }
 

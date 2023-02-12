@@ -12,10 +12,13 @@ const theme = extendTheme({
     }
   },
   layerStyles: {
-    card: { p: 4, bg: 'base', borderWidth: 1, boxShadow: 'lg', rounded: '3xl', _hover: { boxShadow: 'hover' } },
+    card: {
+      p: 2, bg: 'base', borderWidth: 1, boxShadow: 'lg', rounded: '2xl',
+      _hover: { boxShadow: 'hover', textDecoration: 'none' }
+    },
     form: { py: 4, px: 12, bg: 'base', borderWidth: 1, boxShadow: 'lg', rounded: '3xl', alignSelf: 'center', gap: 6 },
-    feature: { p: 4, bg: 'base', borderWidth: 1, boxShadow: 'lg', rounded: '3xl' },
-    segment: { p: 6, bg: 'base', boxShadow: 'segment', rounded: '2xl' },
+    feature: { p: 4, bg: 'base', borderWidth: 1, boxShadow: 'lg', rounded: '2xl' },
+    segment: { p: 4, bg: 'base', boxShadow: 'segment', rounded: '2xl' },
     float: { p: 1, bg: 'base', boxShadow: 'segment', rounded: 'lg', h: 12 },
     container: { p: 4, w: 'full', maxW: 'container.xl' },
     tab: { boxSize: 'full', display: 'flex', flexDir: 'column-reverse', pos: 'absolute', overflow: 'auto', gap: 2 },
@@ -31,7 +34,7 @@ const theme = extendTheme({
     gray: {
       10: '#f1f1f1',
       15: '#f3f3f3',
-      100: '#f6f9fd',
+      100: '#f5f3f7',
       150: '#fcfcfc',
       175: '#fafafa',
       200: '#e9edf2',
@@ -90,7 +93,10 @@ const theme = extendTheme({
   },
   components: {
     Code: { variants: { subtle: { bg: 'transparent' } } },
-    Tag: { defaultProps: { colorScheme: 'blackAlpha', size: { base: 'sm', xl: 'md' } } },
+    Tag: {
+      defaultProps: { colorScheme: 'blackAlpha' },
+      sizes: { md: { container: { px: 3, h: 6 } } }, baseStyle: { container: { rounded: '2xl' } }
+    },
     FormLabel: { baseStyle: { m: 1, ml: 4, fontSize: 'sm' } },
     Accordion: { baseStyle: { button: { gap: 2 } } },
     Input: {
@@ -113,19 +119,31 @@ const theme = extendTheme({
       size: { sm: { minW: 0 } },
       variants: {
         solid: { rounded: '3xl' }, outline: { rounded: '3xl' }, link: { px: { sm: 0, md: 0 }, h: { md: 'auto' } },
+        quick: {
+          rounded: 'lg', borderWidth: 1, bg: 'base', justifyContent: 'start',
+          _hover: { bg: 'purple.50' }, pl: 8, lineHeight: 1
+        },
         gradient: { rounded: 'lg', color: 'white', bg: 'gradients.500', _hover: { filter: 'brightness(1.2)' } }
       }
     }
   },
   styles: {
     global: {
-      'html, body, #root': { w: '100vw', h: '100vh' },
+      'html, body, #root': { w: '100vw', h: '100vh' }, ':focus': { outline: 'none' },
       '::-webkit-scrollbar': { h: 3, w: 3, bg: 'transparent', ':horizontal': { bg: 'transparent' } },
       '::-webkit-scrollbar-corner': { bg: 'transparent' },
       '::-webkit-scrollbar-thumb': { borderRadius: 6, bg: 'transparent' },
       ':hover::-webkit-scrollbar-thumb': { bg: 'mid' },
       'ul, li': { listStyle: 'none', padding: 0, margin: 0 },
       '.Typewriter': { fontFamily: 'monospace', fontSize: '5xl', '.purple': { color: 'purple.500' } },
+      '.rct-tree-root': {
+        '--rct-color-tree-bg': 'none', '--rct-item-height': '2rem',
+        '--rct-color-focustree-item-selected-bg': 'var(--chakra-colors-gray-15)',
+        '--rct-color-nonfocustree-item-selected-bg': 'var(--chakra-colors-gray-15)',
+        '--rct-color-focustree-item-focused-border': 'var(--chakra-colors-purple-100)',
+        '--rct-color-tree-focus-outline': 'var(--chakra-colors-purple-100)'
+      },
+      '.tasks': { bg: 'bg', px: 2, py: 1, rounded: '2xl', h: 'full', overflow: 'hidden' },
       '.rdp': {
         '--rdp-accent-color': 'var(--chakra-colors-purple-75)',
         '.rdp-button': { transition: 'background-color 0.5s ease' },

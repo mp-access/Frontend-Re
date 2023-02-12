@@ -1,45 +1,33 @@
-import { Accordion, AccordionButton, AccordionIcon, AccordionItem, AccordionPanel, Icon, Text } from '@chakra-ui/react'
-import { dropRight, isMap, range } from 'lodash'
-import React from 'react'
-import { FolderIcon, LanugageIcon } from './Icons'
+import { concat, head, keys, last, map, split, uniq, update } from 'lodash'
+import React, { useState } from 'react'
+import { ControlledTreeEnvironment, Tree, TreeItem, TreeItemIndex } from 'react-complex-tree'
+import 'react-complex-tree/lib/style.css'
+import { toggle } from 'radash'
+import { HStack, Text } from '@chakra-ui/react'
+import { NodeIcon } from './Icons'
 
-type NodeProps = { id: number, onClick: (file: TaskFileProps) => void }
-type FileNodeProps = NodeProps & { file: TaskFileProps }
-type FolderNodeProps = NodeProps & { name: string, node: Map<string, any> }
-type RootNodeProps = NodeProps & { files: Array<TaskFileProps> }
+type RootNodeProps = { selected: string, onSelect: (file: TaskFileProps) => void, files: Array<TaskFileProps> }
 
-const File = ({ file, id, onClick }: FileNodeProps) =>
-    <AccordionItem border='0 solid transparent' bg={id === file.id ? 'blackAlpha.100' : 'inherit'}>
-      <AccordionButton borderWidth={0} onClick={() => onClick(file)} fontSize='sm'>
-        <LanugageIcon name={file.language} ml={file.path.split('/').length * 6} mr={2} boxSize={4} />
-        <Text>{file.name}</Text>
-      </AccordionButton>
-    </AccordionItem>
+const createNode = (n: string, f: TaskFileProps) =>
+    ({ index: n, children: [], isFolder: n !== f.path, data: n === f.path ? f : { name: last(split(n, '/')) } })
+const addChild = (node: TreeItem, child: string) =>
+    child ? update(node, 'children', c => uniq(concat(c, child))) : node
+const splitPath = (p: string) => concat(map([...p.matchAll(/\//g)], a => p.substring(0, a.index)), p)
 
-const Folder = ({ name, node, ...props }: FolderNodeProps) => {
-  if (!isMap(node))
-    return <File {...props} file={node} />
-  return (
-      <AccordionItem borderWidth={0}>
-        <AccordionButton borderWidth={0} fontSize='sm'>
-          <AccordionIcon />
-          <Icon as={FolderIcon} mx={2} boxSize={4} />
-          <Text>{name}</Text>
-        </AccordionButton>
-        <AccordionPanel p={0}>
-          {[...node.keys()].map(folder => <Folder key={folder} name={folder} node={node.get(folder)} {...props} />)}
-        </AccordionPanel>
-      </AccordionItem>
-  )
-}
+export function FileTree({ files, selected, onSelect }: RootNodeProps) {
+  const tree: Record<string, TreeItem> = {}
+  files.forEach(f => splitPath(f.path).forEach((n, i, nodes) =>
+      tree[n] = addChild(tree[n] || createNode(n, f), nodes[i + 1])))
+  const [expandedItems, setExpandedItems] = useState<TreeItemIndex[]>(keys(tree))
+  const onClick = (item: TreeItem) => setExpandedItems(items => toggle(items, item.index))
 
-export function FileTree({ files, ...props }: RootNodeProps) {
-  const taskTree = new Map()
-  files.forEach(file => dropRight(file.path.split('/')).reduce((tree, folder) =>
-      tree.set(folder, tree.get(folder) || new Map()).get(folder), taskTree).set(file.name, file))
-  return (
-      <Accordion fontFamily='file' color='gray.600' allowMultiple defaultIndex={range(taskTree.size)}>
-        {[...taskTree.entries()].map(([folder, node]) => <Folder key={folder} name={folder} node={node} {...props} />)}
-      </Accordion>
-  )
+  return <ControlledTreeEnvironment
+      items={tree} getItemTitle={item => item.data.name} renderDepthOffset={20}
+      children={<Tree treeId='task' rootItem={head(split(files[0].path, '/')) || ''} />}
+      viewState={{ ['task']: { focusedItem: selected, expandedItems, selectedItems: [selected] } }}
+      onExpandItem={onClick} onCollapseItem={onClick} renderItemTitle={({ item, context }) =>
+      <HStack boxSize='full' onClick={() => !item.isFolder && onSelect(item.data)} color='gray.600' pl={2}>
+        <NodeIcon name={item.data.language || `folder-${!!context.isExpanded}`} boxSize={4} />
+        <Text fontFamily='file' fontSize='sm'>{item.data.name}</Text>
+      </HStack>} />
 }

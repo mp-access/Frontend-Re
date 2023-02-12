@@ -1,20 +1,31 @@
 import { ChevronRightIcon } from '@chakra-ui/icons'
 import {
-  Avatar, Breadcrumb, BreadcrumbItem, Button, Flex, HStack, Menu, MenuButton, MenuItem, MenuList, SimpleGrid, Spinner
+  Avatar, Breadcrumb, BreadcrumbItem, Button, Flex, HStack, Menu, MenuButton, MenuItem, MenuList, SimpleGrid
 } from '@chakra-ui/react'
 import { useKeycloak } from '@react-keycloak/web'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { AiOutlineLogout } from 'react-icons/ai'
-import { Link, Outlet, useMatches, useParams } from 'react-router-dom'
+import { Link, Outlet, useLocation, useMatches, useNavigate, useParams } from 'react-router-dom'
 import { LogoButton } from '../components/Buttons'
 import { useAssignment, useCourse } from '../components/Hooks'
+import { Placeholder } from '../components/Panels'
 
 export default function Layout() {
+  const location = useLocation()
+  const navigate = useNavigate()
   const { keycloak } = useKeycloak()
   const { courseURL } = useParams()
 
+  useEffect(() => {
+    const timeout = setTimeout(() => !keycloak.token && navigate('/'), 2000)
+    return () => clearTimeout(timeout)
+  })
+
   if (!keycloak.token)
-    return <Spinner pos='absolute' left='50%' top='50%' />
+    return <Placeholder />
+
+  if (location.state?.refresh)
+    keycloak.clearToken()
 
   if (courseURL && !keycloak.hasRealmRole(courseURL))
     throw new Response('Not Found', { status: 404 })
@@ -26,8 +37,10 @@ export default function Layout() {
     isAssistant: !!courseURL && keycloak.hasRealmRole(courseURL + '-assistant')
   }
 
+
   return (
-      <SimpleGrid columns={1} templateRows='auto 1fr' bg='bg' boxSize='full' justifyItems='center' pos='relative'>
+      <SimpleGrid columns={1} templateRows='auto 1fr' bg='bg' boxSize='full'
+                  justifyItems='center' pos='relative' overflow='hidden'>
         <Flex justify='space-between' px={3} w='full' h={16} align='center'>
           <HStack p={3}>
             <LogoButton />

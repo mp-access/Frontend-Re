@@ -8,14 +8,16 @@ declare interface CourseOverview {
   startDate: string;
   endDate: string;
   duration: string;
+  description: string;
   studentsCount: number;
   onlineCount: number;
   maxPoints: number;
   points: number;
+  supervisors: Array<{ name: string }>;
+  assistants: Array<{ name: string }>;
 }
 
 declare interface CourseProps extends CourseOverview {
-  description: string;
   assignments: Array<AssignmentProps>;
   events: Array<CourseEventProps>;
   rank: number;
@@ -112,6 +114,7 @@ declare interface TemplateFileProps {
   image: boolean;
   content: string;
   link: string;
+  updatedAt: string;
 }
 
 declare interface SubmissionProps {

@@ -1,6 +1,7 @@
 import { ChakraProvider, ColorModeScript, useToast } from '@chakra-ui/react'
 import '@fontsource/courier-prime/700.css'
 import '@fontsource/courier-prime/400.css'
+import '@fontsource/manrope/600.css'
 import '@fontsource/manrope/400.css'
 import '@fontsource/dm-sans/700.css'
 import '@fontsource/dm-sans/500.css'
@@ -28,6 +29,8 @@ import Planner from './pages/Planner'
 import {
   AssignmentCreator, AssignmentEditor, CourseCreator, CourseEditor, TaskCreator, TaskEditor
 } from './pages/Creator'
+import Files from './pages/Files'
+import Contact from './pages/Contact'
 
 const authClient = new Keycloak({
   url: process.env.REACT_APP_AUTH_SERVER_URL || window.location.origin + ':8443',
@@ -37,7 +40,7 @@ const authClient = new Keycloak({
 
 axios.defaults.baseURL = '/api/'
 axios.interceptors.response.use(response => response.data)
-const setAuthToken = (token?: string) => axios.defaults.headers.common = { 'Authorization': `Bearer ${token}` }
+const setAuthToken = (token?: string) => axios.defaults.headers.common = { 'Authorization': token && `Bearer ${token}` }
 
 function App() {
   const toast = useToast()
@@ -51,6 +54,7 @@ function App() {
 
   const router = createBrowserRouter([
     { path: '/', element: <Landing />, errorElement: <Error /> },
+    { path: '/contact', element: <Contact />, errorElement: <Error /> },
     {
       path: '/courses', element: <Layout />, errorElement: <Error />, children: [
         { index: true, element: <Courses /> },
@@ -73,6 +77,7 @@ function App() {
               path: 'supervisor', handle: 'Supervisor Zone', children: [
                 { index: true, element: <Planner />, handle: 'Course Planner' },
                 { path: 'edit', element: <CourseEditor />, handle: 'Course Editor' },
+                { path: 'files', element: <Files />, handle: 'File Manager' },
                 { path: 'students', element: <Students />, handle: 'Students' },
                 {
                   path: 'assignments', children: [

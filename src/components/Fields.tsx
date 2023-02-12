@@ -2,95 +2,88 @@ import { Controller, ControllerRenderProps, useFieldArray, useFormContext } from
 import {
   Button, Center, CloseButton, Flex, FormControl, FormErrorMessage, FormLabel, HStack, Icon, Input, InputGroup,
   InputProps, InputRightElement, NumberDecrementStepper, NumberIncrementStepper, NumberInput, NumberInputField,
-  NumberInputStepper, Select, Stack, Table, Tbody, Td, Textarea, Th, Thead, Tr
+  NumberInputProps, NumberInputStepper, Select, Stack, Table, Tbody, Td, Textarea, Th, Thead, Tr
 } from '@chakra-ui/react'
 import { AddIcon, CheckIcon } from '@chakra-ui/icons'
 import React, { useRef, useState } from 'react'
-import { UseFormProps } from 'react-hook-form/dist/types'
 import Dropzone from 'react-dropzone'
 import AvatarEditor from 'react-avatar-editor'
 import { MdOutlineAddPhotoAlternate } from 'react-icons/md'
 import * as yup from 'yup'
 import { ObjectSchema } from 'yup'
-import { yupResolver } from '@hookform/resolvers/yup/dist/yup'
 import { camel } from 'radash'
-import { last, range, split } from 'lodash'
+import { get, range } from 'lodash'
 
 
-export const selectOptions: Record<string, Array<string>> =
-    { 'Context': ['Task', 'Solution', 'Instructions', 'Grading'], 'Role': ['Supervisor', 'Assistant'] }
+export const selectOptions: Record<string, Array<string>> = {
+  'Context': ['Task', 'Solution', 'Instructions', 'Grading'], 'Role': ['Supervisor', 'Assistant'],
+  'Topic': ['Create a new course on ACCESS', 'Provide feedback', 'Report a technical problem', 'Other']
+}
 
 yup.setLocale({
-  mixed: { required: () => '', notType: () => '' },
+  mixed: { required: '', notType: '' },
+  number: { min: '', max: '' },
   string: {
-    min: params => `Min. ${params.min} characters`,
-    max: params => `Max. ${params.max} characters`
+    min: params => params.min === 1 ? '' : `Min. ${params.min} letters`,
+    max: params => `Max. ${params.max} letters`,
+    email: () => 'Invalid email'
   }
 })
 
+
+const pathSchema = yup.string().min(2).ensure().trim()
+    .matches(/^[0-9a-z/._-]+$/i, 'Invalid relative path')
+    .test('relative', 'Remove leading "/" character', path => !path || path[0] !== '/')
 const fileSchema = yup.object({
   added: yup.boolean().default(false),
   path: yup.string(), templatePath: yup.string(),
   editable: yup.boolean().default(false).required(),
-  context: yup.string().nullable().default(null)
-      .when('added', { is: true, then: s => s.oneOf(selectOptions['Context']) })
+  context: yup.string().nullable().default(null).when('added',
+      { is: true, then: s => s.oneOf(selectOptions['Context'], 'set Use Context for all selecteded file') })
 })
-
 const memberSchema = yup.object({
-  name: yup.string().ensure().trim(),
-  email: yup.string().email().ensure().trim()
+  name: yup.string().ensure().trim().min(2),
+  email: yup.string().email().ensure().trim().min(1)
 })
-
-const templateSchema = yup.object({ templates: yup.array().of(yup.string().ensure().trim().min(2)).default([]) })
-
+const contactSchema = memberSchema.concat(yup.object({
+  message: yup.string().ensure().max(500).min(5), topic: yup.string()
+}))
+const templateSchema = yup.object({ templates: yup.array().of(pathSchema).default([]) })
 const courseSchema = yup.object({
   title: yup.string().min(4).max(30).ensure().trim(),
-  url: yup.string().min(8).max(30).matches(/[0-9a-z]/, 'Lowercase letters, numbers or dash (-) only').ensure().trim(),
+  url: yup.string().min(8).max(30).ensure().trim().matches(/[0-9a-z]/, 'Lowercase letters, numbers or dash (-) only'),
   startDate: yup.mixed().required(),
   endDate: yup.mixed().required(),
-  university: yup.string().min(5).ensure().trim(),
+  university: yup.string().min(5).ensure().trim().default('University of Zurich'),
   semester: yup.string().min(5).ensure().trim(),
-  description: yup.string().ensure().max(400),
+  description: yup.string().ensure().max(250),
   supervisors: yup.array().of(memberSchema).default([]),
   assistants: yup.array().of(memberSchema).default([]),
   avatar: yup.string().ensure().test('image', p => p?.value ? 'Invalid' : 'Required', a => a?.startsWith('data:image'))
 })
-
 const assignmentSchema = courseSchema.pick(['title', 'url', 'startDate', 'endDate', 'description'])
     .concat(yup.object({ ordinalNum: yup.number().min(0).nullable().default(null) }))
-
-
 const taskSchema = assignmentSchema.pick(['title', 'url', 'ordinalNum']).concat(yup.object({
-  maxPoints: yup.number().default(10).required(),
-  maxAttempts: yup.number().default(3).required(),
-  attemptWindow: yup.number().min(0).nullable().default(null),
-  dockerImage: yup.string().required(),
-  timeLimit: yup.number().default(30).required(),
-  runCommand: yup.string(),
-  testCommand: yup.string(),
-  gradeCommand: yup.string(),
+  maxPoints: yup.number().default(10).min(0).required(),
+  maxAttempts: yup.number().default(3).min(0).max(11).required(),
+  attemptWindow: yup.number().min(0),
+  dockerImage: yup.string().ensure().trim().required(),
+  timeLimit: yup.number().min(0).max(300).default(30).required(),
+  runCommand: yup.string().ensure().trim().required(),
+  testCommand: yup.string().ensure().trim().required(),
+  gradeCommand: yup.string().ensure().trim().required(),
   files: yup.array().of(fileSchema).default([])
-      .test('added', 'Select at least 1 file', (files: any[]) => !!files?.find(f => f.added))
+      .test('hasTask', 'Select at least 1 file', (fs: any[]) => !!fs?.find(f => f.added))
+      .test('hasTask', 'Add at least 1 file with "Task" context',
+          (fs: any[]) => !!fs?.find(f => f.added && f.context === 'Task'))
+      .test('hasInst', 'Add exactly one file with "Instructions" context',
+          (fs: any[]) => fs?.filter(f => f.added && f.context === 'Instructions').length === 1)
 }))
 
-const schemas: Record<string, ObjectSchema<any>> =
-    { 'courses': courseSchema, 'assignments': assignmentSchema, 'tasks': taskSchema, 'templates': templateSchema }
-export const creatorForm = (id: string): UseFormProps<any> =>
-    ({ mode: 'onChange', resolver: yupResolver(schemas[id]), defaultValues: schemas[id].getDefaultFromShape() })
-
-const NumberField = (field: ControllerRenderProps<any>) =>
-    <NumberInput min={0} defaultValue={field.value}>
-      <NumberInputField {...field} type='number' />
-      <NumberInputStepper>
-        <NumberIncrementStepper />
-        <NumberDecrementStepper />
-      </NumberInputStepper>
-    </NumberInput>
-
-const SelectionField = (field: ControllerRenderProps<any>) =>
-    <Select bg='base' size='sm' minW='max-content' {...field}>
-      {selectOptions[last(split(field.name, '.')) || ''].map(o => <option key={o} value={o} label={o} />)}
-    </Select>
+export const schemas: Record<string, ObjectSchema<any>> = {
+  'courses': courseSchema, 'assignments': assignmentSchema,
+  'tasks': taskSchema, 'templates': templateSchema, 'contact': contactSchema
+}
 
 const AvatarField = (field: ControllerRenderProps<any>) => {
   const [original, setOriginal] = useState(field.value)
@@ -105,33 +98,39 @@ const AvatarField = (field: ControllerRenderProps<any>) => {
                          <Center pos='absolute' boxSize='full' top={0} left={0} p={4}>
                            <Icon as={MdOutlineAddPhotoAlternate} boxSize='full' p={8} bg='base' />
                          </Center>
-                         <AvatarEditor ref={ref} image={original || ''} height={140} width={140}
+                         <AvatarEditor ref={ref} image={original || field.value || ''} height={140} width={140}
                                        onImageReady={getAvatar} onMouseUp={getAvatar} border={0}
                                        style={{ overflow: 'hidden', borderRadius: 'inherit', zIndex: 1 }} />
                        </Center>} />
 }
 
-const fieldTypes: Record<string, (props: ControllerRenderProps<any>) => JSX.Element> = {
-  'number': NumberField, 'avatar': AvatarField, 'text': field => <Textarea {...field} />, 'select': SelectionField
-}
-
-export const FormField = ({ name = '', title = '', type = '', isDisabled = false }: InputProps) => {
+export const FormField = ({ name = '', title = '', form = '', max, ...props }: InputProps & NumberInputProps) => {
   const { control } = useFormContext()
   return <Controller name={name || camel(title)} control={control} render={({ field, fieldState }) =>
       <FormControl isInvalid={!!fieldState.error}>
         <HStack w='full' overflow='hidden' align='stretch'>
           <FormLabel textTransform='capitalize' whiteSpace='nowrap'>{title || name}</FormLabel>
-          <Flex pos='relative' flexGrow={1} pb={1}>
-            <FormErrorMessage pos='absolute' right={0} top={0}>{fieldState.error?.message}</FormErrorMessage>
+          <Flex pos='relative' flexGrow={1}>
+            <FormErrorMessage pos='absolute' right={1} top={-1}>{fieldState.error?.message}</FormErrorMessage>
           </Flex>
         </HStack>
-        {fieldTypes[type] ? fieldTypes[type](field) :
-            <InputGroup {...field}>
-              <Input type={type} defaultValue={field.value} isDisabled={isDisabled} />
-              <InputRightElement>
-                {!fieldState.error && fieldState.isDirty && <CheckIcon color='green.400' />}
-              </InputRightElement>
-            </InputGroup>}
+        {form === 'avatar' && <AvatarField {...field} />}
+        {form === 'text' && <Textarea {...field} />}
+        {form === 'number' &&
+          <NumberInput min={0} max={max} defaultValue={field.value} {...field}>
+            <NumberInputField />
+            <NumberInputStepper>
+              <NumberIncrementStepper />
+              <NumberDecrementStepper />
+            </NumberInputStepper>
+          </NumberInput>}
+        {!form &&
+          <InputGroup {...field}>
+            <Input defaultValue={field.value} {...props} />
+            <InputRightElement>
+              {!fieldState.error && fieldState.isDirty && <CheckIcon color='green.400' />}
+            </InputRightElement>
+          </InputGroup>}
       </FormControl>} />
 }
 
@@ -155,36 +154,43 @@ export const ColumnField = ({ name = '', placeholder = '' }: InputProps) => {
 }
 
 export const TableField = ({ name = '', title = '', columns = [''] }: InputProps & { columns?: string[] }) => {
-  const { control } = useFormContext()
+  const { control, formState: { errors } } = useFormContext()
   const { fields, append, remove } = useFieldArray({ name, control })
   return (
-      <Stack h='full'>
+      <FormControl as={Stack} flexGrow={1} h='full' overflow='hidden' isInvalid={!!errors[name]} pos='relative' pb={3}>
         <HStack justify='space-between'>
           <FormLabel textTransform='capitalize' whiteSpace='nowrap'>{title || name}</FormLabel>
-          <Button size='sm' variant='ghost' onClick={() => append({})} leftIcon={<AddIcon />} children='Add' />
+          <Button size='sm' variant='ghost' onClick={() => append(columns[0] ? {} : '')}
+                  leftIcon={<AddIcon />} children='Add' />
         </HStack>
-        <Table size='sm' fontSize='sm' display='block' maxH={44} overflow='scroll'>
-          {columns[0] &&
-            <Thead pos='sticky' bg='base' zIndex={1} top={0}>
-              <Tr>
-                <Th />
-                {columns.map(column => <Th key={column} w='full'>{column}</Th>)}
-                <Th />
-              </Tr>
-            </Thead>}
-          <Tbody>
-            {range(fields.length || 1).map(i =>
-                <Tr key={i}>
-                  <Td><Center>{i + 1}</Center></Td>
-                  {columns.map(column =>
-                      <Td key={column} px={0} w='full'>
-                        <ColumnField name={`${name}.${i}${column ? '.' + camel(column) : ''}`} placeholder={column} />
-                      </Td>)}
-                  <Td p={0} pl={2}><CloseButton size='sm' onClick={() => remove(i)} /></Td>
-                </Tr>)}
-          </Tbody>
-        </Table>
-      </Stack>
+        <Stack flexGrow={1} overflow='scroll'>
+          <Table size='sm' fontSize='sm'>
+            {columns[0] &&
+              <Thead pos='sticky' bg='base' zIndex={1} top={0}>
+                <Tr>
+                  <Th w={3} />
+                  {columns.map(column => <Th key={column}>{column}</Th>)}
+                  <Th w={3} />
+                </Tr>
+              </Thead>}
+            <Tbody>
+              {range(fields.length).map(i =>
+                  <Tr key={i}>
+                    <Td w={3} p={0}><Center>{i + 1}</Center></Td>
+                    {columns.map(column =>
+                        <Td key={column} p={0}>
+                          <ColumnField name={`${name}.${i}${column ? '.' + camel(column) : ''}`} placeholder={column} />
+                        </Td>)}
+                    <Td w={3} p={0}><CloseButton ml={1} size='sm' onClick={() => remove(i)} /></Td>
+                  </Tr>)}
+              <Tr></Tr>
+            </Tbody>
+          </Table>
+        </Stack>
+        <FormErrorMessage pos='absolute' bottom={0} right={0}>
+          {get(errors, [name, '0', 'message'], '')}
+        </FormErrorMessage>
+      </FormControl>
   )
 }
 

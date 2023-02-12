@@ -8,7 +8,7 @@ import { AiOutlineCalendar } from 'react-icons/ai'
 import { FcTodoList } from 'react-icons/fc'
 import { Link, useOutletContext } from 'react-router-dom'
 import { Counter } from '../components/Buttons'
-import { Score, TimeCountDown } from '../components/Statistics'
+import { HScores, TimeCountDown } from '../components/Statistics'
 import { useAssignment } from '../components/Hooks'
 
 export default function Assignment() {
@@ -67,7 +67,7 @@ export default function Assignment() {
                       </Text>
                     </Td>
                     <Td w='xs'>
-                      <Score value={task.points} max={task.maxPoints} avg={task.avgPoints} />
+                      <HScores value={task.points} max={task.maxPoints} avg={task.avgPoints} />
                     </Td>
                     <Td>
                       <Button w='full' colorScheme='green' as={Link} to={`tasks/${task.url}`}>
