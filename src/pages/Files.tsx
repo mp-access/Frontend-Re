@@ -6,7 +6,7 @@ import { AddIcon, ExternalLinkIcon } from '@chakra-ui/icons'
 import React from 'react'
 import { FormProvider } from 'react-hook-form'
 import { useCreatorForm, useTemplateFiles } from '../components/Hooks'
-import { TableField } from '../components/Fields'
+import { FormField } from '../components/Fields'
 import { SaveButton, TooltipButton } from '../components/Buttons'
 import { FcDataConfiguration } from 'react-icons/fc'
 import { BsGithub } from 'react-icons/bs'
@@ -16,7 +16,7 @@ export default function Files() {
   const { submit, data: templateFiles } = useTemplateFiles()
   const { isOpen, onOpen, onClose } = useDisclosure()
   const form = useCreatorForm('templates')
-  const onSubmit = form.handleSubmit(data => submit(data).then(onClose))
+  const onSubmit = form.handleSubmit(data => submit({ templates: data.templates?.split('\n') }).then(onClose))
 
   if (!templateFiles)
     return <></>
@@ -46,7 +46,7 @@ export default function Files() {
                     {`Upload your new template files to the ACCESS template repository, then enter below the `}
                     {`relative paths to the files.`}
                   </Text>
-                  <TableField name='templates' title='Repository Paths' />
+                  <FormField name='templates' title='Repository Paths' form='text' />
                   <ButtonGroup p={3} w='full' justifyContent='center'>
                     <SaveButton formState={form.formState} />
                   </ButtonGroup>

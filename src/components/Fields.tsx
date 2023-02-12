@@ -48,7 +48,7 @@ const memberSchema = yup.object({
 const contactSchema = memberSchema.concat(yup.object({
   message: yup.string().ensure().max(500).min(5), topic: yup.string()
 }))
-const templateSchema = yup.object({ templates: yup.array().of(pathSchema).default([]) })
+const templateSchema = yup.object({ templates: yup.string() })
 const courseSchema = yup.object({
   title: yup.string().min(4).max(30).ensure().trim(),
   url: yup.string().min(8).max(30).ensure().trim().matches(/[0-9a-z]/, 'Lowercase letters, numbers or dash (-) only'),
@@ -73,11 +73,11 @@ const taskSchema = assignmentSchema.pick(['title', 'url', 'ordinalNum']).concat(
   testCommand: yup.string().ensure().trim().required(),
   gradeCommand: yup.string().ensure().trim().required(),
   files: yup.array().of(fileSchema).default([])
-      .test('hasTask', 'Select at least 1 file', (fs: any[]) => !!fs?.find(f => f.added))
+      .test('hasTask', 'Select at least 1 file', params => !!params?.find(f => f.added))
       .test('hasTask', 'Add at least 1 file with "Task" context',
-          (fs: any[]) => !!fs?.find(f => f.added && f.context === 'Task'))
+          params => !!params?.find(f => f.added && f.context === 'Task'))
       .test('hasInst', 'Add exactly one file with "Instructions" context',
-          (fs: any[]) => fs?.filter(f => f.added && f.context === 'Instructions').length === 1)
+          params => params?.filter(f => f.added && f.context === 'Instructions').length === 1)
 }))
 
 export const schemas: Record<string, ObjectSchema<any>> = {
@@ -153,33 +153,32 @@ export const ColumnField = ({ name = '', placeholder = '' }: InputProps) => {
   } />
 }
 
-export const TableField = ({ name = '', title = '', columns = [''] }: InputProps & { columns?: string[] }) => {
+export const TableField = ({ name = '', title = '', columns }: InputProps & { columns: string[] }) => {
   const { control, formState: { errors } } = useFormContext()
   const { fields, append, remove } = useFieldArray({ name, control })
   return (
       <FormControl as={Stack} flexGrow={1} h='full' overflow='hidden' isInvalid={!!errors[name]} pos='relative' pb={3}>
         <HStack justify='space-between'>
           <FormLabel textTransform='capitalize' whiteSpace='nowrap'>{title || name}</FormLabel>
-          <Button size='sm' variant='ghost' onClick={() => append(columns[0] ? {} : '')}
+          <Button size='sm' variant='ghost' onClick={() => append({})}
                   leftIcon={<AddIcon />} children='Add' />
         </HStack>
         <Stack flexGrow={1} overflow='scroll'>
           <Table size='sm' fontSize='sm'>
-            {columns[0] &&
-              <Thead pos='sticky' bg='base' zIndex={1} top={0}>
-                <Tr>
-                  <Th w={3} />
-                  {columns.map(column => <Th key={column}>{column}</Th>)}
-                  <Th w={3} />
-                </Tr>
-              </Thead>}
+            <Thead pos='sticky' bg='base' zIndex={1} top={0}>
+              <Tr>
+                <Th w={3} />
+                {columns.map(column => <Th key={column}>{column}</Th>)}
+                <Th w={3} />
+              </Tr>
+            </Thead>
             <Tbody>
               {range(fields.length).map(i =>
                   <Tr key={i}>
                     <Td w={3} p={0}><Center>{i + 1}</Center></Td>
                     {columns.map(column =>
                         <Td key={column} p={0}>
-                          <ColumnField name={`${name}.${i}${column ? '.' + camel(column) : ''}`} placeholder={column} />
+                          <ColumnField name={`${name}.${i}.${camel(column)}`} placeholder={column} />
                         </Td>)}
                     <Td w={3} p={0}><CloseButton ml={1} size='sm' onClick={() => remove(i)} /></Td>
                   </Tr>)}
