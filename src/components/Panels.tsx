@@ -114,10 +114,10 @@ export const Markdown = ({ children, transformImageUri }: ReactMarkdownOptions) 
 
 export const Placeholder = () =>
     <Center pos='absolute' boxSize='full'>
-      <MotionBox borderColor='purple.100' borderWidth={0.5} boxSize={16}
+      <MotionBox transition={{ duration: 3, ease: 'easeInOut', times: [0, 0.2, 0.5, 0.8, 1], repeat: Infinity }}
+                 borderColor='purple.100' borderWidth={0.5} boxSize={16}
                  animate={{
                    scale: [1, 1.5, 1.5, 1, 1], rotate: [0, 0, 270, 270, 0],
                    borderRadius: ['20%', '20%', '50%', '50%', '20%']
-                 }}
-                 transition={{ duration: 3, ease: 'easeInOut', times: [0, 0.2, 0.5, 0.8, 1], repeat: Infinity }} />
+                 }} />
     </Center>

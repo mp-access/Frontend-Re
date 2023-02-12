@@ -22,7 +22,8 @@ export default function Files() {
     return <></>
 
   return (
-      <SimpleGrid my={4} columns={1} layerStyle='segment' overflow='hidden' maxW='container.md'>
+      <SimpleGrid my={4} columns={1} templateRows='auto auto 1fr' layerStyle='segment'
+                  overflow='hidden' maxW='container.md'>
         <HStack w='full'>
           <Icon as={FcDataConfiguration} boxSize={8} mb={1} />
           <Heading mx={2} fontSize='2xl' h={8}>Files Manager</Heading>
