@@ -31,7 +31,7 @@ export function SupervisorZone() {
               </Tr>
             </Thead>
             <Tbody>
-              {take(students, 10).map(student =>
+              {take(students, 3).map(student =>
                   <Tr key={student.email}>
                     <Td>{student.firstName} {student.lastName}</Td>
                     <Td isNumeric>{student.points}</Td>

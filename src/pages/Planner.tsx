@@ -17,7 +17,7 @@ export default function Planner() {
     return <></>
 
   return (
-      <Stack layerStyle='segment' p={0} m='auto' maxW='container.xl'
+      <Stack layerStyle='segment' p={0} m='auto' minW='container.sm' maxW='container.xl'
              sx={{ '.slick-arrow::before': { color: 'purple.500' } }}>
         <ButtonGroup variant='ghost' alignItems='center' px={6} pt={4}>
           <Icon as={FcOvertime} boxSize={8} />

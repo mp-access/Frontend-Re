@@ -10,7 +10,7 @@ const purple = '#9576ff'
 const hover = { fontSize: '80%', fontWeight: 500, padding: '5px', background: 'rgba(255,255,255,0.74)', border: 'none' }
 type TimeCounterProps = { values: Array<TimerProps> }
 
-const toPercent = (value = 0, max = 1) => round((value * 100.0) / (max || 1), 1)
+const toPercent = (value = 0, max = 1) => round(((value || 0) * 100.0) / (max || 1), 1)
 
 const RoundBar = ({ x, y, height, width, background, color }: any) =>
     <g clipPath='inset(0 round 6)'>
@@ -104,7 +104,7 @@ export const ScoreBar = ({ value = 0, max = 1, h = 10 }) =>
 
 export const ScoreTimeline = ({ values }: { values: AssignmentProps[] }) =>
     <ResponsiveContainer>
-      <AreaChart margin={{ left: 20, right: 20 }} data={values.slice().reverse().map(a =>
+      <AreaChart margin={{ top: 0, left: 20, right: 20 }} data={values.slice().reverse().map(a =>
           ({ name: `Assignment ${a.ordinalNum}`, value: toPercent(a.points, a.maxPoints) }))}>
         <defs>
           <linearGradient id='gradient' x1='0' y1='0' x2='0' y2='1'>

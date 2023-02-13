@@ -121,7 +121,7 @@ export default function Course() {
                         borderColor='blackAlpha.300' children={'No active assignments.'} />}
           </Flex>
         </GridItem>
-        <GridItem as={Stack} layerStyle='segment'>
+        <GridItem as={Stack} layerStyle='segment' overflow='auto'>
           <HStack whiteSpace='nowrap' px={2}>
             <Icon as={FcBullish} boxSize={6} />
             <Heading fontSize='xl'>My Progress</Heading>

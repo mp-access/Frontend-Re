@@ -37,7 +37,6 @@ export default function Layout() {
     isAssistant: !!courseURL && keycloak.hasRealmRole(courseURL + '-assistant')
   }
 
-
   return (
       <SimpleGrid columns={1} templateRows='auto 1fr' bg='bg' boxSize='full'
                   justifyItems='center' pos='relative' overflow='hidden'>
