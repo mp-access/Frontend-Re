@@ -90,6 +90,7 @@ declare interface TaskInfo {
   title: string;
   maxPoints: number;
   maxAttempts: number;
+  attemptRefill: number;
   dockerImage: string;
   runCommand: string;
   testCommand: string;

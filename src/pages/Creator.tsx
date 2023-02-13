@@ -100,7 +100,7 @@ export const TaskCreator = ({ isEditor = false }) => {
             <HStack>
               <FormField title='Max Attempts' form='number' max={10} />
               <FormField title='Max Points' form='number' max={100} />
-              <FormField name='attemptWindow' title='Attempt Refill (Hours)' form='number' />
+              <FormField name='attemptRefill' title='Attempt Refill (Hours)' form='number' isDisabled />
             </HStack>
             <HStack>
               <FormField title='Docker Image' />

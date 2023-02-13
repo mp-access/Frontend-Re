@@ -66,7 +66,7 @@ const assignmentSchema = courseSchema.pick(['title', 'url', 'startDate', 'endDat
 const taskSchema = assignmentSchema.pick(['title', 'url', 'ordinalNum']).concat(yup.object({
   maxPoints: yup.number().default(10).min(0).required(),
   maxAttempts: yup.number().default(3).min(0).max(11).required(),
-  attemptWindow: yup.number().min(0),
+  attemptRefill: yup.number().min(0).nullable().default(null),
   dockerImage: yup.string().ensure().trim().required(),
   timeLimit: yup.number().min(0).max(300).default(30).required(),
   runCommand: yup.string().ensure().trim().required(),
@@ -117,7 +117,7 @@ export const FormField = ({ name = '', title = '', form = '', max, ...props }: I
         {form === 'avatar' && <AvatarField {...field} />}
         {form === 'text' && <Textarea {...field} />}
         {form === 'number' &&
-          <NumberInput min={0} max={max} defaultValue={field.value} {...field}>
+          <NumberInput min={0} max={max} {...field} {...props} value={field.value || undefined} inputMode='numeric'>
             <NumberInputField />
             <NumberInputStepper>
               <NumberIncrementStepper />
