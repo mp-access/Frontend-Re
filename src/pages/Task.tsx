@@ -216,13 +216,11 @@ export default function Task() {
                             <Divider orientation='vertical' borderColor='gray.500' />
                           </VStack>
                           <Box>
-                            <HStack align='baseline' lineHeight={1.2}>
-                              <Text fontWeight={500}>{submission.name}</Text>
-                              {!submission.valid && <Badge colorScheme='red'>Not valid</Badge>}
-                            </HStack>
+                            <Text lineHeight={1.2} fontWeight={500}>{submission.name}</Text>
                             <Text fontSize='2xs'>
                               {format(parseISO(submission.createdAt), 'dd.MM.yyyy HH:mm')}
                             </Text>
+                            {!submission.valid && <Badge colorScheme='red'>Not valid</Badge>}
                           </Box>
                           <ButtonGroup size='sm' variant='ghost' spacing={1}>
                             <Popover placement='left'>
@@ -242,7 +240,7 @@ export default function Task() {
                                                color='contra' icon={<AiOutlineReload />} />
                           </ButtonGroup>
                           <Stack gridColumn='span 2' py={2} mb={4}>
-                            {submission.graded &&
+                            {submission.graded && submission.valid &&
                               <ScoreBar value={submission.points} max={submission.maxPoints} h={6} />}
                           </Stack>
                         </SimpleGrid>)}

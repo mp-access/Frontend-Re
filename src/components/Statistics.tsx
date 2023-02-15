@@ -1,5 +1,5 @@
 import { Box, Highlight, SimpleGrid, Stack, Text } from '@chakra-ui/react'
-import { round } from 'lodash'
+import { isNull, round } from 'lodash'
 import React from 'react'
 import {
   Area, AreaChart, Bar, BarChart, Cell, Label, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis
@@ -92,7 +92,7 @@ export const HScores = ({ value = 0, max = 1, avg = 0 }) =>
 
 export const ScoreBar = ({ value = 0, max = 1, h = 10 }) =>
     <Stack align='end' justify='end' spacing={0}>
-      <Text textAlign='end' px={2} fontSize='sm'>{value} / {max} Points</Text>
+      <Text textAlign='end' px={2} fontSize='sm'>{isNull(value) ? '?' : value} / {max} Points</Text>
       <ResponsiveContainer height={h + 2}>
         <BarChart data={[{ value, name: 'Score' }]} margin={{}} barSize={h} layout='vertical'>
           <XAxis hide type='number' dataKey='value' domain={[0, max || 1]} />

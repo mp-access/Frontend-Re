@@ -113,7 +113,7 @@ export const TaskCreator = ({ isEditor = false }) => {
           <Stack layerStyle='feature'>
             <HStack justify='space-between'>
               <Text fontSize='xl' p={3} pb={0}>{'Select task files'}</Text>
-              <Link to='../../../../files'><GoToButton>File Manager</GoToButton></Link>
+              <Link to='../../../files'><GoToButton>File Manager</GoToButton></Link>
             </HStack>
             <Text px={3} fontSize='sm'>
               {'Mark the files that you want to include in this task and set their '}
