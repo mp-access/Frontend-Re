@@ -36,7 +36,7 @@ const pathSchema = yup.string().min(2).ensure().trim()
     .test('relative', 'Remove leading "/" character', path => !path || path[0] !== '/')
 const fileSchema = yup.object({
   added: yup.boolean().default(false),
-  path: yup.string(), templatePath: yup.string(),
+  path: yup.string(), templateId: yup.mixed(),
   editable: yup.boolean().default(false).required(),
   context: yup.string().nullable().default(null).when('added',
       { is: true, then: s => s.oneOf(selectOptions['Context'], 'set Use Context for all selecteded file') })

@@ -1,6 +1,6 @@
 import { ChevronRightIcon } from '@chakra-ui/icons'
 import {
-  Avatar, Breadcrumb, BreadcrumbItem, Button, Flex, HStack, Menu, MenuButton, MenuItem, MenuList, SimpleGrid
+  Avatar, Breadcrumb, BreadcrumbItem, Button, Flex, Grid, GridItem, HStack, Menu, MenuButton, MenuItem, MenuList
 } from '@chakra-ui/react'
 import { useKeycloak } from '@react-keycloak/web'
 import React, { useEffect } from 'react'
@@ -38,9 +38,9 @@ export default function Layout() {
   }
 
   return (
-      <SimpleGrid columns={1} templateRows='auto 1fr' bg='bg' boxSize='full'
-                  justifyItems='center' pos='relative' overflow='hidden'>
-        <Flex justify='space-between' px={3} w='full' h={16} align='center'>
+      <Grid templateRows='auto 1fr' bg='bg' h='100vh' w='100vw' justifyItems='stretch' alignItems='stretch'
+            justifyContent='center' pos='relative' overflow='hidden'>
+        <GridItem as={Flex} pos='sticky' justify='space-between' px={3} w='full' h={16} align='center' zIndex={1}>
           <HStack p={3}>
             <LogoButton />
             {courseURL && <CourseNav />}
@@ -52,9 +52,11 @@ export default function Layout() {
                         onClick={() => keycloak.logout({ redirectUri: window.location.origin })} />
             </MenuList>
           </Menu>
-        </Flex>
-        <Outlet context={context} />
-      </SimpleGrid>
+        </GridItem>
+        <GridItem overflow='auto' w='100vw'>
+          <Outlet context={context} />
+        </GridItem>
+      </Grid>
   )
 }
 

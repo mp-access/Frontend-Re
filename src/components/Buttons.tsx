@@ -32,9 +32,8 @@ export const TooltipButton = ({ title, ...props }: ButtonProps) =>
       <Button {...props} />
     </Tooltip>
 
-export const EditButton = ({ to, ...props }: NavigateProps & ButtonProps) =>
-    <Button as={Link} to={to} leftIcon={<BsPencilSquare fontSize='110%' />} h={8} rounded='lg' px={2}
-            children='Edit' {...props} />
+export const EditButton = ({ to }: NavigateProps) =>
+    <IconButton as={Link} to={to} icon={<BsPencilSquare />} variant='ghost' aria-label='edit' />
 
 export const NavButton = ({ onClick, icon, left, right, className }: Partial<IconButtonProps>) =>
     <IconButton aria-label='nav' size='sm' pos='absolute' top={-10} variant='ghost' p={1}

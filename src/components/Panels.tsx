@@ -6,7 +6,6 @@ import {
 } from '@chakra-ui/react'
 import { AnimatePresence, AnimatePresenceProps, motion, useMotionValue, useTransform } from 'framer-motion'
 import React, { ComponentProps, PropsWithChildren } from 'react'
-import { useWindowHeight, useWindowWidth } from '@react-hook/window-size'
 import { ReactMarkdownOptions } from 'react-markdown/lib/react-markdown'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -17,24 +16,23 @@ import { atomOneLight } from 'react-syntax-highlighter/dist/cjs/styles/hljs'
 import { RxDotFilled } from 'react-icons/rx'
 import { CodeProps, LiProps, OrderedListProps, UnorderedListProps } from 'react-markdown/lib/ast-to-react'
 import { Link, LinkProps } from 'react-router-dom'
+import { useWindowSize } from '@react-hook/window-size'
 
 const MotionBox = motion(Box)
 const swap = (to: number) => (r: number) => ({ x: 200 * r * to, zIndex: 0, opacity: 0 })
 
-const DragHandle = ({ drag, cursor, ...props }: ComponentProps<any>) =>
-    <Box as={motion.div} pos='absolute' zIndex={1} drag={drag || 'x'} w={drag ? 'full' : 2} h={drag ? 2 : 'full'}
-         cursor={drag ? 'row-resize' : 'col-resize'} bg='purple.600' opacity={0} dragMomentum={false}
-         whileDrag={{ opacity: 0.18 }} whileHover={{ opacity: 0.13 }} {...props} />
-
 export const SplitVertical = ({ children, ...props }: ComponentProps<any>) => {
-  const width = useWindowWidth()
-  const left = useMotionValue(300)
-  const editor = useTransform(left, value => width - 224 - value)
+  const size = useWindowSize()
+  const x = useMotionValue(300)
+  const width = useTransform(x, value => size[0] - 224 - value)
+
   return (
-      <Flex flexGrow={1} pos='relative' overflow='hidden' {...props}>
-        <motion.div style={{ width: left, marginRight: 2 }} children={children[0]} />
-        <DragHandle dragConstraints={{ left: 300, right: width * 0.5 }} style={{ x: left }} />
-        <motion.div style={{ width: editor, display: 'flex', flexDirection: 'column', borderInlineWidth: 1 }}>
+      <Flex w='full' pos='relative' overflow='hidden' {...props}>
+        <motion.div style={{ width: x, marginRight: 2 }} children={children[0]} />
+        <MotionBox pos='absolute' zIndex={1} opacity={0} drag='x' dragMomentum={false} bg='purple.600' h='full' w={2}
+                   dragConstraints={{ left: 300, right: size[0] * 0.5 }} style={{ x }} cursor='col-resize'
+                   key={JSON.stringify(size)} whileDrag={{ opacity: 0.18 }} whileHover={{ opacity: 0.13 }} />
+        <motion.div style={{ width, display: 'flex', flexDirection: 'column', borderInlineWidth: 1 }}>
           {children[1]}
         </motion.div>
         {children[2]}
@@ -43,8 +41,10 @@ export const SplitVertical = ({ children, ...props }: ComponentProps<any>) => {
 }
 
 export const SplitHorizontal = ({ children }: PropsWithChildren<any>) => {
-  const height = useWindowHeight()
-  const y = useMotionValue(height * 0.7)
+  const size = useWindowSize()
+  const maxHeight = useMotionValue(size[1])
+  const y = useTransform(maxHeight, value => value * 0.7)
+
   return (
       <>
         {children[0]}
@@ -53,7 +53,9 @@ export const SplitHorizontal = ({ children }: PropsWithChildren<any>) => {
             {children[1]}
             {children[2]}
           </motion.div>
-          <DragHandle drag='y' dragConstraints={{ top: 200, bottom: height - 150 }} style={{ y }} />
+          <MotionBox pos='absolute' zIndex={1} opacity={0} drag='y' dragMomentum={false} bg='purple.600' w='full' h={2}
+                     dragConstraints={{ top: 200, bottom: size[1] - 150 }} style={{ y }} cursor='row-resize'
+                     key={JSON.stringify(size)} whileDrag={{ opacity: 0.18 }} whileHover={{ opacity: 0.13 }} />
           {children[3]}
         </motion.div>
       </>
@@ -77,10 +79,6 @@ export const Feature = ({ custom, to, ...props }: Partial<AnimatePresenceProps> 
         <SimpleGrid layerStyle='card' flexGrow={1} {...props} as={Link} to={to} />
       </motion.div>
     </AnimatePresence>
-
-export const Screen = (props: SimpleGridProps) =>
-    <motion.div style={{ display: 'flex', flexGrow: 1, width: '100vw', overflow: 'hidden' }}
-                transition={{ duration: 0.5 }} children={<Flex flexGrow={1} {...props} />} />
 
 const toBlock = (content: any) => String(content).replace(/\n$/, '')
 

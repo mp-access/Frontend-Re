@@ -20,7 +20,7 @@ const theme = extendTheme({
     feature: { p: 4, bg: 'base', borderWidth: 1, boxShadow: 'lg', rounded: '2xl' },
     segment: { p: 4, bg: 'base', boxShadow: 'segment', rounded: '2xl' },
     float: { p: 1, bg: 'base', boxShadow: 'segment', rounded: 'lg', h: 12 },
-    container: { p: 4, w: 'full', maxW: 'container.xl' },
+    container: { p: 4, w: 'full', maxW: 'container.xl', m: 'auto' },
     tab: { boxSize: 'full', display: 'flex', flexDir: 'column-reverse', pos: 'absolute', overflow: 'auto', gap: 2 },
     drop: {
       p: 1, w: 'fit-content', bg: 'transparent', rounded: '2xl', color: 'gray.200', pos: 'relative', cursor: 'pointer',
@@ -144,6 +144,7 @@ const theme = extendTheme({
         '--rct-color-tree-focus-outline': 'var(--chakra-colors-purple-100)'
       },
       '.tasks': { bg: 'bg', px: 2, py: 1, rounded: '2xl', h: 'full', overflow: 'hidden' },
+      '.slides-grid': { display: 'flex', flexDir: 'column', w: 'full', p: 8 },
       '.rdp': {
         '--rdp-accent-color': 'var(--chakra-colors-purple-75)',
         '.rdp-button': { transition: 'background-color 0.5s ease' },
