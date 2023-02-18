@@ -95,20 +95,20 @@ export const TaskCreator = ({ isEditor = false }) => {
       <Center p={4}>
         <FormProvider {...form}>
           <SimpleGrid as='form' templateColumns='auto 1fr' onSubmit={onSubmit} gap={6}
-                      justifyItems='center' alignItems='stretch' alignContent='center' maxW='container.lg'>
+                      justifyItems='stretch' alignItems='stretch' alignContent='center' maxW='container.lg'>
             <Stack layerStyle='feature' spacing={4} p={6}>
-              <Text fontSize='2xl'>{'Set up a new task'}</Text>
+              <Text fontSize='2xl'>{'Set up your task'}</Text>
               <FormField title='Title' />
               <FormField title='URL' />
               <HStack>
                 <FormField title='Max Attempts' form='number' max={10} />
                 <FormField title='Max Points' form='number' max={100} />
-                <FormField name='attemptRefill' title='Attempt Refill (Hours)' form='number' isDisabled />
+                <FormField name='attemptRefill' title='Attempt Refill (Hours)' form='number' />
               </HStack>
-              <HStack>
+              <SimpleGrid templateColumns='2fr 1fr' columnGap={2}>
                 <FormField title='Docker Image' />
-                <FormField name='timeLimit' title='Submission Timeout (Seconds)' form='number' max={300} />
-              </HStack>
+                <FormField name='timeLimit' title='Timeout (Seconds)' form='number' max={300} />
+              </SimpleGrid>
               <FormField title='Run Command' />
               <FormField title='Test Command' />
               <FormField title='Grade Command' />

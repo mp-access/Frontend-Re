@@ -92,7 +92,7 @@ const MarkdownOrderedList = ({ children }: OrderedListProps) => <OrderedList m={
 const MarkdownBlock = ({ children }: ComponentProps<any>) =>
     <Stack bg='blackAlpha.100' p={2} m={2} children={children} />
 const MarkdownCode = ({ inline, children, className }: CodeProps) => inline
-    ? <Code colorScheme='gray' bg='gray.175' children={children} />
+    ? <Code colorScheme='gray' bg='gray.175' children={children} wordBreak='break-word' />
     : <SyntaxHighlighter children={toBlock(children)} style={atomOneLight} language={className}
                          wrapLines customStyle={{ fontSize: '85%' }} />
 const MarkdownListItem = ({ checked, children }: LiProps) =>

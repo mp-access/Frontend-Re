@@ -63,7 +63,7 @@ export default function Assignment() {
                                     bg={(isAssistant || i < task.remainingAttempts) ? 'purple.500' : 'transparent'} />)}
                       </SimpleGrid>
                       <Text fontSize='sm'>
-                        <b>{isAssistant ? '∞' : task.remainingAttempts}</b> {task.maxAttempts} Submissions left
+                        <b>{isAssistant ? '∞' : task.remainingAttempts}</b> / {task.maxAttempts} Submissions left
                       </Text>
                     </Td>
                     <Td w='xs'>

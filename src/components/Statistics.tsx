@@ -60,8 +60,11 @@ export const ScoresPie = ({ value = 0, max = 1, avg = 0 }) =>
           <Cell key='cell-1' opacity={0.15} />
           <Label value={`${value} / ${max}`} color='inherit' fill='currentColor' position='center' />
         </Pie>
-        <Pie dataKey='avg' innerRadius='60%' outerRadius='70%' startAngle={90} endAngle={-270} data={[{ avg }]}
-             color={purple} fill='currentColor' />
+        <Pie dataKey='avg' innerRadius='60%' outerRadius='70%' startAngle={90} endAngle={-270}
+             data={[{ avg }, { avg: max - avg }]}>
+          <Cell key='cell-0' color={purple} fill='currentColor' />
+          <Cell key='cell-1' opacity={0.15} />
+        </Pie>
         <Tooltip cursor={false} itemStyle={{ padding: 0 }} content={() =>
             <Box fontSize='xs' fontWeight={500} bg='base' p={1} rounded='lg' opacity={0.9}>
               <Text>
@@ -92,7 +95,7 @@ export const HScores = ({ value = 0, max = 1, avg = 0 }) =>
 
 export const ScoreBar = ({ value = 0, max = 1, h = 10 }) =>
     <Stack align='end' justify='end' spacing={0}>
-      <Text textAlign='end' px={2} fontSize='sm'>{isNull(value) ? '?' : value} / {max} Points</Text>
+      <Text textAlign='end' px={2} fontSize='sm'>{`${isNull(value) ? '?' : value} / ${max} Points`}</Text>
       <ResponsiveContainer height={h + 2}>
         <BarChart data={[{ value, name: 'Score' }]} margin={{}} barSize={h} layout='vertical'>
           <XAxis hide type='number' dataKey='value' domain={[0, max || 1]} />

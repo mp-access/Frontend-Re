@@ -58,6 +58,7 @@ declare interface TaskOverview {
   title: string;
   maxPoints: number;
   maxAttempts: number;
+  timeLimit: number;
   active: boolean;
   avgPoints: number;
   remainingAttempts: number;

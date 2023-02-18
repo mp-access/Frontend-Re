@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form'
 import { compact, concat, flatten } from 'lodash'
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup'
 import { schemas } from './Fields'
+import { useToast } from '@chakra-ui/react'
 
 export const useCodeEditor = () => {
   const monaco = useMonaco()
@@ -31,6 +32,7 @@ export function useCreator<TData = any>(prefix: string, enabled: boolean) {
   const { data, isSuccess } = useQuery<TData>(path, { enabled, onSuccess: form.reset })
   const create = (data: object) => mutateAsync([path, data])
       .then(() => navigate('/courses' + (path[1] ? `/${path[1]}/supervisor` : ''), { state: { refresh: !path[1] } }))
+      .catch(() => form.reset('', { keepIsSubmitted: false }))
   return { form, create, data, isSuccess }
 }
 
@@ -46,16 +48,19 @@ export const useStudents = () => {
 
 export const useTemplateFiles = (options: UseQueryOptions<TemplateFileProps[]> = {}) => {
   const { courseURL } = useParams()
+  const toast = useToast()
   const query = useQuery<TemplateFileProps[]>(['courses', courseURL, 'files'], { enabled: !!courseURL, ...options })
   const { mutateAsync } = useMutation<string, object, any[]>(['files', courseURL], { onSuccess: () => query.refetch() })
   const submit = (data: any) => mutateAsync([['courses', courseURL, 'files'], data])
+      .then(() => toast({ title: 'Refreshed!' }))
   return { ...query, submit }
 }
 
 export const useImport = () => {
   const { courseURL } = useParams()
   const { mutateAsync, isLoading } = useMutation<string, object, any[]>(['import', courseURL])
-  const onImport = (data: any) => mutateAsync([['courses', courseURL, 'import'], data]).then(() => window.location.reload())
+  const onImport = (data: any) =>
+      mutateAsync([['courses', courseURL, 'import'], data]).then(() => window.location.reload())
   return { onImport, isLoading }
 }
 

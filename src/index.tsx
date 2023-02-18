@@ -66,9 +66,9 @@ function App() {
               path: 'assignments', children: [
                 { index: true, element: <Assignments />, handle: 'Assignments' },
                 {
-                  path: ':assignmentURL', handle: 'assignment', children: [
+                  path: ':assignmentURL', handle: 'Assignment', children: [
                     { index: true, element: <Assignment /> },
-                    { path: 'tasks/:taskURL', element: <Task /> }
+                    { path: 'tasks/:taskURL', handle: 'Task', element: <Task /> }
                   ]
                 }
               ]
@@ -83,12 +83,12 @@ function App() {
                   path: 'assignments', children: [
                     { index: true, element: <AssignmentCreator />, handle: 'Create Assignment' },
                     {
-                      path: ':assignmentURL', handle: 'assignment', children: [
+                      path: ':assignmentURL', handle: 'Assignment', children: [
                         { index: true, element: <AssignmentEditor />, handle: 'Assignment Editor' },
                         {
                           path: 'tasks', children: [
                             { index: true, element: <TaskCreator />, handle: 'Create Task' },
-                            { path: ':taskURL', element: <TaskEditor />, handle: 'Task Editor' }
+                            { path: ':taskURL', element: <TaskEditor />, handle: 'Task' }
                           ]
                         }
                       ]

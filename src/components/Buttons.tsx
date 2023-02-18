@@ -1,6 +1,6 @@
 import {
   Box, BoxProps, Button, ButtonProps, Center, Flex, HStack, Icon, IconButton, IconButtonProps, Input, Stack, TabProps,
-  Text, Tooltip
+  Text, Tooltip, VStack
 } from '@chakra-ui/react'
 import { motion } from 'framer-motion'
 import React from 'react'
@@ -13,6 +13,7 @@ import { FormState } from 'react-hook-form'
 import Dropzone from 'react-dropzone'
 import { useImport } from './Hooks'
 import { flatMap, get, keys } from 'lodash'
+import Countdown, { CountdownProps } from 'react-countdown'
 
 const transitionStyle = { repeat: Infinity, repeatDelay: .7, duration: .5, ease: 'easeInOut' }
 type SaveButtonProps = ButtonProps & { formState: FormState<any> }
@@ -107,3 +108,9 @@ export const Detail = ({ title, as }: ButtonProps) =>
       <Text fontSize='sm' whiteSpace='nowrap' letterSpacing='tight'>{title}</Text>
     </HStack>
 
+export const NextAttemptAt = ({ date, onComplete }: CountdownProps) =>
+    <VStack fontWeight={500} spacing={0} py={3} borderBottomWidth={1}>
+      <Text pb={1} color='purple.600'>{'No attempts left!'}</Text>
+      <Text fontSize='sm' fontWeight={400}>{'Try again in'}</Text>
+      <Countdown date={date} daysInHours onComplete={onComplete} />
+    </VStack>

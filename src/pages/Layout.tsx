@@ -1,14 +1,16 @@
 import { ChevronRightIcon } from '@chakra-ui/icons'
 import {
-  Avatar, Breadcrumb, BreadcrumbItem, Button, Flex, Grid, GridItem, HStack, Menu, MenuButton, MenuItem, MenuList
+  Avatar, Breadcrumb, BreadcrumbItem, Button, Flex, Grid, GridItem, HStack, Menu, MenuButton, MenuGroup, MenuItem,
+  MenuList
 } from '@chakra-ui/react'
 import { useKeycloak } from '@react-keycloak/web'
 import React, { useEffect } from 'react'
 import { AiOutlineLogout } from 'react-icons/ai'
-import { Link, Outlet, useLocation, useMatches, useNavigate, useParams } from 'react-router-dom'
+import { Link, Outlet, resolvePath, useLocation, useMatches, useNavigate, useParams } from 'react-router-dom'
 import { LogoButton } from '../components/Buttons'
 import { useAssignment, useCourse } from '../components/Hooks'
 import { Placeholder } from '../components/Panels'
+import { compact, join } from 'lodash'
 
 export default function Layout() {
   const location = useLocation()
@@ -48,8 +50,10 @@ export default function Layout() {
           <Menu>
             <MenuButton as={Avatar} bg='purple.200' boxSize={10} _hover={{ boxShadow: 'lg' }} cursor='pointer' mx={2} />
             <MenuList minW={40}>
-              <MenuItem icon={<AiOutlineLogout fontSize='120%' />} children='Logout'
-                        onClick={() => keycloak.logout({ redirectUri: window.location.origin })} />
+              <MenuGroup title={context.user?.name}>
+                <MenuItem icon={<AiOutlineLogout fontSize='120%' />} children='Logout'
+                          onClick={() => keycloak.logout({ redirectUri: window.location.origin })} />
+              </MenuGroup>
             </MenuList>
           </Menu>
         </GridItem>
@@ -62,13 +66,15 @@ export default function Layout() {
 
 function CourseNav() {
   const matches = useMatches()
-  const { courseURL, assignmentURL, taskURL } = useParams()
+  const { courseURL, taskURL } = useParams()
   const { data: course } = useCourse()
   const { data: assignment } = useAssignment()
   const task = assignment?.tasks.find(task => task.url === taskURL)
 
   if (!course)
     return <></>
+
+  const toNav = (h: any) => join(compact([h, h === 'Assignment' && assignment?.ordinalNum]), ' ')
 
   return (
       <Breadcrumb layerStyle='float' separator={<ChevronRightIcon color='gray.500' />} pr={3}>
@@ -77,18 +83,11 @@ function CourseNav() {
         </BreadcrumbItem>
         {matches.filter(match => match.handle).map(match =>
             <BreadcrumbItem key={match.id}>
-              <Button as={Link} to={match.pathname} variant='link' colorScheme='gray'
-                      children={`${assignment && match.handle === 'assignment' ? 'Assignment ' + assignment.ordinalNum : match.handle}`} />
+              <Button as={Link} to={match.pathname} variant='link' colorScheme='gray' children={toNav(match.handle)} />
+              {(match.handle === 'Task') && task && assignment?.tasks.map(t =>
+                  <Button key={t.id} as={Link} ml={2} size='sm' children={t.ordinalNum} variant='ghost' boxSize={8}
+                          isActive={t.id === task?.id} to={resolvePath(`../${t.url}`, match.pathname)} />)}
             </BreadcrumbItem>)}
-        {taskURL && task &&
-          <BreadcrumbItem>
-            <Button as={Link} to={`/courses/${courseURL}/assignments/${assignmentURL}/tasks/${task.url}`}
-                    variant='link' colorScheme='gray' children='Task' mr={1} />
-            {assignment?.tasks.map(t =>
-                <Button key={t.id} as={Link} mx={1} size='sm' children={t.ordinalNum} variant='ghost' boxSize={8}
-                        isActive={t.id === task?.id}
-                        to={`/courses/${courseURL}/assignments/${assignmentURL}/tasks/${t.url}`} />)}
-          </BreadcrumbItem>}
       </Breadcrumb>
   )
 }

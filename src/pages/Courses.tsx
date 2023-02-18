@@ -76,7 +76,7 @@ export default function Courses() {
                     <Divider orientation='vertical' borderColor='gray.500' />
                   </VStack>
                   <Stack mb={8}>
-                    <Text lineHeight={1.2} fontWeight={500}>{'Welcome to the new version of ACCESS!'}</Text>
+                    <Text lineHeight={1.2} fontWeight={500}>{'Welcome to ACCESS!'}</Text>
                   </Stack>
                 </Flex>
               </Stack>
