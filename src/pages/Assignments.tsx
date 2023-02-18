@@ -1,6 +1,6 @@
 import {
-  Button, Divider, Heading, HStack, Icon, Stack, Table, TableContainer, Tag, TagLabel, TagLeftIcon, Tbody, Td, Tr,
-  VStack
+  Button, Center, Divider, Heading, HStack, Icon, Stack, Table, TableCaption, TableContainer, Tag, TagLabel,
+  TagLeftIcon, Tbody, Td, Tr, VStack
 } from '@chakra-ui/react'
 import React from 'react'
 import { AiOutlineCalendar, AiOutlineClockCircle } from 'react-icons/ai'
@@ -53,6 +53,9 @@ export default function Assignments() {
                     </Td>
                   </Tr>)}
             </Tbody>
+            <TableCaption>
+              {!activeAssignments.length && <Center minH='3xs' color='gray.400'>No active assignments found.</Center>}
+            </TableCaption>
           </Table>
         </TableContainer>
         <TableContainer layerStyle='segment'>
@@ -95,6 +98,9 @@ export default function Assignments() {
                     </Td>
                   </Tr>)}
             </Tbody>
+            <TableCaption>
+              {!pastAssignments.length && <Center minH='3xs' color='gray.400'>No closed assignments found.</Center>}
+            </TableCaption>
           </Table>
         </TableContainer>
       </Stack>

@@ -21,7 +21,7 @@ import { HiOutlineCalendarDays } from 'react-icons/hi2'
 
 export default function Course() {
   const { data: course } = useCourse()
-  const { user, isSupervisor } = useOutletContext<UserContext>()
+  const { user, isAssistant } = useOutletContext<UserContext>()
   const [feature, setFeature] = useState({ i: 0, r: 1 })
   const [selectedDay, setSelectedDay] = useState(new Date())
 
@@ -37,10 +37,9 @@ export default function Course() {
       <Grid layerStyle='container' templateColumns='5fr 2fr' templateRows='auto auto 1fr' gap={6}>
         <GridItem as={Flex} gap={4} layerStyle='segment' p={2}>
           <CourseAvatar src={course.avatar} />
-          <Stack>
-            <HStack>
+          <Stack flexGrow={1}>
+            <HStack justify='space-between'>
               <Heading fontSize='2xl' noOfLines={1}>{course.title}</Heading>
-              <Box flexGrow={1} />
               <Tag color='green.600' bg='green.50'>
                 <TagLeftIcon as={BsFillCircleFill} boxSize={2} />
                 <TagLabel>{course.onlineCount} Online</TagLabel>
@@ -58,7 +57,7 @@ export default function Course() {
           </Stack>
         </GridItem>
         <GridItem rowSpan={3} layerStyle='segment' p={0} fontSize='sm' display='grid' alignContent='space-between'>
-          {isSupervisor ? <SupervisorZone />
+          {isAssistant ? <SupervisorZone />
               : <VStack>
                 <HStack py={3}>
                   <Icon as={FcCollaboration} boxSize={6} />
