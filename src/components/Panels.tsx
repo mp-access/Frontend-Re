@@ -1,6 +1,6 @@
 import { ButtonOptions } from '@chakra-ui/button'
 import {
-  Box, BoxProps, Center, Checkbox, Code, Flex, Heading, HeadingProps, Image, ImgProps, Input, Link as Href,
+  Box, BoxProps, Center, Checkbox, Code, Divider, Flex, Heading, Image, ImgProps, Input, Link as Href,
   LinkProps as HrefProps, ListIcon, ListItem, OrderedList, SimpleGrid, SimpleGridProps, Stack, Text, TextProps,
   UnorderedList
 } from '@chakra-ui/react'
@@ -14,9 +14,11 @@ import rehypeKatex from 'rehype-katex'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import { atomOneLight } from 'react-syntax-highlighter/dist/cjs/styles/hljs'
 import { RxDotFilled } from 'react-icons/rx'
-import { CodeProps, LiProps, OrderedListProps, UnorderedListProps } from 'react-markdown/lib/ast-to-react'
+import { CodeProps, HeadingProps, LiProps, OrderedListProps, UnorderedListProps } from 'react-markdown/lib/ast-to-react'
 import { Link, LinkProps } from 'react-router-dom'
 import { useWindowSize } from '@react-hook/window-size'
+import 'katex/dist/katex.min.css'
+import { toInt } from 'radash'
 
 const MotionBox = motion(Box)
 const swap = (to: number) => (r: number) => ({ x: 200 * r * to, zIndex: 0, opacity: 0 })
@@ -85,7 +87,12 @@ const toBlock = (content: any) => String(content).replace(/\n$/, '')
 const MarkdownImg = ({ src }: ImgProps) => <Image src={src} h='auto' pr={3} />
 const MarkdownText = (props: TextProps) => <Text {...props} pb={2} w='full' sx={{ hyphens: 'auto' }} />
 const MarkdownLink = (props: HrefProps) => <Href color='blue.500' {...props} />
-const MarkdownHeading = (props: HeadingProps) => <Heading {...props} py={2} />
+const MarkdownHeading = ({ children, node: { tagName } }: HeadingProps) => {
+  return <Box py={2}>
+    <Heading fontSize={`1${7 - (toInt(tagName[1]) || 5)}0%`} children={children} />
+    {tagName === 'h1' && <Divider />}
+  </Box>
+}
 const MarkdownInput = (props: ComponentProps<any>) => props.type === 'checkbox' ? <></> : <Input {...props} />
 const MarkdownUnorderedList = ({ children }: UnorderedListProps) => <UnorderedList m={0} children={children} />
 const MarkdownOrderedList = ({ children }: OrderedListProps) => <OrderedList m={0} children={children} />
@@ -105,8 +112,9 @@ export const Markdown = ({ children, transformImageUri }: ReactMarkdownOptions) 
     <ReactMarkdown children={children} remarkPlugins={[remarkGfm, RemarkMathPlugin]} rehypePlugins={[rehypeKatex]}
                    transformImageUri={transformImageUri}
                    components={{
-                     code: MarkdownCode, p: MarkdownText, a: MarkdownLink, h3: MarkdownHeading, h2: MarkdownHeading,
-                     li: MarkdownListItem, ul: MarkdownUnorderedList, ol: MarkdownOrderedList, input: MarkdownInput,
+                     code: MarkdownCode, p: MarkdownText, a: MarkdownLink, h1: MarkdownHeading, h2: MarkdownHeading,
+                     h3: MarkdownHeading, h4: MarkdownHeading, h5: MarkdownHeading, li: MarkdownListItem,
+                     ul: MarkdownUnorderedList, ol: MarkdownOrderedList, input: MarkdownInput,
                      blockquote: MarkdownBlock, img: MarkdownImg
                    }} />
 

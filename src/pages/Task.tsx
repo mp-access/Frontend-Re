@@ -24,8 +24,6 @@ import { ActionButton, ActionTab, NextAttemptAt, TooltipIconButton } from '../co
 import { useCodeEditor, useTask } from '../components/Hooks'
 import { TaskController } from './Supervisor'
 
-const commands = ['test', 'run', 'grade']
-
 export default function Task() {
   const editor = useCodeEditor()
   const toast = useToast()
@@ -61,6 +59,7 @@ export default function Task() {
   if (!task || !currentFile)
     return <Placeholder />
 
+  const commands: string[] = compact([task.testable && 'test', 'run', 'grade'])
   const isPrivileged = isAssistant && userId === user.email
   const getPath = (id: number) => `${id}/${user.email}/${submissionId}`
   const getTemplate = (name: string) => find(task?.files, { name })?.template || ''
@@ -174,7 +173,7 @@ export default function Task() {
                 <Tab><HStack><FcInspection /><Text>Submit</Text></HStack></Tab>
               </TabList>
               <TabPanels flexGrow={1} pos='relative'>
-                {compact([task.testable && 'test', 'run', 'grade']).map(command =>
+                {commands.map(command =>
                     <TabPanel key={command} layerStyle='tab'>
                       {task.submissions.filter(s => s.command === command).map(submission =>
                           <Box key={submission.id}>
