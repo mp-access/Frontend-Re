@@ -4,17 +4,22 @@ import {
 import { useKeycloak } from '@react-keycloak/web'
 import React from 'react'
 import Typewriter from 'typewriter-effect'
-import { LogoButton } from '../components/Buttons'
 import { SWITCHIcon } from '../components/Icons'
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
+import { LogoButton } from '../components/Buttons'
 
 export function Landing() {
   const { keycloak } = useKeycloak()
+
   const idpHint = 'switch-edu-id'
   const redirectUri = window.location.origin + '/courses'
+
+  if (keycloak.token)
+    return <Navigate to='courses' />
+
   return (
-      <Stack h='full' p={3}>
-        <HStack w='full' px={3} justify='space-between'>
+      <Stack bg='bg' h='100vh' w='100vw'>
+        <HStack pos='sticky' w='full' pl={6} pr={3} h={16} justify='space-between'>
           <LogoButton />
           <ButtonGroup variant='ghost'>
             <Button as={Link} to='/contact'>Contact</Button>

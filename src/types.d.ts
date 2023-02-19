@@ -37,6 +37,8 @@ declare interface AssignmentProps {
   title: string;
   ordinalNum: number;
   description: string;
+  startDate: string;
+  endDate: string;
   publishedDate: string;
   publishedTime: string;
   dueDate: string;
@@ -66,6 +68,7 @@ declare interface TaskOverview {
 }
 
 declare interface TaskProps extends TaskOverview {
+  testable: boolean;
   instructions: string;
   files: Array<TaskFileProps>;
   submissions: Array<SubmissionProps>;

@@ -12,8 +12,8 @@ export default function Contact() {
   const toast = useToast({ title: 'Message sent!' })
   const onSubmit = form.handleSubmit(data => mutateAsync([['courses', 'contact'], data]).then(() => toast()))
   return (
-      <Stack h='full' bg='bg' p={3}>
-        <HStack w='full' px={3}>
+      <Stack bg='bg' h='100vh' w='100vw'>
+        <HStack pos='sticky' w='full' pl={6} pr={3} h={16} justify='space-between'>
           <LogoButton />
         </HStack>
         <Center flexGrow={1}>

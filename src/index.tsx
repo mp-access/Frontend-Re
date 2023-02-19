@@ -52,55 +52,57 @@ function App() {
     mutations: { mutationFn: (data: any) => axios.post(toURL(data[0]), data[1]), onError }
   })
 
-  const router = createBrowserRouter([
-    { path: '/', element: <Landing />, errorElement: <Error /> },
-    { path: '/contact', element: <Contact />, errorElement: <Error /> },
-    {
-      path: '/courses', element: <Layout />, errorElement: <Error />, children: [
-        { index: true, element: <Courses /> },
-        { path: 'create', element: <CourseCreator /> },
-        {
-          path: ':courseURL', children: [
-            { index: true, element: <Course />, handle: 'Dashboard' },
-            {
-              path: 'assignments', children: [
-                { index: true, element: <Assignments />, handle: 'Assignments' },
-                {
-                  path: ':assignmentURL', handle: 'Assignment', children: [
-                    { index: true, element: <Assignment /> },
-                    { path: 'tasks/:taskURL', handle: 'Task', element: <Task /> }
-                  ]
-                }
-              ]
-            },
-            {
-              path: 'supervisor', handle: 'Supervisor Zone', children: [
-                { index: true, element: <Planner />, handle: 'Course Planner' },
-                { path: 'edit', element: <CourseEditor />, handle: 'Course Editor' },
-                { path: 'files', element: <Files />, handle: 'File Manager' },
-                { path: 'students', element: <Students />, handle: 'Students' },
-                {
-                  path: 'assignments', children: [
-                    { index: true, element: <AssignmentCreator />, handle: 'Create Assignment' },
-                    {
-                      path: ':assignmentURL', handle: 'Assignment', children: [
-                        { index: true, element: <AssignmentEditor />, handle: 'Assignment Editor' },
-                        {
-                          path: 'tasks', children: [
-                            { index: true, element: <TaskCreator />, handle: 'Create Task' },
-                            { path: ':taskURL', element: <TaskEditor />, handle: 'Task' }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }])
+  const router = createBrowserRouter([{
+    path: '/', errorElement: <Error />, children: [
+      { index: true, element: <Landing /> },
+      { path: 'contact', element: <Contact /> },
+      {
+        path: 'courses', element: <Layout />, children: [
+          { index: true, element: <Courses /> },
+          { path: 'create', element: <CourseCreator /> },
+          {
+            path: ':courseURL', children: [
+              { index: true, element: <Course />, handle: 'Dashboard' },
+              {
+                path: 'assignments', children: [
+                  { index: true, element: <Assignments />, handle: 'Assignments' },
+                  {
+                    path: ':assignmentURL', handle: 'Assignment', children: [
+                      { index: true, element: <Assignment /> },
+                      { path: 'tasks/:taskURL', handle: 'Task', element: <Task /> }
+                    ]
+                  }
+                ]
+              },
+              {
+                path: 'supervisor', handle: 'Supervisor Zone', children: [
+                  { index: true, element: <Planner />, handle: 'Course Planner' },
+                  { path: 'edit', element: <CourseEditor />, handle: 'Course Editor' },
+                  { path: 'files', element: <Files />, handle: 'File Manager' },
+                  { path: 'students', element: <Students />, handle: 'Students' },
+                  {
+                    path: 'assignments', children: [
+                      { index: true, element: <AssignmentCreator />, handle: 'Create Assignment' },
+                      {
+                        path: ':assignmentURL', handle: 'Assignment', children: [
+                          { index: true, element: <AssignmentEditor />, handle: 'Assignment Editor' },
+                          {
+                            path: 'tasks', children: [
+                              { index: true, element: <TaskCreator />, handle: 'Create Task' },
+                              { path: ':taskURL', element: <TaskEditor />, handle: 'Task' }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }]
+  }])
 
   return (
       <QueryClientProvider client={client}>

@@ -69,12 +69,12 @@ const taskSchema = assignmentSchema.pick(['title', 'url', 'ordinalNum']).concat(
   dockerImage: yup.string().ensure().trim().required(),
   timeLimit: yup.number().min(0).max(300).default(30).required(),
   runCommand: yup.string().ensure().trim().required(),
-  testCommand: yup.string().ensure().trim().required(),
+  testCommand: yup.string().ensure().trim(),
   gradeCommand: yup.string().ensure().trim().required(),
   files: yup.array().of(fileSchema).default([])
-      .test('hasTask', 'Select at least 1 file', params => !!params?.find(f => f.added))
-      .test('hasTask', 'Add at least 1 file with "Task" context',
-          params => !!params?.find(f => f.added && f.context === 'Task'))
+      .test('hasFile', 'Select at least 1 file', params => !!params?.find(f => f.added))
+      .test('hasTask', 'Add at least 1 editable file with "Task" context',
+          params => !!params?.find(f => f.added && f.editable && f.context === 'Task'))
       .test('hasInst', 'Add exactly one file with "Instructions" context',
           params => params?.filter(f => f.added && f.context === 'Instructions').length === 1)
 }))

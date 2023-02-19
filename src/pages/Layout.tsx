@@ -6,14 +6,13 @@ import {
 import { useKeycloak } from '@react-keycloak/web'
 import React, { useEffect } from 'react'
 import { AiOutlineLogout } from 'react-icons/ai'
-import { Link, Outlet, resolvePath, useLocation, useMatches, useNavigate, useParams } from 'react-router-dom'
+import { Link, Outlet, resolvePath, useMatches, useNavigate, useParams } from 'react-router-dom'
 import { LogoButton } from '../components/Buttons'
 import { useAssignment, useCourse } from '../components/Hooks'
-import { Placeholder } from '../components/Panels'
 import { compact, join } from 'lodash'
+import { Placeholder } from '../components/Panels'
 
 export default function Layout() {
-  const location = useLocation()
   const navigate = useNavigate()
   const { keycloak } = useKeycloak()
   const { courseURL } = useParams()
@@ -23,11 +22,8 @@ export default function Layout() {
     return () => clearTimeout(timeout)
   })
 
-  if (!keycloak.token)
+  if (!keycloak?.token)
     return <Placeholder />
-
-  if (location.state?.refresh)
-    keycloak.clearToken()
 
   if (courseURL && !keycloak.hasRealmRole(courseURL))
     throw new Response('Not Found', { status: 404 })

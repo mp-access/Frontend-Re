@@ -11,15 +11,21 @@ import { SaveButton, TooltipButton } from '../components/Buttons'
 import { FcDataConfiguration } from 'react-icons/fc'
 import { BsGithub } from 'react-icons/bs'
 import { FiFilePlus, FiRefreshCw } from 'react-icons/fi'
+import { Navigate, useOutletContext } from 'react-router-dom'
+import { Placeholder } from '../components/Panels'
 
 export default function Files() {
+  const { isAssistant } = useOutletContext<UserContext>()
   const { submit, data: templateFiles } = useTemplateFiles()
   const { isOpen, onOpen, onClose } = useDisclosure()
   const form = useCreatorForm('templates')
   const onSubmit = form.handleSubmit(data => submit({ templates: data.templates?.split('\n') }).then(onClose))
 
+  if (!isAssistant)
+    return <Navigate to='/courses' />
+
   if (!templateFiles)
-    return <></>
+    return <Placeholder />
 
   return (
       <SimpleGrid columns={1} templateRows='auto auto 1fr' layerStyle='segment' mx='auto' my={4}

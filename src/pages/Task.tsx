@@ -8,7 +8,7 @@ import Editor from '@monaco-editor/react'
 import { format, parseISO } from 'date-fns'
 import fileDownload from 'js-file-download'
 import JSZip from 'jszip'
-import { find, range, unionBy } from 'lodash'
+import { compact, find, range, unionBy } from 'lodash'
 import React, { useEffect, useState } from 'react'
 import Countdown from 'react-countdown'
 import { AiOutlineBulb, AiOutlineCode, AiOutlineReload } from 'react-icons/ai'
@@ -93,7 +93,8 @@ export default function Task() {
   return (
       <Flex boxSize='full'>
         <ButtonGroup layerStyle='float' pos='absolute' variant='ghost' top={2} right={20} isAttached zIndex={2}>
-          <ActionButton name='Test' color='gray.600' isLoading={!!timer} onClick={onSubmit('test')} />
+          {task.testable &&
+            <ActionButton name='Test' color='gray.600' isLoading={!!timer} onClick={onSubmit('test')} />}
           <ActionButton name='Run' color='gray.600' isLoading={!!timer} onClick={onSubmit('run')} />
           <Button colorScheme='green' leftIcon={<FcInspection />} onClick={onOpen} children='Submit'
                   isDisabled={!!timer || (!isAssistant && (task.remainingAttempts <= 0 || !task.active))} />
@@ -168,12 +169,12 @@ export default function Task() {
             <Tabs display='flex' flexDir='column' flexGrow={1} colorScheme='purple'
                   borderTopWidth={1} index={currentTab} onChange={setCurrentTab}>
               <TabList overflow='hidden'>
-                <Tab><ActionTab name='Test' /></Tab>
+                {task.testable && <Tab><ActionTab name='Test' /></Tab>}
                 <Tab><ActionTab name='Run' /></Tab>
                 <Tab><HStack><FcInspection /><Text>Submit</Text></HStack></Tab>
               </TabList>
               <TabPanels flexGrow={1} pos='relative'>
-                {['test', 'run', 'grade'].map(command =>
+                {compact([task.testable && 'test', 'run', 'grade']).map(command =>
                     <TabPanel key={command} layerStyle='tab'>
                       {task.submissions.filter(s => s.command === command).map(submission =>
                           <Box key={submission.id}>

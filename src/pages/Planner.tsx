@@ -2,17 +2,22 @@ import {
   Button, ButtonGroup, Center, Flex, Heading, HStack, Icon, SimpleGrid, Stack, Tag, Text
 } from '@chakra-ui/react'
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link, Navigate, useOutletContext } from 'react-router-dom'
 import { AddIcon } from '@chakra-ui/icons'
 import { EditButton, ImportButton } from '../components/Buttons'
 import { useCourse } from '../components/Hooks'
 import { FcOvertime } from 'react-icons/fc'
+import { Placeholder } from '../components/Panels'
 
 export default function Planner() {
+  const { isAssistant } = useOutletContext<UserContext>()
   const { data: course } = useCourse()
 
+  if (!isAssistant)
+    return <Navigate to='/courses' />
+
   if (!course)
-    return <></>
+    return <Placeholder />
 
   return (
       <Center layerStyle='container'>
