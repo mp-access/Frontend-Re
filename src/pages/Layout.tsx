@@ -46,7 +46,8 @@ export default function Layout() {
           <Menu>
             <MenuButton as={Avatar} bg='purple.200' boxSize={10} _hover={{ boxShadow: 'lg' }} cursor='pointer' mx={2} />
             <MenuList minW={40}>
-              <MenuGroup title={`${context.user?.name} (${context.user?.email})`}>
+              <MenuGroup title={context.user?.name}>
+                <MenuItem isDisabled={true}>{context.user?.email}</MenuItem>
                 <MenuItem icon={<AiOutlineLogout fontSize='120%' />} children='Logout'
                           onClick={() => keycloak.logout({ redirectUri: window.location.origin })} />
               </MenuGroup>
