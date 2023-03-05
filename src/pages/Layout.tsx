@@ -1,7 +1,7 @@
 import { ChevronRightIcon } from '@chakra-ui/icons'
 import {
   Avatar, Breadcrumb, BreadcrumbItem, Button, Flex, Grid, GridItem, HStack, Menu, MenuButton, MenuGroup, MenuItem,
-  MenuList, Input
+  MenuList
 } from '@chakra-ui/react'
 import { useKeycloak } from '@react-keycloak/web'
 import React, { useEffect } from 'react'
@@ -46,12 +46,7 @@ export default function Layout() {
           <Menu>
             <MenuButton as={Avatar} bg='purple.200' boxSize={10} _hover={{ boxShadow: 'lg' }} cursor='pointer' mx={2} />
             <MenuList minW={40}>
-              <MenuGroup title={context.user?.name}>
-                <Input
-                  value={context.user?.email}
-                  isDisabled={true}
-                  size='sm'
-                />
+              <MenuGroup title={`${context.user?.name} (${context.user?.email})`}>
                 <MenuItem icon={<AiOutlineLogout fontSize='120%' />} children='Logout'
                           onClick={() => keycloak.logout({ redirectUri: window.location.origin })} />
               </MenuGroup>
