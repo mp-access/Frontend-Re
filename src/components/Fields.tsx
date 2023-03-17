@@ -64,7 +64,7 @@ const assignmentSchema = courseSchema.pick(['title', 'url', 'startDate', 'endDat
     .concat(yup.object({ ordinalNum: yup.number().min(0).nullable().default(null) }))
 const taskSchema = assignmentSchema.pick(['title', 'url', 'ordinalNum']).concat(yup.object({
   maxPoints: yup.number().default(10).min(0).required(),
-  maxAttempts: yup.number().default(3).min(0).max(11).required(),
+  maxAttempts: yup.number().default(3).min(0).max(101).required(),
   attemptRefill: yup.number().min(0).nullable().default(null).transform(value => value || undefined),
   dockerImage: yup.string().ensure().trim().required(),
   timeLimit: yup.number().min(0).max(300).default(30).required(),
