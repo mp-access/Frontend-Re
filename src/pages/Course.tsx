@@ -58,7 +58,7 @@ export default function Course() {
         </GridItem>
         <GridItem rowSpan={3} layerStyle='segment' p={0} fontSize='sm' display='grid' alignContent='space-between'>
           {isAssistant ? <SupervisorZone />
-              : <VStack>
+              : '' /* <VStack>
                 <HStack py={3}>
                   <Icon as={FcCollaboration} boxSize={6} />
                   <Heading fontSize='xl'>Class Rank</Heading>
@@ -71,7 +71,7 @@ export default function Course() {
                   <Text>{`out of ${course.studentsCount} students.`}</Text>
                   <RankingInfo />
                 </HStack>
-              </VStack>}
+              </VStack>*/ }
           <VStack>
             <DayPicker mode='single' required selected={selectedDay} showOutsideDays weekStartsOn={1} fixedWeeks
                        onSelect={(_, day) => setSelectedDay(day)} modifiersStyles={{ selected: { color: 'inherit' } }}
