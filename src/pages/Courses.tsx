@@ -14,6 +14,7 @@ import { ScoreBar } from '../components/Statistics'
 import { CourseAvatar } from '../components/Icons'
 import { HiOutlineCalendarDays } from 'react-icons/hi2'
 import { AddIcon } from '@chakra-ui/icons'
+import { formatDateRange } from '../components/Util'
 
 export default function Courses() {
   const { user, isCreator } = useOutletContext<UserContext>()
@@ -34,22 +35,22 @@ export default function Courses() {
           <Divider borderColor='gray.300' />
           <Stack py={2} spacing={3} flexGrow={1}>
             {courses.map(course =>
-                <Flex key={course.id} as={Link} to={course.url} columnGap={4} layerStyle='card' w='full'>
-                  <CourseAvatar src={course.avatar} gridRow='span 4' />
+                <Flex key={course.id} as={Link} to={course.slug} columnGap={4} layerStyle='card' w='full'>
+                  <CourseAvatar src={course.logo} gridRow='span 4' />
                   <Stack flexGrow={1} overflow='hidden'>
                     <HStack justify='space-between'>
-                      <Heading fontSize='2xl' noOfLines={1}>{course.title}</Heading>
+                      <Heading fontSize='2xl' noOfLines={1}>{course.information["en"].title}</Heading>
                       <Tag color='green.600' bg='green.50'>
                         <TagLeftIcon as={BsFillCircleFill} boxSize={2} />
                         <TagLabel whiteSpace='nowrap'>{course.onlineCount} Online</TagLabel>
                       </Tag>
                     </HStack>
                     <Wrap>
-                      <Tag bg='purple.75'>{course.university}</Tag>
+                      <Tag bg='purple.75'>{course.information["en"].university}</Tag>
                       {course.supervisors.map(s => <Tag key={s.name}>{s.name}</Tag>)}
                     </Wrap>
                     <Wrap mt='auto' spacing={4}>
-                      <Detail as={HiOutlineCalendarDays} title={course.duration} />
+                      <Detail as={HiOutlineCalendarDays} title={formatDateRange(course.overrideStart, course.overrideEnd)} />
                       <Detail as={AiOutlineTeam} title={`${course.studentsCount} Students`} />
                     </Wrap>
                     <ScoreBar value={course.points} max={course.maxPoints} />
@@ -61,7 +62,7 @@ export default function Courses() {
         {isCreator ?
             <GridItem>
               <Button w='full' h={28} size='lg' variant='outline' rounded='2xl' leftIcon={<AddIcon />} as={Link}
-                      to='create' borderStyle='dashed' lineHeight={1} children='Create Course' iconSpacing={4} />
+                      to='/create' borderStyle='dashed' lineHeight={1} children='Create Course' iconSpacing={4} />
             </GridItem>
             : <GridItem as={Stack} layerStyle='segment'>
               <HStack>
@@ -96,3 +97,4 @@ export default function Courses() {
       </Grid>
   )
 }
+

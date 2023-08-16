@@ -105,21 +105,3 @@ export const ScoreBar = ({ value = 0, max = 1, h = 10 }) =>
       </ResponsiveContainer>
     </Stack>
 
-export const ScoreTimeline = ({ values }: { values: AssignmentProps[] }) =>
-    <ResponsiveContainer>
-      <AreaChart margin={{ top: 0, left: 20, right: 20 }} data={values.slice().reverse().map(a =>
-          ({ name: `Assignment ${a.ordinalNum}`, value: toPercent(a.points, a.maxPoints) }))}>
-        <defs>
-          <linearGradient id='gradient' x1='0' y1='0' x2='0' y2='1'>
-            <stop offset='0%' stopColor={purple} stopOpacity={0.8} />
-            <stop offset='100%' stopColor={purple} stopOpacity={0.2} />
-          </linearGradient>
-        </defs>
-        <YAxis hide type='number' dataKey='value' domain={[0, 100]} />
-        <XAxis type='category' dataKey='name' fontSize='70%' axisLine={{ stroke: '#dbdbe3' }}
-               padding={{ left: 30, right: 30 }} />
-        <Area type='monotone' dataKey='value' name='Score' stroke={purple} fill='url(#gradient)' dot />
-        <Tooltip cursor={false} itemStyle={{ padding: 0 }} contentStyle={hover}
-                 formatter={(content) => `${content}%`} />
-      </AreaChart>
-    </ResponsiveContainer>

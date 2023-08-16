@@ -1,6 +1,7 @@
 import { ReactComponent as CourseAlt } from '../assets/course-alt.svg'
 import { ReactComponent as File } from '../assets/file.svg'
 import { ReactComponent as Folder } from '../assets/folder.svg'
+import { ReactComponent as GitHub } from '../assets/github.svg'
 import { ReactComponent as FolderOpen } from '../assets/folder-open.svg'
 import { ReactComponent as Python } from '../assets/python.svg'
 import { ReactComponent as R } from '../assets/r.svg'
@@ -14,6 +15,7 @@ import React from 'react'
 export const FolderIcon = Folder
 export const RobotIcon = Robot
 export const SWITCHIcon = SWITCH
+export const GitHubIcon = GitHub
 
 const icons: Record<string, any> =
     { 'Test': Test, 'Run': Run, 'python': Python, 'r': R, 'folder-false': Folder, 'folder-true': FolderOpen }

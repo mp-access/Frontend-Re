@@ -1,5 +1,6 @@
 import { useMonaco } from '@monaco-editor/react'
 import { Uri } from 'monaco-editor'
+import axios from 'axios'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, UseQueryOptions } from '@tanstack/react-query'
 import { useState } from 'react'
@@ -16,9 +17,9 @@ export const useCodeEditor = () => {
 }
 
 const usePath = (prefix: string): any[] => {
-  const { courseURL, assignmentURL, taskURL } = useParams()
-  return compact(flatten(concat('courses', courseURL, prefix !== 'courses' &&
-      ['assignments', assignmentURL, prefix !== 'assignments' && ['tasks', taskURL]])))
+  const { courseSlug, assignmentSlug, taskSlug } = useParams()
+  return compact(flatten(concat('courses', courseSlug, prefix !== 'courses' &&
+      ['assignments', assignmentSlug, prefix !== 'assignments' && ['tasks', taskSlug]])))
 }
 
 export const useCreatorForm = (prefix: string) =>
@@ -36,48 +37,61 @@ export function useCreator<TData = any>(prefix: string, enabled: boolean) {
   return { form, create, data, isSuccess }
 }
 
+export const useCreate = () => {
+  const { mutate, isLoading } = useMutation<string, any, object>( repository => axios.post('/create', repository) )
+  return { mutate, isLoading }
+}
+
+export const usePull = () => {
+  const path = usePath('')
+  const { mutate, isLoading } = useMutation( () => axios.post('/courses' + `/${path[1]}/pull`, {}),
+      { onSuccess: () => window.location.reload() }
+  )
+  return { mutate, isLoading }
+}
+
 export const useCourse = (options: UseQueryOptions<CourseProps> = {}) => {
-  const { courseURL } = useParams()
-  return useQuery<CourseProps>(['courses', courseURL], { enabled: !!courseURL, ...options })
+  const { courseSlug } = useParams()
+  return useQuery<CourseProps>(['courses', courseSlug], { enabled: !!courseSlug, ...options })
 }
 
 export const useStudents = () => {
-  const { courseURL } = useParams()
-  return useQuery<StudentProps[]>(['courses', courseURL, 'students'], { enabled: !!courseURL })
+  const { courseSlug } = useParams()
+  return useQuery<StudentProps[]>(['courses', courseSlug, 'students'], { enabled: !!courseSlug })
 }
 
 export const useTemplateFiles = (options: UseQueryOptions<TemplateFileProps[]> = {}) => {
-  const { courseURL } = useParams()
+  const { courseSlug } = useParams()
   const toast = useToast()
-  const query = useQuery<TemplateFileProps[]>(['courses', courseURL, 'files'], { enabled: !!courseURL, ...options })
-  const { mutateAsync } = useMutation<string, object, any[]>(['files', courseURL], { onSuccess: () => query.refetch() })
-  const submit = (data: any) => mutateAsync([['courses', courseURL, 'files'], data])
+  const query = useQuery<TemplateFileProps[]>(['courses', courseSlug, 'files'], { enabled: !!courseSlug, ...options })
+  const { mutateAsync } = useMutation<string, object, any[]>(['files', courseSlug], { onSuccess: () => query.refetch() })
+  const submit = (data: any) => mutateAsync([['courses', courseSlug, 'files'], data])
       .then(() => toast({ title: 'Refreshed!' }))
   return { ...query, submit }
 }
 
 export const useImport = () => {
-  const { courseURL } = useParams()
-  const { mutateAsync, isLoading } = useMutation<string, object, any[]>(['import', courseURL])
+  const { courseSlug } = useParams()
+  const { mutateAsync, isLoading } = useMutation<string, object, any[]>(['import', courseSlug])
   const onImport = (data: any) =>
-      mutateAsync([['courses', courseURL, 'import'], data]).then(() => window.location.reload())
+      mutateAsync([['courses', courseSlug, 'import'], data]).then(() => window.location.reload())
   return { onImport, isLoading }
 }
 
 export const useAssignment = () => {
-  const { courseURL, assignmentURL } = useParams()
-  return useQuery<AssignmentProps>(['courses', courseURL, 'assignments', assignmentURL], { enabled: !!assignmentURL })
+  const { courseSlug, assignmentSlug } = useParams()
+  return useQuery<AssignmentProps>(['courses', courseSlug, 'assignments', assignmentSlug], { enabled: !!assignmentSlug })
 }
 
 export const useTask = (userId: string) => {
   const [timer, setTimer] = useState<number>()
-  const { courseURL, assignmentURL, taskURL } = useParams()
-  const query = useQuery<TaskProps>(['courses', courseURL, 'assignments', assignmentURL, 'tasks', taskURL, 'users', userId], { enabled: !timer })
-  const { mutateAsync } = useMutation<any, any, any[]>(['submit', courseURL, assignmentURL, taskURL], {
+  const { courseSlug, assignmentSlug, taskSlug } = useParams()
+  const query = useQuery<TaskProps>(['courses', courseSlug, 'assignments', assignmentSlug, 'tasks', taskSlug, 'users', userId], { enabled: !timer })
+  const { mutateAsync } = useMutation<any, any, any[]>(['submit', courseSlug, assignmentSlug, taskSlug], {
     onMutate: () => setTimer(Date.now() + 30000),
     onSettled: () => setTimer(undefined), onSuccess: query.refetch
   })
   const submit = (data: NewSubmissionProps) =>
-      mutateAsync([['courses', courseURL, 'assignments', assignmentURL, 'tasks', taskURL, 'submit'], data])
+      mutateAsync([['courses', courseSlug, 'assignments', assignmentSlug, 'tasks', taskSlug, 'submit'], data])
   return { ...query, submit, timer }
 }

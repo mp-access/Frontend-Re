@@ -40,7 +40,7 @@ export default function Task() {
   useEffect(() => {
     setCurrentFile(undefined)
     setSubmissionId(0)
-  }, [task?.url, userId])
+  }, [task?.slug, userId])
 
   useEffect(() => {
     if (task && !currentFile) {
@@ -147,7 +147,7 @@ export default function Task() {
                     let zip = new JSZip()
                     task.files.filter(file => !file.editable).forEach(file => zip.file(file.path, file.template))
                     editableFiles.forEach(file => zip.file(file.path, getContent(file)))
-                    zip.generateAsync({ type: 'blob' }).then(b => fileDownload(b, task.url + '.zip'))
+                    zip.generateAsync({ type: 'blob' }).then(b => fileDownload(b, task.slug + '.zip'))
                   }} />
                 </ButtonGroup>
                 <AccordionPanel p={0}>
@@ -162,8 +162,8 @@ export default function Task() {
             <Editor path={getPath(currentFile.id)} language={currentFile.language}
                     defaultValue={currentFile.latest || currentFile.template}
                     options={{ minimap: { enabled: false }, readOnly: !currentFile.editable }} />
-            <Center position='absolute' bottom={0} zIndex={currentFile.image ? 2 : -2} bg='base'>
-              {currentFile.image && <Image src={currentFile.template} h='auto' />}
+            <Center position='absolute' bottom={0} zIndex={currentFile.binary ? 2 : -2} bg='base'>
+              {currentFile.binary && <Image src={currentFile.template} h='auto' />}
             </Center>
             <Tabs display='flex' flexDir='column' flexGrow={1} colorScheme='purple'
                   borderTopWidth={1} index={currentTab} onChange={setCurrentTab}>

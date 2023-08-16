@@ -16,8 +16,8 @@ import 'react-day-picker/dist/style.css'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import Assignment from './pages/Assignment'
-import Assignments from './pages/Assignments'
 import Course from './pages/Course'
+import CourseCreator from './pages/CourseCreator'
 import Courses from './pages/Courses'
 import Error from './pages/Error'
 import { Landing } from './pages/Landing'
@@ -25,10 +25,6 @@ import Students from './pages/Students'
 import Task from './pages/Task'
 import theme from './Theme'
 import Layout from './pages/Layout'
-import Planner from './pages/Planner'
-import {
-  AssignmentCreator, AssignmentEditor, CourseCreator, CourseEditor, TaskCreator, TaskEditor
-} from './pages/Creator'
 import Files from './pages/Files'
 import Contact from './pages/Contact'
 
@@ -56,44 +52,19 @@ function App() {
     path: '/', errorElement: <Error />, children: [
       { index: true, element: <Landing /> },
       { path: 'contact', element: <Contact /> },
+      { path: 'create', element: <CourseCreator /> },
       {
         path: 'courses', element: <Layout />, children: [
           { index: true, element: <Courses /> },
-          { path: 'create', element: <CourseCreator /> },
           {
-            path: ':courseURL', children: [
-              { index: true, element: <Course />, handle: 'Dashboard' },
+            path: ':courseSlug', children: [
+              { index: true, element: <Course /> },
               {
                 path: 'assignments', children: [
-                  { index: true, element: <Assignments />, handle: 'Assignments' },
                   {
-                    path: ':assignmentURL', handle: 'Assignment', children: [
+                    path: ':assignmentSlug', handle: 'Assignment', children: [
                       { index: true, element: <Assignment /> },
-                      { path: 'tasks/:taskURL', handle: 'Task', element: <Task /> }
-                    ]
-                  }
-                ]
-              },
-              {
-                path: 'supervisor', handle: 'Supervisor Zone', children: [
-                  { index: true, element: <Planner />, handle: 'Course Planner' },
-                  { path: 'edit', element: <CourseEditor />, handle: 'Course Editor' },
-                  { path: 'files', element: <Files />, handle: 'File Manager' },
-                  { path: 'students', element: <Students />, handle: 'Students' },
-                  {
-                    path: 'assignments', children: [
-                      { index: true, element: <AssignmentCreator />, handle: 'Create Assignment' },
-                      {
-                        path: ':assignmentURL', handle: 'Assignment', children: [
-                          { index: true, element: <AssignmentEditor />, handle: 'Assignment Editor' },
-                          {
-                            path: 'tasks', children: [
-                              { index: true, element: <TaskCreator />, handle: 'Create Task' },
-                              { path: ':taskURL', element: <TaskEditor />, handle: 'Task' }
-                            ]
-                          }
-                        ]
-                      }
+                      { path: 'tasks/:taskSlug', handle: 'Task', element: <Task /> }
                     ]
                   }
                 ]

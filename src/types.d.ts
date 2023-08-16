@@ -1,20 +1,25 @@
 declare interface CourseOverview {
   id: number;
-  url: string;
-  title: string;
-  avatar: string;
-  university: string;
-  semester: string;
-  startDate: string;
-  endDate: string;
-  duration: string;
-  description: string;
+  slug: string;
+  logo: string;
+  overrideStart: string;
+  overrideEnd: string;
   studentsCount: number;
   onlineCount: number;
   maxPoints: number;
   points: number;
+  information: Record<string, CourseInformation>;
   supervisors: Array<{ name: string }>;
   assistants: Array<{ name: string }>;
+}
+
+declare interface CourseInformation {
+  id: number;
+  language: string;
+  title: string;
+  description: string;
+  university: string;
+  period: string;
 }
 
 declare interface CourseProps extends CourseOverview {
@@ -33,17 +38,15 @@ declare interface CourseEventProps {
 
 declare interface AssignmentProps {
   id: number;
-  url: string;
-  title: string;
+  slug: string;
+  information: Record<string, AssignmentInformation>;
   ordinalNum: number;
-  description: string;
-  startDate: string;
-  endDate: string;
+  start: string;
+  end: string;
   publishedDate: string;
   publishedTime: string;
   dueDate: string;
   dueTime: string;
-  duration: string;
   countDown: Array<TimerProps>;
   published: boolean;
   pastDue: boolean;
@@ -53,11 +56,19 @@ declare interface AssignmentProps {
   tasks: Array<TaskOverview>;
 }
 
+declare interface AssignmentInformation {
+  id: number;
+  language: string;
+  title: string;
+  description: string;
+}
+
+
 declare interface TaskOverview {
   id: number;
-  url: string;
+  slug: string;
+  information: Record<string, TaskInformation>;
   ordinalNum: number;
-  title: string;
   maxPoints: number;
   maxAttempts: number;
   timeLimit: number;
@@ -65,6 +76,13 @@ declare interface TaskOverview {
   avgPoints: number;
   remainingAttempts: number;
   points: number;
+}
+
+declare interface TaskInformation {
+  id: number;
+  language: string;
+  title: string;
+  instructionsFile: string;
 }
 
 declare interface TaskProps extends TaskOverview {
@@ -81,7 +99,7 @@ declare interface TaskFileProps {
   name: string;
   language: string;
   editable: boolean;
-  image: boolean;
+  binary: boolean;
   template: string;
   latest: string;
 }
@@ -89,7 +107,7 @@ declare interface TaskFileProps {
 declare interface TaskInfo {
   id: number;
   assignmentId: number;
-  url: string;
+  slug: string;
   ordinalNum: number;
   title: string;
   maxPoints: number;
@@ -174,3 +192,4 @@ declare interface CurrentUser {
   given_name: string;
   email: string;
 }
+

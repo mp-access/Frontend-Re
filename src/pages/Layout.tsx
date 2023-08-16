@@ -15,7 +15,7 @@ import { Placeholder } from '../components/Panels'
 export default function Layout() {
   const navigate = useNavigate()
   const { keycloak } = useKeycloak()
-  const { courseURL } = useParams()
+  const { courseSlug } = useParams()
 
   useEffect(() => {
     const timeout = setTimeout(() => !keycloak.token && navigate('/'), 2000)
@@ -25,14 +25,14 @@ export default function Layout() {
   if (!keycloak?.token)
     return <Placeholder />
 
-  if (courseURL && !keycloak.hasRealmRole(courseURL))
+  if (courseSlug && !keycloak.hasRealmRole(courseSlug))
     throw new Response('Not Found', { status: 404 })
 
   const context = {
     user: keycloak.idTokenParsed,
     isCreator: keycloak.hasRealmRole('supervisor'),
-    isSupervisor: !!courseURL && keycloak.hasRealmRole(courseURL + '-supervisor'),
-    isAssistant: !!courseURL && keycloak.hasRealmRole(courseURL + '-assistant')
+    isSupervisor: !!courseSlug && keycloak.hasRealmRole(courseSlug + '-supervisor'),
+    isAssistant: !!courseSlug && keycloak.hasRealmRole(courseSlug + '-assistant')
   }
 
   return (
@@ -41,7 +41,7 @@ export default function Layout() {
         <GridItem as={Flex} pos='sticky' justify='space-between' px={3} w='full' h={16} align='center' zIndex={1}>
           <HStack p={3}>
             <LogoButton />
-            {courseURL && <CourseNav />}
+            {courseSlug && <CourseNav />}
           </HStack>
           <Menu>
             <MenuButton as={Avatar} bg='purple.200' boxSize={10} _hover={{ boxShadow: 'lg' }} cursor='pointer' mx={2} />
@@ -62,10 +62,10 @@ export default function Layout() {
 
 function CourseNav() {
   const matches = useMatches()
-  const { courseURL, taskURL } = useParams()
+  const { courseSlug, taskSlug } = useParams()
   const { data: course } = useCourse()
   const { data: assignment } = useAssignment()
-  const task = assignment?.tasks.find(task => task.url === taskURL)
+  const task = assignment?.tasks.find(task => task.slug === taskSlug)
 
   if (!course)
     return <></>
@@ -75,14 +75,14 @@ function CourseNav() {
   return (
       <Breadcrumb layerStyle='float' separator={<ChevronRightIcon color='gray.500' />} pr={3}>
         <BreadcrumbItem>
-          <Button as={Link} to={`/courses/${courseURL}`} variant='gradient' children={course.title} />
+          <Button as={Link} to={`/courses/${courseSlug}`} variant='gradient' children={course.information["en"].title} />
         </BreadcrumbItem>
         {matches.filter(match => match.handle).map(match =>
             <BreadcrumbItem key={match.id}>
               <Button as={Link} to={match.pathname} variant='link' colorScheme='gray' children={toNav(match.handle)} />
               {(match.handle === 'Task') && task && assignment?.tasks.map(t =>
                   <Button key={t.id} as={Link} ml={2} size='sm' children={t.ordinalNum} variant='ghost' boxSize={8}
-                          isActive={t.id === task?.id} to={resolvePath(`../${t.url}`, match.pathname)} />)}
+                          isActive={t.id === task?.id} to={resolvePath(`../${t.slug}`, match.pathname)} />)}
             </BreadcrumbItem>)}
       </Breadcrumb>
   )

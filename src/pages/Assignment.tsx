@@ -10,6 +10,7 @@ import { Link, useOutletContext } from 'react-router-dom'
 import { Counter } from '../components/Buttons'
 import { HScores, TimeCountDown } from '../components/Statistics'
 import { useAssignment } from '../components/Hooks'
+import { formatDate, formatDateRange } from '../components/Util'
 
 export default function Assignment() {
   const { isAssistant } = useOutletContext<UserContext>()
@@ -24,13 +25,13 @@ export default function Assignment() {
           <Flex justify='space-between'>
             <Box>
               <Text>ASSIGNMENT {assignment.ordinalNum}</Text>
-              <Heading>{assignment.title}</Heading>
+              <Heading>{assignment.information["en"].title}</Heading>
               <Wrap my={2}>
                 {!assignment.published && <Tag colorScheme='red'>Draft</Tag>}
                 <Tag>{assignment.tasks.length} Tasks</Tag>
                 <Tag>
                   <TagLeftIcon as={AiOutlineCalendar} />
-                  <TagLabel>{assignment.duration}</TagLabel>
+                  <TagLabel>{formatDateRange(assignment.start, assignment.end)}</TagLabel>
                 </Tag>
                 <Tag colorScheme={assignment.active ? 'green' : 'purple'}>
                   Submission {assignment.active ? 'Open' : 'Closed'}
@@ -39,7 +40,6 @@ export default function Assignment() {
             </Box>
             {assignment.active && <TimeCountDown values={assignment.countDown} />}
           </Flex>
-          <Text flexGrow={1} noOfLines={2} fontSize='sm'>{assignment.description}</Text>
         </Stack>
         <TableContainer layerStyle='segment'>
           <HStack>
@@ -54,7 +54,7 @@ export default function Assignment() {
                   <Tr key={task.id}>
                     <Td p={0} whiteSpace='nowrap' fontSize='sm'>{task.ordinalNum}</Td>
                     <Td>
-                      <Heading fontSize='lg'>{task.title}</Heading>
+                      <Heading fontSize='lg'>{task.information["en"].title}</Heading>
                     </Td>
                     <Td>
                       <SimpleGrid columns={5} gap={1} w='fit-content'>
@@ -70,7 +70,7 @@ export default function Assignment() {
                       <HScores value={task.points} max={task.maxPoints} avg={task.avgPoints} />
                     </Td>
                     <Td>
-                      <Button w='full' colorScheme='green' as={Link} to={`tasks/${task.url}`}>
+                      <Button w='full' colorScheme='green' as={Link} to={`tasks/${task.slug}`}>
                         {task.points ? 'Continue' : 'Start'}
                       </Button>
                     </Td>

@@ -22,7 +22,7 @@ export function FileTree({ files, selected, onSelect }: RootNodeProps) {
   const onClick = (item: TreeItem) => setExpandedItems(items => toggle(items, item.index))
 
   return <ControlledTreeEnvironment
-      items={tree} getItemTitle={item => item.data.name} renderDepthOffset={20}
+      items={tree} getItemTitle={item => item.data.name} renderDepthOffset={13}
       children={<Tree treeId='task' rootItem={head(split(files[0].path, '/')) || ''} />}
       viewState={{ ['task']: { focusedItem: selected, expandedItems, selectedItems: [selected] } }}
       onExpandItem={onClick} onCollapseItem={onClick} renderItemTitle={({ item, context }) =>

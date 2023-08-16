@@ -7,7 +7,6 @@ import {
 import { AddIcon, CheckIcon } from '@chakra-ui/icons'
 import React, { useRef, useState } from 'react'
 import Dropzone from 'react-dropzone'
-import AvatarEditor from 'react-avatar-editor'
 import { MdOutlineAddPhotoAlternate } from 'react-icons/md'
 import * as yup from 'yup'
 import { ObjectSchema } from 'yup'
@@ -50,7 +49,7 @@ const contactSchema = memberSchema.concat(yup.object({
 const templateSchema = yup.object({ templates: yup.string() })
 const courseSchema = yup.object({
   title: yup.string().min(4).max(30).ensure().trim(),
-  url: yup.string().min(8).max(30).ensure().trim().matches(/[0-9a-z]/, 'Lowercase letters, numbers or dash (-) only'),
+  slug: yup.string().min(8).max(30).ensure().trim().matches(/[0-9a-z]/, 'Lowercase letters, numbers or dash (-) only'),
   startDate: yup.mixed().required(),
   endDate: yup.mixed().required(),
   university: yup.string().min(5).ensure().trim().default('University of Zurich'),
@@ -58,11 +57,11 @@ const courseSchema = yup.object({
   description: yup.string().ensure().max(250),
   supervisors: yup.array().of(memberSchema).default([]),
   assistants: yup.array().of(memberSchema).default([]),
-  avatar: yup.string().ensure().test('image', p => p?.value ? 'Invalid' : 'Required', a => a?.startsWith('data:image'))
+  logo: yup.string().ensure().test('image', p => p?.value ? 'Invalid' : 'Required', a => a?.startsWith('data:image'))
 })
-const assignmentSchema = courseSchema.pick(['title', 'url', 'startDate', 'endDate', 'description'])
+const assignmentSchema = courseSchema.pick(['title', 'slug', 'startDate', 'endDate', 'description'])
     .concat(yup.object({ ordinalNum: yup.number().min(0).nullable().default(null) }))
-const taskSchema = assignmentSchema.pick(['title', 'url', 'ordinalNum']).concat(yup.object({
+const taskSchema = assignmentSchema.pick(['title', 'slug', 'ordinalNum']).concat(yup.object({
   maxPoints: yup.number().default(10).min(0).required(),
   maxAttempts: yup.number().default(3).min(0).max(101).required(),
   attemptRefill: yup.number().min(0).nullable().default(null).transform(value => value || undefined),
@@ -84,25 +83,6 @@ export const schemas: Record<string, ObjectSchema<any>> = {
   'tasks': taskSchema, 'templates': templateSchema, 'contact': contactSchema
 }
 
-const AvatarField = (field: ControllerRenderProps<any>) => {
-  const [original, setOriginal] = useState(field.value)
-  const ref = useRef<any>(null)
-  const getAvatar = () => original && field.onChange(ref?.current?.getImageScaledToCanvas()?.toDataURL())
-  return <Dropzone onDrop={(files) => setOriginal(files[0])} multiple={false} noKeyboard noClick={!!original}
-                   children={({ getRootProps, getInputProps }) =>
-                       <Center {...getRootProps()} layerStyle='drop' borderWidth={0}>
-                         <Input {...getInputProps({ style: { display: 'flex' } })} size='sm' bg='none'
-                                pos='absolute' boxSize='full' top={0} left={0} p={5} borderWidth={2}
-                                borderStyle='dashed' borderColor='gray.200' rounded='2xl' />
-                         <Center pos='absolute' boxSize='full' top={0} left={0} p={4}>
-                           <Icon as={MdOutlineAddPhotoAlternate} boxSize='full' p={8} bg='base' />
-                         </Center>
-                         <AvatarEditor ref={ref} image={original || field.value || ''} height={140} width={140}
-                                       onImageReady={getAvatar} onMouseUp={getAvatar} border={0}
-                                       style={{ overflow: 'hidden', borderRadius: 'inherit', zIndex: 1 }} />
-                       </Center>} />
-}
-
 export const FormField = ({ name = '', title = '', form = '', max, ...props }: InputProps & NumberInputProps) => {
   const { control } = useFormContext()
   return <Controller name={name || camel(title)} control={control} render={({ field, fieldState }) =>
@@ -113,7 +93,6 @@ export const FormField = ({ name = '', title = '', form = '', max, ...props }: I
             <FormErrorMessage pos='absolute' right={1} top={-1}>{fieldState.error?.message}</FormErrorMessage>
           </Flex>
         </HStack>
-        {form === 'avatar' && <AvatarField {...field} />}
         {form === 'text' && <Textarea {...field} />}
         {form === 'number' &&
           <NumberInput min={0} max={max} step={1} precision={0} {...field} {...props}
