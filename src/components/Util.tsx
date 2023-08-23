@@ -16,3 +16,8 @@ export function formatDate(date: string): string {
 
   return formattedDate;
 }
+
+export function formatTaskCount(n: number): string {
+  if (n === 1) { return "1 task" }
+  else { return `${n} tasks` }
+}

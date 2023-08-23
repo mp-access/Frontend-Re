@@ -59,6 +59,7 @@ function App() {
           {
             path: ':courseSlug', children: [
               { index: true, element: <Course /> },
+              { path: 'students', element: <Students /> },
               {
                 path: 'assignments', children: [
                   {

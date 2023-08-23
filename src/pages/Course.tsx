@@ -18,7 +18,7 @@ import { get, groupBy, keys, omit } from 'lodash'
 import { format, parseISO } from 'date-fns'
 import { SupervisorZone } from './Supervisor'
 import { HiOutlineCalendarDays } from 'react-icons/hi2'
-import { formatDate, formatDateRange } from '../components/Util'
+import { formatDate, formatDateRange, formatTaskCount } from '../components/Util'
 
 export default function Course() {
   const { data: course } = useCourse()
@@ -71,6 +71,46 @@ export default function Course() {
           </VStack>
         </GridItem>
         <GridItem as={Stack} layerStyle='container' p={0} spacing={4}>
+        {!!upcomingAssignments.length &&
+        <TableContainer layerStyle='segment'>
+            <HStack>
+              <Icon as={FcPlanner} boxSize={6} />
+              <Heading fontSize='2xl'>Upcoming Assignments</Heading>
+            </HStack>
+            <Divider borderColor='gray.300' my={4} />
+            <Table>
+              <Tbody>
+                {upcomingAssignments.map(assignment =>
+                    <Tr key={assignment.id}>
+                      <Td p={0} whiteSpace='nowrap' fontSize='sm' w='2em' maxW='2em'>{assignment.ordinalNum}</Td>
+                      <Td>
+                        <VStack>
+                          <Heading fontSize='lg'>{assignment.information["en"].title}</Heading>
+                          <Text noOfLines={1} fontSize='sm'>{formatTaskCount(assignment.tasks.length)}</Text>
+                        </VStack>
+                      </Td>
+                      <Td w='17em' maxW='17em'>
+                        <VStack>
+                          <Tag bg='transparent'>
+                            <TagLeftIcon as={AiOutlineClockCircle} marginBottom={1} />
+                            <TagLabel>{formatDateRange(assignment.start, assignment.end)}</TagLabel>
+                          </Tag>
+                        </VStack>
+                      </Td>
+                      <Td w='12em' maxW='12em'>
+                        <ScoreBar value={assignment.points} max={assignment.maxPoints} />
+                      </Td>
+                      <Td w='10em' maxW='10em'>
+                        <Button w='full' colorScheme='green' as={Link} to={assignment.slug}>
+                          {assignment.points ? 'Continue' : 'Show tasks'}
+                        </Button>
+                      </Td>
+                    </Tr>)}
+              </Tbody>
+            </Table>
+          </TableContainer>
+          }
+
         <TableContainer layerStyle='segment'>
           <HStack>
             <Icon as={FcAlarmClock} boxSize={6} />
@@ -81,11 +121,14 @@ export default function Course() {
             <Tbody>
               {activeAssignments.map(assignment =>
                   <Tr key={assignment.id}>
-                    <Td p={0} whiteSpace='nowrap' fontSize='sm'>{assignment.ordinalNum}</Td>
+                    <Td p={0} whiteSpace='nowrap' fontSize='lg' w='2em' maxW='2em'>{assignment.ordinalNum}</Td>
                     <Td>
-                      <Heading fontSize='lg'>{assignment.information["en"].title}</Heading>
+                      <VStack>
+                        <Heading fontSize='lg'>{assignment.information["en"].title}</Heading>
+                        <Text noOfLines={1} fontSize='sm'>{formatTaskCount(assignment.tasks.length)}</Text>
+                      </VStack>
                     </Td>
-                    <Td>
+                    <Td w='17em' maxW='17em'>
                       <VStack>
                         <Tag bg='transparent'>
                           <TagLeftIcon as={AiOutlineClockCircle} marginBottom={1} />
@@ -94,10 +137,10 @@ export default function Course() {
                         <TimeCountDown values={assignment.countDown} />
                       </VStack>
                     </Td>
-                    <Td maxW='3xs'>
+                    <Td w='12em' maxW='12em'>
                       <ScoreBar value={assignment.points} max={assignment.maxPoints} />
                     </Td>
-                    <Td>
+                    <Td w='10em' maxW='10em'>
                       <Button w='full' colorScheme='green' as={Link} to={`assignments/${assignment.slug}`}>
                         {assignment.points ? 'Continue' : 'Show tasks'}
                       </Button>
@@ -119,30 +162,23 @@ export default function Course() {
             <Tbody>
               {pastAssignments.map(assignment =>
                   <Tr key={assignment.id}>
-                    <Td p={0} whiteSpace='nowrap' fontSize='sm'>{assignment.ordinalNum}</Td>
+                    <Td p={0} whiteSpace='nowrap' fontSize='lg' w='2em' maxW='2em'>{assignment.ordinalNum}</Td>
                     <Td>
-                      <Heading fontSize='lg'>{assignment.information["en"].title}</Heading>
+                      <VStack>
+                        <Heading fontSize='lg'>{assignment.information["en"].title}</Heading>
+                        <Text noOfLines={1} fontSize='sm'>{formatTaskCount(assignment.tasks.length)}</Text>
+                      </VStack>
                     </Td>
-                    <Td>
-                      <Stack>
+                    <Td w='17em' maxW='17em'>
                         <Tag bg='transparent'>
-                          <TagLeftIcon as={AiOutlineCalendar} />
-                          <TagLabel fontWeight={400}>
-                            Started: <b>{formatDate(assignment.start)}</b>
-                          </TagLabel>
+                          <TagLeftIcon as={AiOutlineClockCircle} marginBottom={1} />
+                          <TagLabel>{formatDateRange(assignment.start, assignment.end)}</TagLabel>
                         </Tag>
-                        <Tag bg='transparent'>
-                          <TagLeftIcon as={AiOutlineCalendar} />
-                          <TagLabel fontWeight={400}>
-                            Ended: <b>{formatDate(assignment.end)}</b>
-                          </TagLabel>
-                        </Tag>
-                      </Stack>
                     </Td>
-                    <Td maxW='3xs'>
+                    <Td w='12em' maxW='12em'>
                       <ScoreBar value={assignment.points} max={assignment.maxPoints} />
                     </Td>
-                    <Td>
+                    <Td w='10em' maxW='10em'>
                       <Button w='full' as={Link} to={`assignments/${assignment.slug}`}>
                         Show tasks
                       </Button>

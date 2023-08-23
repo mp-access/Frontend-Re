@@ -1,6 +1,6 @@
 import {
   Box, Button, Center, Divider, Flex, Heading, HStack, Icon, SimpleGrid, Stack, Table, TableContainer, Tag, TagLabel,
-  TagLeftIcon, Tbody, Td, Text, Tr, Wrap
+  TagLeftIcon, Tbody, Td, Text, Tr, Wrap, VStack
 } from '@chakra-ui/react'
 import { range } from 'lodash'
 import React from 'react'
@@ -27,7 +27,6 @@ export default function Assignment() {
               <Text>ASSIGNMENT {assignment.ordinalNum}</Text>
               <Heading>{assignment.information["en"].title}</Heading>
               <Wrap my={2}>
-                {!assignment.published && <Tag colorScheme='red'>Draft</Tag>}
                 <Tag>{assignment.tasks.length} Tasks</Tag>
                 <Tag>
                   <TagLeftIcon as={AiOutlineCalendar} />
@@ -38,7 +37,9 @@ export default function Assignment() {
                 </Tag>
               </Wrap>
             </Box>
+            <Center pr='1em'>
             {assignment.active && <TimeCountDown values={assignment.countDown} />}
+            </Center>
           </Flex>
         </Stack>
         <TableContainer layerStyle='segment'>
@@ -56,6 +57,7 @@ export default function Assignment() {
                     <Td>
                       <Heading fontSize='lg'>{task.information["en"].title}</Heading>
                     </Td>
+                    {assignment.active &&
                     <Td>
                       <SimpleGrid columns={5} gap={1} w='fit-content'>
                         {range(Math.min(task.maxAttempts, 10)).map(i =>
@@ -65,13 +67,14 @@ export default function Assignment() {
                       <Text fontSize='sm'>
                         <b>{isAssistant ? '∞' : task.remainingAttempts}</b> / {task.maxAttempts} Submissions left
                       </Text>
-                    </Td>
+                    </Td> || <Td>submission closed</Td>
+                    }
                     <Td w='xs'>
                       <HScores value={task.points} max={task.maxPoints} avg={task.avgPoints} />
                     </Td>
                     <Td>
-                      <Button w='full' colorScheme='green' as={Link} to={`tasks/${task.slug}`}>
-                        {task.points ? 'Continue' : 'Start'}
+                      <Button w='full' as={Link} to={`tasks/${task.slug}`}>
+                      View
                       </Button>
                     </Td>
                   </Tr>)}

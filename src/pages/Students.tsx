@@ -1,4 +1,4 @@
-import { Center, Heading, Table, TableCaption, TableContainer, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react'
+import { Center, Heading, Table, TableCaption, TableContainer, Tbody, Td, Th, Thead, Tr, VStack } from '@chakra-ui/react'
 import React from 'react'
 import { useStudents } from '../components/Hooks'
 
@@ -7,6 +7,7 @@ export default function Students() {
   if (!students)
     return <></>
   return (
+    <VStack>
       <TableContainer p={8} my={4} layerStyle='segment'>
         <Heading m={2} mt={0} fontSize='3xl'>Students</Heading>
         <Table maxW='container.sm'>
@@ -32,5 +33,6 @@ export default function Students() {
           </TableCaption>
         </Table>
       </TableContainer>
+    </VStack>
   )
 }
