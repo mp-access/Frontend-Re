@@ -87,8 +87,10 @@ createRoot(document.getElementById('root')!).render(
     <ReactKeycloakProvider authClient={authClient} onTokens={({ token }) => setAuthToken(token)}>
       <ChakraProvider theme={theme}>
         <ColorModeScript />
+        {/* disabled because of https://github.com/suren-atoyan/monaco-react/issues/440
         <React.StrictMode>
           <App />
-        </React.StrictMode>
+        </React.StrictMode> */}
+          <App />
       </ChakraProvider>
     </ReactKeycloakProvider>)
