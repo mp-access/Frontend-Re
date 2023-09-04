@@ -60,16 +60,6 @@ export const useStudents = () => {
   return useQuery<StudentProps[]>(['courses', courseSlug, 'students'], { enabled: !!courseSlug })
 }
 
-export const useTemplateFiles = (options: UseQueryOptions<TemplateFileProps[]> = {}) => {
-  const { courseSlug } = useParams()
-  const toast = useToast()
-  const query = useQuery<TemplateFileProps[]>(['courses', courseSlug, 'files'], { enabled: !!courseSlug, ...options })
-  const { mutateAsync } = useMutation<string, object, any[]>(['files', courseSlug], { onSuccess: () => query.refetch() })
-  const submit = (data: any) => mutateAsync([['courses', courseSlug, 'files'], data])
-      .then(() => toast({ title: 'Refreshed!' }))
-  return { ...query, submit }
-}
-
 export const useImport = () => {
   const { courseSlug } = useParams()
   const { mutateAsync, isLoading } = useMutation<string, object, any[]>(['import', courseSlug])

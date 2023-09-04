@@ -101,7 +101,7 @@ export default function Course() {
                         <ScoreBar value={assignment.points} max={assignment.maxPoints} />
                       </Td>
                       <Td w='10em' maxW='10em'>
-                        <Button w='full' colorScheme='green' as={Link} to={assignment.slug}>
+                        <Button w='full' colorScheme='green' as={Link} to={`assignments/${assignment.slug}`}>
                           {assignment.points ? 'Continue' : 'Show tasks'}
                         </Button>
                       </Td>

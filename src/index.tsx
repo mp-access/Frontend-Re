@@ -25,7 +25,6 @@ import Students from './pages/Students'
 import Task from './pages/Task'
 import theme from './Theme'
 import Layout from './pages/Layout'
-import Files from './pages/Files'
 import Contact from './pages/Contact'
 
 const authClient = new Keycloak({
