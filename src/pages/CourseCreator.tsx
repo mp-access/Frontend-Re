@@ -7,7 +7,7 @@ import { useCreate } from '../components/Hooks'
 export default function CourseCreator() {
   const { mutate, isLoading }= useCreate()
   const [course, setCourse] = useState(
-    {repository: '', repositoryUser: '', repositoryPassword: ''})
+    {repository: '', repositoryUser: '', repositoryPassword: '', webhookSecret: ''})
 
   return (
   <Container>
@@ -23,9 +23,9 @@ export default function CourseCreator() {
         </FormLabel>
         <Input value={course.repository} onChange={e => setCourse({...course, repository: e.target.value})} type='text' />
       </FormControl>
-        <Text color='gray.600' lineHeight={1.5}>
-          If the repository is private, provide a username and password. Note that you should not use your personal account credentials; instead, create a deploy token!
-        </Text>
+      <Text color='gray.600' lineHeight={1.5}>
+        If the repository is private, provide a username and password. Note that you should not use your personal account credentials; instead, create a deploy token!
+      </Text>
       <FormControl>
         <FormLabel> Git username: </FormLabel>
         <Input value={course.repositoryUser} onChange={e => setCourse({...course, repositoryUser: e.target.value})} type='text' />
@@ -33,6 +33,13 @@ export default function CourseCreator() {
       <FormControl>
         <FormLabel> Git password: </FormLabel>
         <Input value={course.repositoryPassword} onChange={e => setCourse({...course, repositoryPassword: e.target.value})} type='text' />
+      </FormControl>
+      <Text color='gray.600' lineHeight={1.5}>
+        If you wish to configure a webhook for updating the repository automatically, provide the webhook secret here:
+      </Text>
+      <FormControl>
+        <FormLabel> Git webhook secret/token: </FormLabel>
+        <Input value={course.webhookSecret} onChange={e => setCourse({...course, webhookSecret: e.target.value})} type='text' />
       </FormControl>
         <Button variant='round' onClick={() => mutate({...course})} isLoading={isLoading}> Submit </Button>
     </VStack>
