@@ -37,14 +37,19 @@ export function useCreator<TData = any>(prefix: string, enabled: boolean) {
   return { form, create, data, isSuccess }
 }
 
-export const useCreate = () => {
-  const { mutate, isLoading } = useMutation<string, any, object>( repository => axios.post('/create', repository) )
+export const useCreate = (slug: string) => {
+  const target = slug === '' ? "/create" : "/edit"
+  const { mutate, isLoading } = useMutation<string, any, object>( repository =>
+                                axios.post(target, repository),
+      { onSuccess: () => window.location.reload() }
+  )
   return { mutate, isLoading }
 }
 
 export const usePull = () => {
   const path = usePath('')
-  const { mutate, isLoading } = useMutation( () => axios.post('/courses' + `/${path[1]}/pull`, {}),
+  const { mutate, isLoading } = useMutation( () =>
+                                axios.post('/courses' + `/${path[1]}/pull`, {}),
       { onSuccess: () => window.location.reload() }
   )
   return { mutate, isLoading }

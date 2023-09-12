@@ -28,6 +28,16 @@ declare interface CourseProps extends CourseOverview {
   rank: number;
 }
 
+declare interface CourseMetaProps {
+  header?: string;
+  description?: string;
+  slug?: string;
+  repository?: string;
+  repositoryUser?: string;
+  repositoryPassword?: string;
+  webhookSecret?: string;
+}
+
 declare interface CourseEventProps {
   id: number;
   category: string;

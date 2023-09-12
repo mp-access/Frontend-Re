@@ -15,6 +15,7 @@ import { CourseAvatar } from '../components/Icons'
 import { HiOutlineCalendarDays } from 'react-icons/hi2'
 import { AddIcon } from '@chakra-ui/icons'
 import { formatDateRange } from '../components/Util'
+import CourseCreator from './CourseCreator'
 
 export default function Courses() {
   const { user, isCreator } = useOutletContext<UserContext>()
@@ -61,8 +62,8 @@ export default function Courses() {
         </GridItem>
         {isCreator ?
             <GridItem>
-              <Button w='full' h={28} size='lg' variant='outline' rounded='2xl' leftIcon={<AddIcon />} as={Link}
-                      to='/create' borderStyle='dashed' lineHeight={1} children='Create Course' iconSpacing={4} />
+              <CourseCreator header="Import new course"
+              description="To set up a new course on ACCESS, specify a Git repository to use as source for all your course data:" />
             </GridItem>
             : <GridItem as={Stack} layerStyle='segment'>
               <HStack>

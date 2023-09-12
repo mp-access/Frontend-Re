@@ -19,6 +19,7 @@ import { format, parseISO } from 'date-fns'
 import { SupervisorZone } from './Supervisor'
 import { HiOutlineCalendarDays } from 'react-icons/hi2'
 import { formatDate, formatDateRange, formatTaskCount } from '../components/Util'
+import CourseCreator from './CourseCreator'
 
 export default function Course() {
   const { data: course } = useCourse()
@@ -59,6 +60,12 @@ export default function Course() {
           </Stack>
         </GridItem>
         <GridItem as={VStack} p={3} colSpan={1} rowSpan={3} layerStyle='segment' fontSize='sm'>
+        {isSupervisor ?
+            <GridItem>
+              <CourseCreator slug={course.slug} header="Edit source"
+
+              description={`Editing course ${course.slug}: If you moved the course repository or changed the deploy user or webhook token, you may supply updated information here. Be careful, and only do this if you know what you're doing! Do NOT change the course slug (${course.slug}) even when moving repositories.`} />
+            </GridItem> : "" }
           <VStack>
           {isSupervisor && <CourseController {...course} />}
           </VStack>
