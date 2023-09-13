@@ -26,7 +26,7 @@ export default function CourseCreator(
   return (
       <ButtonGroup  w='full' variant='gradient'>
         <Button w='full' leftIcon={<AiOutlineGithub />} onClick={onOpen}>{header}</Button>
-        <Modal isOpen={isOpen} onClose={onClose} isCentered>
+        <Modal isOpen={isOpen} onClose={onClose} isCentered size='xl'>
           <ModalOverlay />
           <ModalContent>
             <ModalHeader>
@@ -43,6 +43,15 @@ export default function CourseCreator(
                   Course Repository URL (https):
                 </FormLabel>
                 <Input value={course.repository} onChange={e => setCourse({...course, repository: e.target.value})} type='text' />
+              </FormControl>
+              <Text color='gray.600' lineHeight={1.5}>
+                You may manually set a course slug. This makes sense if you want to import the same course more than once. If you leave this field empty, the slug specified in the courses config.toml will be used. Do NOT change the course slug for existing courses, unless you know what you're doing.
+              </Text>
+              <FormControl>
+                <FormLabel>
+                  Course slug:
+                </FormLabel>
+                <Input value={course.slug} onChange={e => setCourse({...course, slug: e.target.value})} type='text' />
               </FormControl>
               <Text color='gray.600' lineHeight={1.5}>
                 If the repository is private, provide a username and password. Note that you should not use your personal account credentials; instead, create a deploy token!
