@@ -51,7 +51,7 @@ export default function Assignment() {
           <Divider borderColor='gray.300' my={4} />
           <Table>
             <Tbody>
-              {assignment.tasks.map(task =>
+              {assignment.tasks.sort((a,b) => a.ordinalNum - b.ordinalNum).map(task =>
                   <Tr key={task.id}>
                     <Td p={0} whiteSpace='nowrap' fontSize='sm'>{task.ordinalNum}</Td>
                     <Td>
