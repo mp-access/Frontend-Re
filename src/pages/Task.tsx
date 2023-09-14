@@ -62,7 +62,10 @@ export default function Task() {
   const commands: string[] = compact([task.testable && 'test', 'run', 'grade'])
   const isPrivileged = isAssistant && userId === user.email
   const getPath = (id: number) => `${id}/${user.email}/${submissionId}`
-  const getTemplate = (name: string) => find(task?.files, { name })?.template || ''
+  const getTemplate = (name: string) => {
+    if (!name.startsWith("/")) { name = "/" + name }
+    return find(task?.files, { path: name })?.template || ''
+  }
   const getUpdate = (file: TaskFileProps, submission?: WorkspaceProps) =>
       submission?.files?.find(s => s.taskFileId === file.id)?.content || file.latest || file.template
   const getContent = (file: TaskFileProps) => editor.getContent(getPath(file.id)) || file.latest || file.template
