@@ -25,14 +25,14 @@ const swap = (to: number) => (r: number) => ({ x: 200 * r * to, zIndex: 0, opaci
 
 export const SplitVertical = ({ children, ...props }: ComponentProps<any>) => {
   const size = useWindowSize()
-  const x = useMotionValue(300)
+  const x = useMotionValue(700)
   const width = useTransform(x, value => size[0] - 224 - value)
 
   return (
       <Flex w='full' pos='relative' overflow='hidden' {...props}>
-        <motion.div style={{ width: x, marginRight: 2 }} children={children[0]} />
+        <motion.div style={{ width: x, marginRight: 2, padding: 10 }} children={children[0]} />
         <MotionBox pos='absolute' zIndex={1} opacity={0} drag='x' dragMomentum={false} bg='purple.600' h='full' w={2}
-                   dragConstraints={{ left: 300, right: size[0] * 0.5 }} style={{ x }} cursor='col-resize'
+                   dragConstraints={{ left: 700, right: size[0] * 0.5 }} style={{ x }} cursor='col-resize'
                    key={JSON.stringify(size)} whileDrag={{ opacity: 0.18 }} whileHover={{ opacity: 0.13 }} />
         <motion.div style={{ width, display: 'flex', flexDirection: 'column', borderInlineWidth: 1 }}>
           {children[1]}

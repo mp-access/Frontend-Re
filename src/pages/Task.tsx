@@ -122,7 +122,7 @@ export default function Task() {
           </Modal>
         </ButtonGroup>
         <SplitVertical bg='base' borderTopWidth={1}>
-          <Stack h='full' spacing={0} overflow='hidden'>
+          <Stack h='full' spacing={0} overflow='hidden' >
             {isAssistant && <TaskController value={userId} defaultValue={user.email} onChange={setUserId} />}
             <Accordion display='flex' flexDir='column' flexGrow={1} overflow='hidden'
                        allowMultiple defaultIndex={[0, 1]}>
