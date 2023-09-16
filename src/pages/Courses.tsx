@@ -1,5 +1,5 @@
 import {
-  Button, Center, Divider, Flex, Grid, GridItem, Heading, HStack, Icon, Stack, Tag, TagLabel, TagLeftIcon, Text, VStack,
+  Button, Center, Container, Divider, Flex, Grid, GridItem, Heading, HStack, Icon, Stack, Tag, TagLabel, TagLeftIcon, Text, VStack,
   Wrap
 } from '@chakra-ui/react'
 import { useQuery } from '@tanstack/react-query'
@@ -57,7 +57,14 @@ export default function Courses() {
                     <ScoreBar value={course.points} max={course.maxPoints} />
                   </Stack>
                 </Flex>)}
-            {!courses.length && <Center boxSize='full' color='gray.500'>No courses found.</Center>}
+            {!courses.length &&
+            <Center boxSize='full' color='gray.500'>
+              <Stack>
+                <Container text-align='center'>No courses found.</Container>
+                <Container text-align='center' color='red'>Please try reloading this page if this is unexpected.</Container>
+              </Stack>
+            </Center>
+            }
           </Stack>
         </GridItem>
         {isCreator ?
