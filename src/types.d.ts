@@ -189,6 +189,8 @@ declare interface StudentProps {
   lastName: string;
   email: string;
   points: number;
+  registrationId?: string;
+  username?: string;
 }
 
 declare interface UserContext {

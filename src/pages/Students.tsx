@@ -13,6 +13,8 @@ export default function Students() {
         <Table maxW='container.sm'>
           <Thead>
             <Tr>
+              <Th>Registration ID</Th>
+              <Th>Username</Th>
               <Th>Last Name</Th>
               <Th>First Name</Th>
               <Th>Email</Th>
@@ -22,6 +24,8 @@ export default function Students() {
           <Tbody>
             {students.map(student =>
                 <Tr key={student.email}>
+                  <Td>{student.registrationId}</Td>
+                  <Td>{student.username}</Td>
                   <Td>{student.lastName}</Td>
                   <Td>{student.firstName}</Td>
                   <Td>{student.email}</Td>
