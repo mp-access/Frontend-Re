@@ -111,7 +111,7 @@ declare interface TaskFileProps {
   editable: boolean;
   binary: boolean;
   template: string;
-  latest: string;
+  content: string;
 }
 
 declare interface TaskInfo {

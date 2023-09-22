@@ -42,6 +42,9 @@ export default function Task() {
     setSubmissionId(0)
   }, [task?.slug, userId])
 
+  const getUpdate = (file: TaskFileProps, submission?: WorkspaceProps) =>
+      submission?.files?.find(s => s.taskFileId === file.id)?.content || file.template
+
   useEffect(() => {
     if (task && !currentFile) {
       const defaultFiles = task.files.filter(file => file.editable)
@@ -50,6 +53,15 @@ export default function Task() {
       setCurrentFile(defaultFiles[0])
     }
   }, [currentFile, task])
+
+  useEffect(() => {
+    if (task && task.submissions.length > 0) {
+      const submission = task.submissions[0]
+      const updatedFiles = editableFiles.map(file => ({ ...file, content: getUpdate(file, submission) }))
+      setOpenFiles(files => files.map(file => find(updatedFiles, { id: file.id }) || file))
+      setCurrentFile(file => file && find(updatedFiles, { id: file.id }))
+    }
+  }, [editableFiles])
 
   useEffect(() => {
     if (currentFile)
@@ -66,9 +78,7 @@ export default function Task() {
     if (!name.startsWith("/")) { name = "/" + name }
     return find(task?.files, { path: name })?.template || ''
   }
-  const getUpdate = (file: TaskFileProps, submission?: WorkspaceProps) =>
-      submission?.files?.find(s => s.taskFileId === file.id)?.content || file.latest || file.template
-  const getContent = (file: TaskFileProps) => editor.getContent(getPath(file.id)) || file.latest || file.template
+  const getContent = (file: TaskFileProps) => editor.getContent(getPath(file.id)) || file.template
   const onSubmit = (command: string) => () => submit({
     restricted: !isAssistant, command, files: editableFiles.map(f => ({ taskFileId: f.id, content: getContent(f) }))
   }).then(() => setCurrentTab(commands.indexOf(command))).then(onClose)
@@ -77,7 +87,7 @@ export default function Task() {
 
   const reload = (submission: SubmissionProps) => {
     toast({ title: 'Reloaded ' + submission.name, isClosable: true })
-    const updatedFiles = editableFiles.map(file => ({ ...file, latest: getUpdate(file, submission) }))
+    const updatedFiles = editableFiles.map(file => ({ ...file, content: getUpdate(file, submission) }))
     setOpenFiles(files => files.map(file => find(updatedFiles, { id: file.id }) || file))
     setCurrentFile(file => file && find(updatedFiles, { id: file.id }))
     setEditableFiles(updatedFiles)
@@ -86,8 +96,8 @@ export default function Task() {
 
   const reset = () => {
     toast({ title: 'Reset files to template', isClosable: true })
-    setOpenFiles(files => files.map(file => ({ ...file, latest: file.template })))
-    setCurrentFile(file => file && ({ ...file, latest: file.template }))
+    setOpenFiles(files => files.map(file => ({ ...file, content: file.template })))
+    setCurrentFile(file => file && ({ ...file, content: file.template }))
     setSubmissionId(-1)
   }
 
@@ -136,7 +146,7 @@ export default function Task() {
                   <Text>Instructions</Text>
                 </AccordionButton>
                 <AccordionPanel p={2} pr={0} overflowY='scroll' motionProps={{ style: { display: 'flex' } }}>
-                  <Markdown children={task.files.filter(file => file.path == `/${task.information["en"].instructionsFile}`)[0].template} transformImageUri={getTemplate} />
+                  <Markdown children={task.files.filter(file => file.path === `/${task.information["en"].instructionsFile}`)[0].template} transformImageUri={getTemplate} />
                 </AccordionPanel>
               </AccordionItem>
               <AccordionItem borderBottomColor='transparent' pos='relative'>
@@ -163,7 +173,7 @@ export default function Task() {
           <SplitHorizontal>
             <FileTabs id={currentFile.id} files={openFiles} onSelect={setCurrentFile} onReorder={setOpenFiles} />
             <Editor path={getPath(currentFile.id)} language={currentFile.language}
-                    defaultValue={currentFile.latest || currentFile.template}
+                    defaultValue={currentFile.content || currentFile.template}
                     options={{ minimap: { enabled: false }, readOnly: !currentFile.editable }} />
             <Center position='absolute' bottom={0} zIndex={currentFile.binary ? 2 : -2} bg='base'>
               {currentFile.binary && <Image src={currentFile.template} h='auto' />}
