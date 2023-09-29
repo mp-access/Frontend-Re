@@ -21,3 +21,8 @@ export function formatTaskCount(n: number): string {
   if (n === 1) { return "1 task" }
   else { return `${n} tasks` }
 }
+
+export function formatPoints(num: number): string {
+    const rounded = Math.round(num * 100) / 100;
+    return rounded === Math.floor(rounded) ? `${Math.floor(rounded)}` : rounded.toFixed(1);
+}

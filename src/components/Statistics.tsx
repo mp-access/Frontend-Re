@@ -4,6 +4,7 @@ import React from 'react'
 import {
   Area, AreaChart, Bar, BarChart, Cell, Label, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis
 } from 'recharts'
+import { formatPoints } from '../components/Util'
 
 const green = '#46dba4'
 const purple = '#9576ff'
@@ -44,7 +45,7 @@ export const ScorePie = ({ value = 0, max = 1 }) =>
              data={[{ value }, { value: (max || 1) - value }]}>
           <Cell key='cell-0' color={green} fill='currentColor' />
           <Cell key='cell-1' opacity={0.15} />
-          <Label value={`${value} / ${max}`} color='inherit' fill='currentColor' dy={-5} position='center' />
+          <Label value={`${formatPoints(value)} / ${formatPoints(max)}`} color='inherit' fill='currentColor' dy={-5} position='center' />
           <Label value={`${toPercent(value, max)}%`} color={green} fill='currentColor'
                  fontSize='80%' position='centerTop' dy={10} />
         </Pie>
@@ -95,7 +96,7 @@ export const HScores = ({ value = 0, max = 1, avg = 0 }) =>
 
 export const ScoreBar = ({ value = 0, max = 1, h = 10 }) =>
     <Stack align='end' justify='end' spacing={0}>
-      <Text textAlign='end' px={2} fontSize='sm'>{`${isNull(value) ? '?' : value} / ${max} Points`}</Text>
+      <Text textAlign='end' px={2} fontSize='sm'>{`${isNull(value) ? '?' : formatPoints(value)} / ${formatPoints(max)} Points`}</Text>
       <ResponsiveContainer height={h + 2}>
         <BarChart data={[{ value, name: 'Score' }]} margin={{}} barSize={h} layout='vertical'>
           <XAxis hide type='number' dataKey='value' domain={[0, max || 1]} />

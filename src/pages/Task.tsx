@@ -23,6 +23,7 @@ import { FcFile, FcInspection, FcTimeline, FcTodoList } from 'react-icons/fc'
 import { ActionButton, ActionTab, NextAttemptAt, TooltipIconButton } from '../components/Buttons'
 import { useCodeEditor, useTask } from '../components/Hooks'
 import { TaskController } from './Supervisor'
+import { formatPoints } from '../components/Util'
 
 export default function Task() {
   const editor = useCodeEditor()
