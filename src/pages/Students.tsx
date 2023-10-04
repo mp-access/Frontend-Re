@@ -9,7 +9,7 @@ export default function Students() {
   return (
     <VStack>
       <TableContainer p={8} my={4} layerStyle='segment'>
-        <Heading m={2} mt={0} fontSize='3xl'>Students</Heading>
+        <Heading m={2} mt={0} fontSize='3xl'>{students.length} Students</Heading>
         <Table maxW='container.sm'>
           <Thead>
             <Tr>
