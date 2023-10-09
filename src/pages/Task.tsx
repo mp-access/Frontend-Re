@@ -173,12 +173,16 @@ export default function Task() {
           </Stack>
           <SplitHorizontal>
             <FileTabs id={currentFile.id} files={openFiles} onSelect={setCurrentFile} onReorder={setOpenFiles} />
+            { currentFile.binary ||
             <Editor path={getPath(currentFile.id)} language={currentFile.language}
                     defaultValue={currentFile.content || currentFile.template}
                     options={{ minimap: { enabled: false }, readOnly: !currentFile.editable }} />
-            <Center position='absolute' bottom={0} zIndex={currentFile.binary ? 2 : -2} bg='base'>
-              {currentFile.binary && <Image src={currentFile.template} h='auto' />}
+            }
+            { currentFile.binary &&
+            <Center position='absolute' top={0} zIndex={currentFile.binary ? 1 : -2} bg='base'>
+              {<Image src={currentFile.template} h='auto' w='auto' />}
             </Center>
+            }
             <Tabs display='flex' flexDir='column' flexGrow={1} colorScheme='purple'
                   borderTopWidth={1} index={currentTab} onChange={setCurrentTab}>
               <TabList overflow='hidden'>
