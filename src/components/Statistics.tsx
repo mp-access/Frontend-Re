@@ -84,12 +84,11 @@ export const ScoresPie = ({ value = 0, max = 1, avg = 0 }) =>
 
 export const HScores = ({ value = 0, max = 1, avg = 0 }) =>
     <ResponsiveContainer minHeight={50}>
-      <BarChart data={[{ value, name: 'Me' }, { value: avg, name: 'Avg.' }]} barSize={10} layout='vertical'>
+      <BarChart data={[{ value, name: 'Points' }]} barSize={10} layout='vertical'>
         <XAxis hide type='number' dataKey='value' domain={[0, max || 1]} />
         <YAxis axisLine={false} tickLine={false} interval={0} fontSize='small' type='category' dataKey='name' />
         <Bar dataKey='value' minPointSize={5} shape={RoundBar}>
           <Cell key='cell-0' color={green} />
-          <Cell key='cell-1' color={purple} />
         </Bar>
       </BarChart>
     </ResponsiveContainer>

@@ -70,7 +70,7 @@ export default function Assignment() {
                     </Td> || <Td>submission closed</Td>
                     }
                     <Td w='xs'>
-                      <HScores value={task.points} max={task.maxPoints} avg={task.avgPoints} />
+                      <HScores value={task.points} max={task.maxPoints} />
                     </Td>
                     <Td>
                       <Button w='full' as={Link} to={`tasks/${task.slug}`}>
