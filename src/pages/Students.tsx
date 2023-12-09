@@ -1,9 +1,9 @@
 import { Center, Heading, Table, TableCaption, TableContainer, Tbody, Td, Th, Thead, Tr, VStack } from '@chakra-ui/react'
 import React from 'react'
-import { useStudents } from '../components/Hooks'
+import { useStudentPoints } from '../components/Hooks'
 
 export default function Students() {
-  const { data: students } = useStudents()
+  const { data: students } = useStudentPoints()
   if (!students)
     return <></>
   return (

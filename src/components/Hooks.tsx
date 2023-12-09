@@ -65,6 +65,12 @@ export const useStudents = () => {
   return useQuery<StudentProps[]>(['courses', courseSlug, 'students'], { enabled: !!courseSlug })
 }
 
+export const useStudentPoints = () => {
+  const { courseSlug } = useParams()
+  return useQuery<StudentProps[]>(['courses', courseSlug, 'studentPoints'], { enabled: !!courseSlug })
+}
+
+
 export const useImport = () => {
   const { courseSlug } = useParams()
   const { mutateAsync, isLoading } = useMutation<string, object, any[]>(['import', courseSlug])
