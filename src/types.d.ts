@@ -101,6 +101,7 @@ declare interface TaskProps extends TaskOverview {
   files: Array<TaskFileProps>;
   submissions: Array<SubmissionProps>;
   nextAttemptAt: string;
+  deadline: string;
 }
 
 declare interface TaskFileProps {

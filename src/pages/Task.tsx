@@ -110,7 +110,7 @@ export default function Task() {
             <ActionButton name='Test' color='gray.600' isLoading={!!timer} onClick={onSubmit('test')} />}
           <ActionButton name='Run' color='gray.600' isLoading={!!timer} onClick={onSubmit('run')} />
           <Button colorScheme='green' leftIcon={<FcInspection />} onClick={onOpen} children='Submit'
-                  isDisabled={!!timer || (!isAssistant && (task.remainingAttempts <= 0 || !task.active))} />
+                  isDisabled={!!timer || (!isAssistant && (task.remainingAttempts <= 0))} />
           <Modal size='sm' isOpen={isOpen} onClose={onClose} isCentered closeOnOverlayClick={!timer}>
             <ModalOverlay />
             <ModalContent>
@@ -213,22 +213,20 @@ export default function Task() {
           <Stack pos='sticky' minW='3xs' h='full' spacing={0}>
             {!isPrivileged && task.remainingAttempts <= 0 && task.nextAttemptAt &&
               <NextAttemptAt date={task.nextAttemptAt} onComplete={refill} />}
-            <SimpleGrid columns={task.active ? 2 : 1} w='full' fontSize='sm'>
+            <SimpleGrid columns={2} w='full' fontSize='sm'>
               <VStack borderRightWidth={1} spacing={0} h={32} pb={2}>
                 <ScorePie value={task.points} max={task.maxPoints} />
-                <Tag size='sm' colorScheme='purple' fontWeight={400} bg='purple.50'>Best Score</Tag>
+                <Tag size='sm' colorScheme='purple' fontWeight={400} bg='purple.50'>Score</Tag>
               </VStack>
-              {task.active &&
-                <VStack h={32} p={2}>
-                  <SimpleGrid columns={Math.min(task.maxAttempts, 5)} gap={1} flexGrow={1} alignItems='center'>
-                    {range(Math.min(task.maxAttempts, 10)).map(i =>
-                        <Center key={i} rounded='full' boxSize={4} borderWidth={2} borderColor='purple.400'
-                                bg={(isPrivileged || i < task.remainingAttempts) ? 'gradients.500' : 'transparent'} />)}
-                  </SimpleGrid>
-                  <Text fontSize='lg'><b>{isPrivileged ? '∞' : task.remainingAttempts}</b> / {task.maxAttempts}</Text>
-                  <Tag size='sm' colorScheme='purple' fontWeight={400} bg='purple.50'>Submissions</Tag>
-                </VStack>
-              }
+              <VStack h={32} p={2}>
+                <SimpleGrid columns={Math.min(task.maxAttempts, 5)} gap={1} flexGrow={1} alignItems='center'>
+                  {range(Math.min(task.maxAttempts, 10)).map(i =>
+                      <Center key={i} rounded='full' boxSize={4} borderWidth={2} borderColor='purple.400'
+                              bg={(isPrivileged || i < task.remainingAttempts) ? 'gradients.500' : 'transparent'} />)}
+                </SimpleGrid>
+                <Text fontSize='lg'><b>{isPrivileged ? '∞' : task.remainingAttempts}</b> / {task.maxAttempts}</Text>
+                <Tag size='sm' colorScheme='purple' fontWeight={400} bg='purple.50'>Submissions</Tag>
+              </VStack>
             </SimpleGrid>
             <Accordion allowMultiple defaultIndex={[0]} overflow='hidden' flexGrow={1}>
               <AccordionItem boxSize='full'>
@@ -251,7 +249,8 @@ export default function Task() {
                           <Text fontSize='2xs'>
                             {format(parseISO(submission.createdAt), 'dd.MM.yyyy HH:mm')}
                           </Text>
-                          {!submission.valid && <Badge colorScheme='red'>Not valid</Badge>}
+                          {!submission.valid && <Badge colorScheme='red' mr={1}>Invalid</Badge>}
+                          {submission.createdAt > task.deadline  && <Badge colorScheme='purple' mr={1}>Late</Badge>}
                         </Box>
                         <ButtonGroup size='sm' variant='ghost' spacing={1}>
                           <Popover placement='left'>
