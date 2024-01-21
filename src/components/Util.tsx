@@ -28,7 +28,7 @@ export function formatPoints(num: number): string {
 }
 
 export function detectType(fileName: string): string | undefined {
-    const extension = fileName.split('.').pop();
+    const extension = fileName.split('.').pop()?.toLowerCase();
 
     switch (extension) {
         case 'py':
@@ -42,4 +42,12 @@ export function detectType(fileName: string): string | undefined {
         default:
             return undefined;
     }
+}
+
+export function createDownloadHref(file: PersistentResultFileProps): string {
+  if (file.binary) {
+    return `data:${file.mimeType};base64,${file.contentBinary}`;
+  } else {
+    return `data:text/plain;charset=utf-8,${encodeURIComponent(file.content)}`;
+  }
 }

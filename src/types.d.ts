@@ -164,6 +164,7 @@ declare interface SubmissionProps {
   maxPoints: number;
   output: string;
   files: Array<SubmissionFileProps>;
+  persistentResultFiles: Array<PersistenResultFileProps>;
 }
 
 declare interface NewSubmissionProps {
@@ -179,6 +180,16 @@ declare interface SubmissionFileProps {
   content: string;
   taskFileId: number;
 }
+
+declare interface PersistentResultFileProps {
+  id: number;
+  path: string;
+  mimeType: string;
+  content: string;
+  contentBinary: string;
+  binary: boolean;
+}
+
 
 declare interface TimerProps {
   name: string;

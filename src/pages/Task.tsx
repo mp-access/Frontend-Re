@@ -23,7 +23,7 @@ import { FcFile, FcInspection, FcTimeline, FcTodoList } from 'react-icons/fc'
 import { ActionButton, ActionTab, NextAttemptAt, TooltipIconButton } from '../components/Buttons'
 import { useCodeEditor, useTask } from '../components/Hooks'
 import { TaskController } from './Supervisor'
-import { formatPoints, detectType } from '../components/Util'
+import { formatPoints, detectType, createDownloadHref } from '../components/Util'
 
 export default function Task() {
   const editor = useCodeEditor()
@@ -207,6 +207,32 @@ export default function Task() {
                                 {submission.output || 'No output'}
                               </Code>
                             </HStack>
+                            { submission.persistentResultFiles.map( file =>
+                            <HStack align='start'>
+                              <Code color='orange.300'>{'-'}</Code>
+                                <VStack align='start' spacing={0}>
+                                  <React.Fragment key={file.path}>
+                                  <Code whiteSpace='pre-wrap'>File <a
+                                                     href={createDownloadHref(file)}
+                                                     download={file.path.split('/').pop()}
+                                                     style={{ color: 'purple', textDecoration: 'underline' }}>{file.path}</a>:</Code>
+                                  {file.binary && (
+                                    (() => {
+                                      switch (detectType(file.path)) {
+                                        case 'jpg':
+                                        case 'png':
+                                          return <Image src={`data:${file.mimeType};base64,${file.contentBinary}`} h='auto' w='auto' />;
+                                        default:
+                                          return <Code>Cannot render inline, download by clicking on the filename above</Code>;
+                                      }
+                                    })()
+                                  ) || (
+                                    <Code whiteSpace='pre-wrap'>{file.content}</Code>
+                                  )}
+                                  </React.Fragment>
+                                </VStack>
+                            </HStack>
+                            )}
                           </Box>)}
                     </TabPanel>)}
               </TabPanels>
