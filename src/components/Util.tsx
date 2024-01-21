@@ -26,3 +26,20 @@ export function formatPoints(num: number): string {
     const rounded = Math.round(num * 100) / 100;
     return rounded === Math.floor(rounded) ? `${Math.floor(rounded)}` : rounded.toFixed(1);
 }
+
+export function detectType(fileName: string): string | undefined {
+    const extension = fileName.split('.').pop();
+
+    switch (extension) {
+        case 'py':
+            return 'python';
+        case 'r':
+            return 'r';
+        case 'png':
+            return 'png'
+        case 'md':
+            return 'md';
+        default:
+            return undefined;
+    }
+}

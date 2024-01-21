@@ -23,7 +23,7 @@ import { FcFile, FcInspection, FcTimeline, FcTodoList } from 'react-icons/fc'
 import { ActionButton, ActionTab, NextAttemptAt, TooltipIconButton } from '../components/Buttons'
 import { useCodeEditor, useTask } from '../components/Hooks'
 import { TaskController } from './Supervisor'
-import { formatPoints } from '../components/Util'
+import { formatPoints, detectType } from '../components/Util'
 
 export default function Task() {
   const editor = useCodeEditor()
@@ -77,7 +77,9 @@ export default function Task() {
   const getPath = (id: number) => `${id}/${user.email}/${submissionId}`
   const getTemplate = (name: string) => {
     if (!name.startsWith("/")) { name = "/" + name }
-    return find(task?.files, { path: name })?.template || ''
+    const file = find(task?.files, { path: name })
+    if (!file) return ''
+    return `data:${file.mimeType};base64,` + file.templateBinary
   }
   const getContent = (file: TaskFileProps) => editor.getContent(getPath(file.id)) || file.template
   const onSubmit = (command: string) => () => submit({
@@ -174,13 +176,13 @@ export default function Task() {
           <SplitHorizontal>
             <FileTabs id={currentFile.id} files={openFiles} onSelect={setCurrentFile} onReorder={setOpenFiles} />
             { currentFile.binary ||
-            <Editor path={getPath(currentFile.id)} language={currentFile.language}
+            <Editor path={getPath(currentFile.id)} language={detectType(currentFile.name)}
                     defaultValue={currentFile.content || currentFile.template}
                     options={{ minimap: { enabled: false }, readOnly: !currentFile.editable }} />
             }
             { currentFile.binary &&
             <Center position='absolute' top={0} zIndex={currentFile.binary ? 1 : -2} bg='base'>
-              {<Image src={currentFile.template} h='auto' w='auto' />}
+              {<Image src={`data:${currentFile.mimeType};base64,` + currentFile.templateBinary} h='auto' w='auto' />}
             </Center>
             }
             <Tabs display='flex' flexDir='column' flexGrow={1} colorScheme='purple'

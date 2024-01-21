@@ -108,10 +108,11 @@ declare interface TaskFileProps {
   id: number;
   path: string;
   name: string;
-  language: string;
+  mimeType: string;
   editable: boolean;
   binary: boolean;
   template: string;
+  templateBinary: string;
   content: string;
 }
 
@@ -144,7 +145,7 @@ declare interface TemplateFileProps {
   id: number;
   path: string;
   name: string;
-  language: string;
+  mimeType: string;
   image: boolean;
   content: string;
   link: string;

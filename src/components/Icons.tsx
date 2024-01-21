@@ -18,9 +18,15 @@ export const SWITCHIcon = SWITCH
 export const GitHubIcon = GitHub
 
 const icons: Record<string, any> =
-    { 'Test': Test, 'Run': Run, 'python': Python, 'r': R, 'folder-false': Folder, 'folder-true': FolderOpen }
+    { 'Test': Test, 
+      'Run': Run, 
+      'python': Python, 
+      'r': R, 
+      'md': File,
+      'folder-false': Folder, 
+      'folder-true': FolderOpen }
 
-export const LanugageIcon = ({ name = '', ...props }: IconProps) => <Icon as={icons[name] || File} {...props} />
+export const LanguageIcon = ({ name = '', ...props }: IconProps) => <Icon as={icons[name] || File} {...props} />
 
 export const NodeIcon = ({ name = '', ...props }: IconProps) => <Icon as={icons[name] || File} {...props} />
 
