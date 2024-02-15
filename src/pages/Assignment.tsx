@@ -11,8 +11,11 @@ import { Counter } from '../components/Buttons'
 import { HScores, TimeCountDown } from '../components/Statistics'
 import { useAssignment } from '../components/Hooks'
 import { formatDate, formatDateRange } from '../components/Util'
+import { useTranslation } from "react-i18next";
 
 export default function Assignment() {
+  const { i18n, t } = useTranslation()
+  const currentLanguage = i18n.language
   const { isAssistant } = useOutletContext<UserContext>()
   const { data: assignment } = useAssignment()
 
@@ -24,16 +27,16 @@ export default function Assignment() {
         <Stack layerStyle='segment'>
           <Flex justify='space-between'>
             <Box>
-              <Text>ASSIGNMENT {assignment.ordinalNum}</Text>
-              <Heading>{assignment.information["en"].title}</Heading>
+              <Text>{t('Assignment')} {assignment.ordinalNum}</Text>
+              <Heading>{assignment.information[currentLanguage]?.title || assignment.information["en"].title}</Heading>
               <Wrap my={2}>
-                <Tag>{assignment.tasks.length} Tasks</Tag>
+                <Tag>{t("task", {count: assignment.tasks.length})}</Tag>
                 <Tag>
                   <TagLeftIcon as={AiOutlineCalendar} />
                   <TagLabel>{formatDateRange(assignment.start, assignment.end)}</TagLabel>
                 </Tag>
                 <Tag colorScheme={assignment.active ? 'green' : 'purple'}>
-                  Submission {assignment.active ? 'Open' : 'Closed'}
+                  {assignment.active ? t('Submission Open') : t('Submission Closed')}
                 </Tag>
               </Wrap>
             </Box>
@@ -45,7 +48,7 @@ export default function Assignment() {
         <TableContainer layerStyle='segment'>
           <HStack>
             <Icon as={FcTodoList} boxSize={6} />
-            <Heading fontSize='2xl'>Tasks</Heading>
+            <Heading fontSize='2xl'>{t("Tasks")}</Heading>
             <Counter>{assignment.tasks.length}</Counter>
           </HStack>
           <Divider borderColor='gray.300' my={4} />
@@ -55,7 +58,7 @@ export default function Assignment() {
                   <Tr key={task.id}>
                     <Td p={0} whiteSpace='nowrap' fontSize='sm'>{task.ordinalNum}</Td>
                     <Td>
-                      <Heading fontSize='lg'>{task.information["en"].title}</Heading>
+                      <Heading fontSize='lg'>{task.information[currentLanguage]?.title || task.information["en"].title}</Heading>
                     </Td>
                     {assignment.active &&
                     <Td>
@@ -65,16 +68,16 @@ export default function Assignment() {
                                     bg={(isAssistant || i < task.remainingAttempts) ? 'purple.500' : 'transparent'} />)}
                       </SimpleGrid>
                       <Text fontSize='sm'>
-                        <b>{isAssistant ? '∞' : task.remainingAttempts}</b> / {task.maxAttempts} Submissions left
+                        {t("Submissions left", {count: (isAssistant ? 99 : task.remainingAttempts), max: task.maxAttempts})}
                       </Text>
-                    </Td> || <Td>submission closed</Td>
+                    </Td> || <Td>{t("Submission Closed")}</Td>
                     }
                     <Td w='xs'>
                       <HScores value={task.points} max={task.maxPoints} />
                     </Td>
                     <Td>
                       <Button w='full' as={Link} to={`tasks/${task.slug}`}>
-                      View
+                      {t("View")}
                       </Button>
                     </Td>
                   </Tr>)}

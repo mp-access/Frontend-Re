@@ -5,6 +5,7 @@ import {
   Area, AreaChart, Bar, BarChart, Cell, Label, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis
 } from 'recharts'
 import { formatPoints } from '../components/Util'
+import { useTranslation } from "react-i18next"
 
 const green = '#46dba4'
 const purple = '#9576ff'
@@ -19,7 +20,9 @@ const RoundBar = ({ x, y, height, width, background, color }: any) =>
       <rect x={x} y={y} height={height} width={width} color={color} fill='currentColor' />
     </g>
 
-const TimeCount = ({ current, max, name }: TimerProps) =>
+const TimeCount = ({ current, max, name }: TimerProps) => {
+  const { t } = useTranslation();
+  return (
     <ResponsiveContainer>
       <PieChart height={120} width={100}>
         <Pie data={[{ current }, { current: max - current }]} dataKey='current' innerRadius='80%' outerRadius='100%'
@@ -27,10 +30,12 @@ const TimeCount = ({ current, max, name }: TimerProps) =>
           <Cell key='cell-0' color={green} fill='currentColor' />
           <Cell key='cell-1' opacity={0.15} />
           <Label value={current} color={green} fill='currentColor' fontWeight={600} position='center' />
-          <Label value={name} opacity={0.7} fontSize='75%' position='bottom' dy={12} />
+          <Label value={t(name).toUpperCase()} opacity={0.7} fontSize='75%' position='bottom' dy={12} />
         </Pie>
       </PieChart>
     </ResponsiveContainer>
+  )
+}
 
 export const TimeCountDown = ({ values }: TimeCounterProps) =>
     <SimpleGrid h={16} w={40} columns={3}>
@@ -82,9 +87,11 @@ export const ScoresPie = ({ value = 0, max = 1, avg = 0 }) =>
       </PieChart>
     </ResponsiveContainer>
 
-export const HScores = ({ value = 0, max = 1, avg = 0 }) =>
+export const HScores = ({ value = 0, max = 1, avg = 0 }) => {
+  const { t } = useTranslation();
+  return (
     <ResponsiveContainer minHeight={50}>
-      <BarChart data={[{ value, name: 'Score' }]} barSize={10} layout='vertical'>
+      <BarChart data={[{ value, name: t('Score') }]} barSize={10} layout='vertical'>
         <XAxis hide type='number' dataKey='value' domain={[0, max || 1]} />
         <YAxis axisLine={false} tickLine={false} interval={0} fontSize='small' type='category' dataKey='name' />
         <Bar dataKey='value' minPointSize={5} shape={RoundBar}>
@@ -92,16 +99,22 @@ export const HScores = ({ value = 0, max = 1, avg = 0 }) =>
         </Bar>
       </BarChart>
     </ResponsiveContainer>
+  )
+}
 
-export const ScoreBar = ({ value = 0, max = 1, h = 10 }) =>
+export const ScoreBar = ({ value = 0, max = 1, h = 10 }) => {
+  const { t } = useTranslation();
+  return (
     <Stack align='end' justify='end' spacing={0}>
-      <Text textAlign='end' px={2} fontSize='sm'>{`Score ${isNull(value) ? '?' : formatPoints(value)} / ${formatPoints(max)}`}</Text>
+      <Text textAlign='end' px={2} fontSize='sm'>{`${t("Score")} ${isNull(value) ? '?' : formatPoints(value)} / ${formatPoints(max)}`}</Text>
       <ResponsiveContainer height={h + 2}>
-        <BarChart data={[{ value, name: 'Score' }]} margin={{}} barSize={h} layout='vertical'>
+        <BarChart data={[{ value, name: t("Score") }]} margin={{}} barSize={h} layout='vertical'>
           <XAxis hide type='number' dataKey='value' domain={[0, max || 1]} />
           <YAxis hide type='category' dataKey='name' />
           <Bar dataKey='value' color={green} shape={RoundBar} />
         </BarChart>
       </ResponsiveContainer>
     </Stack>
+  )
+}
 

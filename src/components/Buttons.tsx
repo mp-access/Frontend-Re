@@ -14,6 +14,7 @@ import Dropzone from 'react-dropzone'
 import { useImport } from './Hooks'
 import { flatMap, get, keys } from 'lodash'
 import Countdown, { CountdownProps } from 'react-countdown'
+import { useTranslation } from "react-i18next"
 
 const transitionStyle = { repeat: Infinity, repeatDelay: .7, duration: .5, ease: 'easeInOut' }
 type SaveButtonProps = ButtonProps & { formState: FormState<any> }
@@ -69,11 +70,13 @@ export const ActionButton = ({ name, ...props }: ButtonProps) =>
 export const ActionTab = ({ name }: TabProps) =>
     <HStack>{ActionIcon({ name })}<Text>{name}</Text></HStack>
 
-export const EventBox = ({ selected, events }: EventBoxProps) =>
+export const EventBox = ({ selected, events }: EventBoxProps) => {
+  const { t } = useTranslation();
+  return (
     <Stack p={2}>
-      <HStack><FcCalendar /><Text fontWeight={500}>Events Today</Text></HStack>
+      <HStack><FcCalendar /><Text fontWeight={500}>{t('Events Today')}</Text></HStack>
       <Stack h={12} pos='relative' spacing={0}>
-        <Text pos='absolute' top={0} left={5} fontSize='sm' color='blackAlpha.500'>No events planned.</Text>
+        <Text pos='absolute' top={0} left={5} fontSize='sm' color='blackAlpha.500'>{t("No events planned")}.</Text>
         {flatMap(keys(events), key => get(events, [key, selected])?.map(a =>
             <HStack key={a.ordinalNum} rounded='lg' justify='space-between' pb={2} bg='base' zIndex={1}>
               <Flex>
@@ -84,6 +87,8 @@ export const EventBox = ({ selected, events }: EventBoxProps) =>
             </HStack>))}
       </Stack>
     </Stack>
+  )
+}
 
 export const RankingInfo = () =>
     <Tooltip placement='bottom-end' label={'Ranking is based on your course score and reflects the results of all ' +

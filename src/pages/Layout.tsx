@@ -11,8 +11,11 @@ import { LogoButton } from '../components/Buttons'
 import { useAssignment, useCourse } from '../components/Hooks'
 import { compact, join } from 'lodash'
 import { Placeholder } from '../components/Panels'
+import { LanguageSwitcher } from '../components/LanguageSwitcher'
+import { useTranslation } from "react-i18next"
 
 export default function Layout() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { keycloak } = useKeycloak()
   const { courseSlug } = useParams()
@@ -43,15 +46,18 @@ export default function Layout() {
             <LogoButton />
             {courseSlug && <CourseNav />}
           </HStack>
-          <Menu>
-            <MenuButton as={Avatar} bg='purple.200' boxSize={10} _hover={{ boxShadow: 'lg' }} cursor='pointer' mx={2} />
-            <MenuList minW={40}>
-              <MenuGroup title={`${context.user?.name} (${context.user?.email})`}>
-                <MenuItem icon={<AiOutlineLogout fontSize='120%' />} children='Logout'
-                          onClick={() => keycloak.logout({ redirectUri: window.location.origin })} />
-              </MenuGroup>
-            </MenuList>
-          </Menu>
+          <HStack>
+            <LanguageSwitcher />
+            <Menu>
+              <MenuButton as={Avatar} bg='purple.200' boxSize={10} _hover={{ boxShadow: 'lg' }} cursor='pointer' mx={2} />
+              <MenuList minW={40}>
+                <MenuGroup title={`${context.user?.name} (${context.user?.email})`}>
+                  <MenuItem icon={<AiOutlineLogout fontSize='120%' />} children={t("Logout")}
+                            onClick={() => keycloak.logout({ redirectUri: window.location.origin })} />
+                </MenuGroup>
+              </MenuList>
+            </Menu>
+          </HStack>
         </GridItem>
         <GridItem overflow='auto' w='100vw'>
           <Outlet context={context} />
@@ -61,6 +67,8 @@ export default function Layout() {
 }
 
 function CourseNav() {
+  const { i18n, t } = useTranslation()
+  const currentLanguage = i18n.language
   const matches = useMatches()
   const { courseSlug, taskSlug } = useParams()
   const { data: course } = useCourse()
@@ -70,12 +78,12 @@ function CourseNav() {
   if (!course)
     return <></>
 
-  const toNav = (h: any) => join(compact([h, h === 'Assignment' && assignment?.ordinalNum]), ' ')
+  const toNav = (h: any) => join(compact([h, h === t('Assignment') && assignment?.ordinalNum]), ' ')
 
   return (
       <Breadcrumb layerStyle='float' separator={<ChevronRightIcon color='gray.500' />} pr={3}>
         <BreadcrumbItem>
-          <Button as={Link} to={`/courses/${courseSlug}`} variant='gradient' children={course.information["en"].title} />
+          <Button as={Link} to={`/courses/${courseSlug}`} variant='gradient' children={course.information[currentLanguage]?.title || course.information["en"].title} />
         </BreadcrumbItem>
         {matches.filter(match => match.handle).map(match =>
             <BreadcrumbItem key={match.id}>

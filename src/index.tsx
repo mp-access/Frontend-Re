@@ -26,6 +26,9 @@ import Task from './pages/Task'
 import theme from './Theme'
 import Layout from './pages/Layout'
 import Contact from './pages/Contact'
+import i18n from "i18next"
+import { useTranslation, initReactI18next } from "react-i18next"
+import HttpBackend from 'i18next-http-backend'
 
 const authClient = new Keycloak({
   url: process.env.REACT_APP_AUTH_SERVER_URL || window.location.origin + ':8443',
@@ -37,7 +40,27 @@ axios.defaults.baseURL = '/api/'
 axios.interceptors.response.use(response => response.data)
 const setAuthToken = (token?: string) => axios.defaults.headers.common = { 'Authorization': token && `Bearer ${token}` }
 
+const getDefaultLanguage = () => {
+  const storedLang = localStorage.getItem('language');
+  return storedLang || 'en'
+};
+
+i18n
+  .use(HttpBackend)
+  .use(initReactI18next)
+  .init({
+    backend: {
+      loadPath: '/locales/{{lng}}/{{ns}}.json',
+    },
+    lng: getDefaultLanguage(),
+    fallbackLng: "en",
+    interpolation: {
+      escapeValue: false
+    }
+  });
+
 function App() {
+  const { t } = useTranslation()
   const toast = useToast()
   const onError = (error: any) => toast({ title: error?.response?.data?.message || 'Error', status: 'error' })
   const toURL = (...path: any[]) => join(compact(flattenDeep(path)), '/')
@@ -62,7 +85,7 @@ function App() {
               {
                 path: 'assignments', children: [
                   {
-                    path: ':assignmentSlug', handle: 'Assignment', children: [
+                    path: ':assignmentSlug', handle: t('Assignment'), children: [
                       { index: true, element: <Assignment /> },
                       { path: 'tasks/:taskSlug', handle: 'Task', element: <Task /> }
                     ]

@@ -1,4 +1,5 @@
 import { format, parseISO } from 'date-fns';
+import { useTranslation } from "react-i18next"
 
 export function formatDateRange(startDate: string, endDate: string): string {
   const parsedStartDate = parseISO(startDate);
@@ -15,11 +16,6 @@ export function formatDate(date: string): string {
   const formattedDate = format(parsedDate, 'dd-MM-yyyy');
 
   return formattedDate;
-}
-
-export function formatTaskCount(n: number): string {
-  if (n === 1) { return "1 task" }
-  else { return `${n} tasks` }
 }
 
 export function formatPoints(num: number): string {

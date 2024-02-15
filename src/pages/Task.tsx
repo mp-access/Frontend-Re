@@ -24,8 +24,11 @@ import { ActionButton, ActionTab, NextAttemptAt, TooltipIconButton } from '../co
 import { useCodeEditor, useTask } from '../components/Hooks'
 import { TaskController } from './Supervisor'
 import { formatPoints, detectType, createDownloadHref } from '../components/Util'
+import { useTranslation } from 'react-i18next'
 
 export default function Task() {
+  const { i18n, t } = useTranslation()
+  const currentLanguage = i18n.language
   const editor = useCodeEditor()
   const toast = useToast()
   const { isOpen, onOpen, onClose } = useDisclosure()
@@ -88,8 +91,18 @@ export default function Task() {
 
   const refill = () => toast({ title: '+1 attempt! Refreshing...', duration: 3000, onCloseComplete: refetch })
 
+  const submissionName = (command: string, ordinalNum: number) => {
+    const commandMap = {
+      grade: "Submission_n",
+      test: "Test_n",
+      run: "Run_n",
+    }
+    return t(commandMap[command as keyof typeof commandMap], {ordinalNum: ordinalNum})
+  }
+
+
   const reload = (submission: SubmissionProps) => {
-    toast({ title: 'Reloaded ' + submission.name, isClosable: true })
+    toast({ title: 'Reloaded ' + submissionName(submission.command, submission.ordinalNum), isClosable: true })
     const updatedFiles = editableFiles.map(file => ({ ...file, content: getUpdate(file, submission) }))
     setOpenFiles(files => files.map(file => find(updatedFiles, { id: file.id }) || file))
     setCurrentFile(file => file && find(updatedFiles, { id: file.id }))
@@ -104,33 +117,35 @@ export default function Task() {
     setSubmissionId(-1)
   }
 
+  const instructionFile = task.information[currentLanguage]?.instructionsFile || task.information["en"].instructionsFile;
+  const instructionsContent = task.files.filter(file => file.path === `/${instructionFile}`)[0]?.template;
 
   return (
       <Flex boxSize='full'>
-        <ButtonGroup layerStyle='float' pos='absolute' variant='ghost' top={2} right={20} isAttached zIndex={2}>
+        <ButtonGroup layerStyle='float' pos='absolute' variant='ghost' top={2} right={210} isAttached zIndex={2}>
           {task.testable &&
             <ActionButton name='Test' color='gray.600' isLoading={!!timer} onClick={onSubmit('test')} />}
           <ActionButton name='Run' color='gray.600' isLoading={!!timer} onClick={onSubmit('run')} />
-          <Button colorScheme='green' leftIcon={<FcInspection />} onClick={onOpen} children='Submit'
+          <Button colorScheme='green' leftIcon={<FcInspection />} onClick={onOpen} children={t("Submit")}
                   isDisabled={!!timer || (!isAssistant && (task.remainingAttempts <= 0))} />
           <Modal size='sm' isOpen={isOpen} onClose={onClose} isCentered closeOnOverlayClick={!timer}>
             <ModalOverlay />
             <ModalContent>
               <ModalHeader>
-                <Text textAlign='center' color='purple.600'>Confirm Submission</Text>
+                <Text textAlign='center' color='purple.600'>{t("Confirm submission")}</Text>
                 <ModalCloseButton />
               </ModalHeader>
               <ModalBody>
                 <VStack p={3} justify='space-between' fontSize='lg'>
-                  <Text textAlign='center'>Are you sure you want to submit?</Text>
+                  <Text textAlign='center'>{t("Are you sure you want to submit")}?</Text>
                   <Flex h={10}>
                     {!!timer &&
                       <Countdown date={timer} daysInHours renderer={({ formatted }) =>
                           <Text>Time Remaining: <b>{formatted.minutes}:{formatted.seconds}</b></Text>} />}
                   </Flex>
                   <ButtonGroup>
-                    <Button isLoading={!!timer} onClick={onClose} variant='outline' children='Cancel' />
-                    <Button isLoading={!!timer} onClick={onSubmit('grade')} children='Submit' />
+                    <Button isLoading={!!timer} onClick={onClose} variant='outline' children={t("Cancel")} />
+                    <Button isLoading={!!timer} onClick={onSubmit('grade')} children={t("Submit")} />
                   </ButtonGroup>
                 </VStack>
               </ModalBody>
@@ -146,17 +161,17 @@ export default function Task() {
                 <AccordionButton>
                   <AccordionIcon />
                   <FcTodoList />
-                  <Text>Instructions</Text>
+                  <Text>{t("Instructions")}</Text>
                 </AccordionButton>
                 <AccordionPanel p={2} pr={0} overflowY='scroll' motionProps={{ style: { display: 'flex' } }}>
-                  <Markdown children={task.files.filter(file => file.path === `/${task.information["en"].instructionsFile}`)[0].template} transformImageUri={getTemplate} />
+                  <Markdown children={instructionsContent} transformImageUri={getTemplate} />
                 </AccordionPanel>
               </AccordionItem>
               <AccordionItem borderBottomColor='transparent' pos='relative'>
                 <AccordionButton>
                   <AccordionIcon />
                   <FcFile />
-                  <Text>Files</Text>
+                  <Text>{t("Files")}</Text>
                 </AccordionButton>
                 <ButtonGroup variant='ghost' size='sm' colorScheme='blackAlpha' pos='absolute' right={3} top={1}>
                   <IconButton icon={<Icon as={HiDownload} boxSize={5} />} aria-label='download' onClick={() => {
@@ -190,7 +205,7 @@ export default function Task() {
               <TabList overflow='hidden'>
                 {task.testable && <Tab><ActionTab name='Test' /></Tab>}
                 <Tab><ActionTab name='Run' /></Tab>
-                <Tab><HStack><FcInspection /><Text>Submit</Text></HStack></Tab>
+                <Tab><HStack><FcInspection /><Text>{t("Submit")}</Text></HStack></Tab>
               </TabList>
               <TabPanels flexGrow={1} pos='relative'>
                 {commands.map(command =>
@@ -199,7 +214,7 @@ export default function Task() {
                           <Box key={submission.id}>
                             <HStack align='start'>
                               <Code color='orange.300'>{'>'}</Code>
-                              <Code fontWeight={700} whiteSpace='pre-wrap'>{submission.name}</Code>
+                              <Code fontWeight={700} whiteSpace='pre-wrap'>{submissionName(submission.command, submission.ordinalNum)}</Code>
                             </HStack>
                             <HStack align='start'>
                               <Code color='orange.300'>$</Code>
@@ -244,7 +259,7 @@ export default function Task() {
             <SimpleGrid columns={2} w='full' fontSize='sm'>
               <VStack borderRightWidth={1} spacing={0} h={32} pb={2}>
                 <ScorePie value={task.points} max={task.maxPoints} />
-                <Tag size='sm' colorScheme='purple' fontWeight={400} bg='purple.50'>Score</Tag>
+                <Tag size='sm' colorScheme='purple' fontWeight={400} bg='purple.50'>{t("Score")}</Tag>
               </VStack>
               <VStack h={32} p={2}>
                 <SimpleGrid columns={Math.min(task.maxAttempts, 5)} gap={1} flexGrow={1} alignItems='center'>
@@ -253,7 +268,7 @@ export default function Task() {
                               bg={(isPrivileged || i < task.remainingAttempts) ? 'gradients.500' : 'transparent'} />)}
                 </SimpleGrid>
                 <Text fontSize='lg'><b>{isPrivileged ? '∞' : task.remainingAttempts}</b> / {task.maxAttempts}</Text>
-                <Tag size='sm' colorScheme='purple' fontWeight={400} bg='purple.50'>Submissions</Tag>
+                <Tag size='sm' colorScheme='purple' fontWeight={400} bg='purple.50'>{t("Submissions")}</Tag>
               </VStack>
             </SimpleGrid>
             <Accordion allowMultiple defaultIndex={[0]} overflow='hidden' flexGrow={1}>
@@ -261,7 +276,7 @@ export default function Task() {
                 <AccordionButton>
                   <AccordionIcon />
                   <FcTimeline />
-                  <Text>History</Text>
+                  <Text>{t("History")}</Text>
                 </AccordionButton>
                 <AccordionPanel motionProps={{ style: { display: 'flex', maxHeight: '100%' } }}
                                 p={0} flexGrow={1} overflow='scroll'>
@@ -273,7 +288,7 @@ export default function Task() {
                           <Divider orientation='vertical' borderColor='gray.500' />
                         </VStack>
                         <Box>
-                          <Text lineHeight={1.2} fontWeight={500}>{submission.name}</Text>
+                          <Text lineHeight={1.2} fontWeight={500}>{submissionName(submission.command, submission.ordinalNum)}</Text>
                           <Text fontSize='2xs'>
                             {format(parseISO(submission.createdAt), 'dd.MM.yyyy HH:mm')}
                           </Text>
@@ -308,8 +323,8 @@ export default function Task() {
                       <Divider orientation='vertical' borderColor='gray.500' />
                     </VStack>
                     <Stack mb={8}>
-                      <Text lineHeight={1.2} fontWeight={500}>Started task.</Text>
-                      <Button size='xs' leftIcon={<AiOutlineReload />} onClick={reset}>Reset</Button>
+                      <Text lineHeight={1.2} fontWeight={500}>{t("Started task")}.</Text>
+                      <Button size='xs' leftIcon={<AiOutlineReload />} onClick={reset}>{t("Reset")}</Button>
                     </Stack>
                   </Flex>
                 </AccordionPanel>
