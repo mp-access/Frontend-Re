@@ -28,7 +28,7 @@ export function FileTree({ files, selected, onSelect }: RootNodeProps) {
       viewState={{ ['task']: { focusedItem: selected, expandedItems, selectedItems: [selected] } }}
       onExpandItem={onClick} onCollapseItem={onClick} renderItemTitle={({ item, context }) =>
       <HStack boxSize='full' onClick={() => !item.isFolder && onSelect(item.data)} color='gray.600' pl={2}>
-        <NodeIcon name={detectType(item.data.name) || `folder-${!!context.isExpanded}`} boxSize={4} />
+        <NodeIcon name={(item.isFolder && `folder-${!!context.isExpanded}`) || detectType(item.data.name) } boxSize={4} />
         <Text fontFamily='file' fontSize='sm'>{item.data.name}</Text>
       </HStack>} />
 }
