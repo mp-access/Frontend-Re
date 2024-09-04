@@ -33,37 +33,65 @@ export default function Task() {
   const toast = useToast()
   const { isOpen, onOpen, onClose } = useDisclosure()
   const { isAssistant, user } = useOutletContext<UserContext>()
+  const [taskId, setTaskId] = useState(-1)
   const [submissionId, setSubmissionId] = useState(0)
   const [currentTab, setCurrentTab] = useState(0)
   const [currentFile, setCurrentFile] = useState<TaskFileProps>()
   const [editableFiles, setEditableFiles] = useState<TaskFileProps[]>([])
+  const [editorReload, setEditorReload] = useState(1) // counts up every time Editor should re-render
   const [openFiles, setOpenFiles] = useState<TaskFileProps[]>([])
   const [userId, setUserId] = useState(user.email)
   const { data: task, submit, refetch, timer } = useTask(userId)
-
-  useEffect(() => {
-    setCurrentFile(undefined)
-    setSubmissionId(0)
-  }, [task?.slug, userId])
 
   const getUpdate = (file: TaskFileProps, submission?: WorkspaceProps) =>
       submission?.files?.find(s => s.taskFileId === file.id)?.content || file.template
 
   useEffect(() => {
-    if (task && !currentFile) {
-      const defaultFiles = task.files.filter(file => file.editable)
-      setEditableFiles(defaultFiles)
-      setOpenFiles(defaultFiles)
-      setCurrentFile(defaultFiles[0])
+    if (task) {
+      console.log(taskId)
+      console.log(task.id)
+      if (taskId < 0 || taskId != task.id) {
+        const defaultFiles = task.files.filter(file => file.editable)
+        const submission = task.submissions[0]
+        if (submission) {
+          const updatedFiles = defaultFiles.map(file => ({ ...file, content: getUpdate(file, submission) }))
+          setSubmissionId(task.submissions[0].id)
+          setEditableFiles(updatedFiles)
+        } else {
+          setSubmissionId(-1)
+          setEditableFiles(defaultFiles)
+        }
+      }
     }
-  }, [currentFile, task])
+  }, [task, userId])
 
   useEffect(() => {
-    if (task && task.submissions.length > 0) {
-      const submission = task.submissions[0]
-      const updatedFiles = editableFiles.map(file => ({ ...file, content: getUpdate(file, submission) }))
-      setOpenFiles(files => files.map(file => find(updatedFiles, { id: file.id }) || file))
-      setCurrentFile(file => file && find(updatedFiles, { id: file.id }))
+    if (task) {
+      console.log(submissionId)
+      if (submissionId == -1) {
+          const defaultFiles = task.files.filter(file => file.editable)
+          setEditableFiles(defaultFiles)
+        } else {
+          const submission = find(task.submissions, { id: submissionId }) || task.submissions[0]
+          const updatedFiles = editableFiles.map(file => ({ ...file, content: getUpdate(file, submission) }))
+          setEditableFiles(updatedFiles)
+        }
+    }
+  }, [submissionId])
+
+  useEffect(() => {
+    console.log(editableFiles)
+    if (task) {
+      if (currentFile == undefined || taskId != task.id) {
+        setOpenFiles(editableFiles)
+        setCurrentFile(editableFiles[0])
+      }
+      else {
+        setOpenFiles(files => unionBy(files, files.map(file => find(editableFiles, { id: file.id }) || file), 'id'))
+        setCurrentFile(file => file && find(editableFiles, { id: file.id }))
+      }
+      setTaskId(task.id)
+      setEditorReload(editorReload + 1)
     }
   }, [editableFiles])
 
@@ -100,20 +128,13 @@ export default function Task() {
     return t(commandMap[command as keyof typeof commandMap], {ordinalNum: ordinalNum})
   }
 
-
   const reload = (submission: SubmissionProps) => {
     toast({ title: 'Reloaded ' + submissionName(submission.command, submission.ordinalNum), isClosable: true })
-    const updatedFiles = editableFiles.map(file => ({ ...file, content: getUpdate(file, submission) }))
-    setOpenFiles(files => files.map(file => find(updatedFiles, { id: file.id }) || file))
-    setCurrentFile(file => file && find(updatedFiles, { id: file.id }))
-    setEditableFiles(updatedFiles)
     setSubmissionId(submission.id)
   }
 
   const reset = () => {
     toast({ title: 'Reset files to template', isClosable: true })
-    setOpenFiles(files => files.map(file => ({ ...file, content: file.template })))
-    setCurrentFile(file => file && ({ ...file, content: file.template }))
     setSubmissionId(-1)
   }
 
@@ -190,11 +211,15 @@ export default function Task() {
           </Stack>
           <SplitHorizontal>
             <FileTabs id={currentFile.id} files={openFiles} onSelect={setCurrentFile} onReorder={setOpenFiles} />
-            { currentFile.binary ||
-            <Editor path={getPath(currentFile.id)} language={detectType(currentFile.name)}
-                    defaultValue={currentFile.content || currentFile.template}
-                    options={{ minimap: { enabled: false }, readOnly: !currentFile.editable }} />
-            }
+            {currentFile.binary || (
+                <Editor
+                  key={editorReload}
+                  path={getPath(currentFile.id)}
+                  language={detectType(currentFile.name)}
+                  defaultValue={currentFile.content || currentFile.template}
+                  options={{ minimap: { enabled: false }, readOnly: !currentFile.editable }}
+                />
+            )}
             { currentFile.binary &&
             <Center position='absolute' top={0} zIndex={currentFile.binary ? 1 : -2} bg='base'>
               {<Image src={`data:${currentFile.mimeType};base64,` + currentFile.templateBinary} h='auto' w='auto' />}
@@ -276,7 +301,7 @@ export default function Task() {
                 <AccordionButton>
                   <AccordionIcon />
                   <FcTimeline />
-                  <Text>{t("History")}</Text>
+                  <Text title={t("pruning_help")}>{t("History")}</Text>
                 </AccordionButton>
                 <AccordionPanel motionProps={{ style: { display: 'flex', maxHeight: '100%' } }}
                                 p={0} flexGrow={1} overflow='scroll'>

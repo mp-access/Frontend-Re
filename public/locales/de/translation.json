@@ -29,6 +29,7 @@
   "Instructions": "Aufgabenstellung",
   "Files": "Dateien",
   "History": "Verlauf",
+  "pruning_help": "Ältere Versionen werden nach und nach gelöscht. Die neuesten 5 sowie die (neuste) beste Abgabe werden immer behalten.",
   "Started task": "Aufgabe begonnen",
   "Reset": "Zurücksetzen",
   "Welcome": "Willkommen",

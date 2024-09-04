@@ -29,6 +29,7 @@
   "Instructions": "Instructions",
   "Files": "Files",
   "History": "History",
+  "pruning_help": "Note that older versions will be pruned gradually. The latest 5 as well as your (latest) best submission will always be kept.",
   "Started task": "Started task",
   "Reset": "Reset",
   "Welcome": "Welcome",
