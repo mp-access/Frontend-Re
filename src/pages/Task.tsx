@@ -223,7 +223,7 @@ export default function Task() {
                               </Code>
                             </HStack>
                             { submission.persistentResultFiles.map( file =>
-                            <HStack align='start'>
+                            <HStack key={file.id} align='start'>
                               <Code color='orange.300'>{'-'}</Code>
                                 <VStack align='start' spacing={0}>
                                   <React.Fragment key={file.path}>
