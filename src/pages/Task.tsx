@@ -197,7 +197,7 @@ export default function Task() {
                 <ButtonGroup variant='ghost' size='sm' colorScheme='blackAlpha' pos='absolute' right={3} top={1}>
                   <IconButton icon={<Icon as={HiDownload} boxSize={5} />} aria-label='download' onClick={() => {
                     let zip = new JSZip()
-                    task.files.filter(file => !file.editable).forEach(file => zip.file(`${task.slug}${file.path}`, file.template))
+                    task.files.filter(file => !file.editable).forEach(file => zip.file(`${task.slug}${file.path}`, file.template || file.templateBinary))
                     editableFiles.forEach(file => zip.file(`${task.slug}${file.path}`, getContent(file)))
                     zip.generateAsync({ type: 'blob' }).then(b => fileDownload(b, task.slug + '.zip'))
                   }} />
