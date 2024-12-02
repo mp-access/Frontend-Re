@@ -27,6 +27,8 @@ export function detectType(fileName: string): string | undefined {
     const extension = fileName.split('.').pop()?.toLowerCase();
 
     switch (extension) {
+        case 'sh':
+            return 'shell';
         case 'py':
             return 'python';
         case 'r':
