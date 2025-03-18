@@ -17,6 +17,7 @@
   "Test_n": "Test {{ordinalNum}}",
   "Run_n": "Run {{ordinalNum}}",
   "Submit": "Abgabe",
+  "Submission Output": "Abgabe Output",
   "Cancel": "Abbrechen",
   "Confirm submission": "Abgabe bestätigen",
   "Are you sure you want to submit": "Wollen Sie wirklich abgeben",

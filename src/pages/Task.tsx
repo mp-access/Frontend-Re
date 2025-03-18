@@ -90,8 +90,6 @@ export default function Task() {
 
   useEffect(() => {
     if (task) {
-      console.log(taskId)
-      console.log(task.id)
       if (taskId < 0 || taskId != task.id) {
         const defaultFiles = task.files.filter((file) => file.editable)
         const submission = task.submissions[0]
@@ -112,7 +110,6 @@ export default function Task() {
 
   useEffect(() => {
     if (task) {
-      console.log(submissionId)
       if (submissionId == -1) {
         const defaultFiles = task.files.filter((file) => file.editable)
         setEditableFiles(defaultFiles)
@@ -129,7 +126,6 @@ export default function Task() {
   }, [submissionId])
 
   useEffect(() => {
-    console.log(editableFiles)
     if (task) {
       if (currentFile == undefined || taskId != task.id) {
         setOpenFiles(editableFiles)
@@ -439,16 +435,16 @@ export default function Task() {
             <TabList overflow="hidden">
               {task.testable && (
                 <Tab>
-                  <ActionTab name="Test" />
+                  <ActionTab name="Test Output" />
                 </Tab>
               )}
               <Tab>
-                <ActionTab name="Run" />
+                <ActionTab name="Run Output" />
               </Tab>
               <Tab>
                 <HStack>
                   <FcInspection />
-                  <Text>{t("Submit")}</Text>
+                  <Text>{t("Submission Output")}</Text>
                 </HStack>
               </Tab>
             </TabList>

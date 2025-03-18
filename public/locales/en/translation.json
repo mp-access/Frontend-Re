@@ -17,6 +17,7 @@
   "Test_n": "Test {{ordinalNum}}",
   "Run_n": "Run {{ordinalNum}}",
   "Submit": "Submit",
+  "Submission Output": "Submission Output",
   "Cancel": "Cancel",
   "Confirm submission": "Confirm submission",
   "Are you sure you want to submit":"Are you sure you want to submit",
