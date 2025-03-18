@@ -1,16 +1,29 @@
-import { Center, Heading, Table, TableCaption, TableContainer, Tbody, Td, Th, Thead, Tr, VStack } from '@chakra-ui/react'
-import React from 'react'
-import { useStudentPoints } from '../components/Hooks'
+import {
+  Center,
+  Heading,
+  Table,
+  TableCaption,
+  TableContainer,
+  Tbody,
+  Td,
+  Th,
+  Thead,
+  Tr,
+  VStack,
+} from "@chakra-ui/react"
+import React from "react"
+import { useStudentPoints } from "../components/Hooks"
 
 export default function Students() {
   const { data: students } = useStudentPoints()
-  if (!students)
-    return <></>
+  if (!students) return <></>
   return (
     <VStack>
-      <TableContainer p={8} my={4} layerStyle='segment'>
-        <Heading m={2} mt={0} fontSize='3xl'>{students.length} Students</Heading>
-        <Table maxW='container.sm'>
+      <TableContainer p={8} my={4} layerStyle="segment">
+        <Heading m={2} mt={0} fontSize="3xl">
+          {students.length} Students
+        </Heading>
+        <Table maxW="container.sm">
           <Thead>
             <Tr>
               <Th>Registration ID</Th>
@@ -22,18 +35,21 @@ export default function Students() {
             </Tr>
           </Thead>
           <Tbody>
-            {students.map(student =>
-                <Tr key={student.email}>
-                  <Td>{student.registrationId}</Td>
-                  <Td>{student.username}</Td>
-                  <Td>{student.lastName}</Td>
-                  <Td>{student.firstName}</Td>
-                  <Td>{student.email}</Td>
-                  <Td>{student.points}</Td>
-                </Tr>)}
+            {students.map((student) => (
+              <Tr key={student.email}>
+                <Td>{student.registrationId}</Td>
+                <Td>{student.username}</Td>
+                <Td>{student.lastName}</Td>
+                <Td>{student.firstName}</Td>
+                <Td>{student.email}</Td>
+                <Td>{student.points}</Td>
+              </Tr>
+            ))}
           </Tbody>
           <TableCaption>
-            {!students.length && <Center color='gray.400'>No students found.</Center>}
+            {!students.length && (
+              <Center color="gray.400">No students found.</Center>
+            )}
           </TableCaption>
         </Table>
       </TableContainer>
