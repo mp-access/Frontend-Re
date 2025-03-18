@@ -53,18 +53,18 @@ export default function Course() {
     dayPickerLocaleMap[currentLanguage as keyof typeof dayPickerLocaleMap] ||
     enUS
   const { data: course } = useCourse()
-  const { user, isAssistant, isSupervisor } = useOutletContext<UserContext>()
+  const { isSupervisor } = useOutletContext<UserContext>()
   const [selectedDay, setSelectedDay] = useState(new Date())
 
   if (!course) return <></>
 
   const [publishedAssignments, upcomingAssignments] = fork(
     course.assignments,
-    (a) => a.published,
+    (a) => a.published
   )
   const [activeAssignments, pastAssignments] = fork(
     publishedAssignments,
-    (a) => a.active,
+    (a) => a.active
   )
 
   const collectEvents = (prop: string) =>
@@ -72,7 +72,7 @@ export default function Course() {
   const events = objectify(
     ["published", "due"],
     (key) => key,
-    (key) => collectEvents(key),
+    (key) => collectEvents(key)
   )
 
   return (
@@ -139,7 +139,7 @@ export default function Course() {
         ) : (
           ""
         )}
-        <VStack>{isSupervisor && <CourseController {...course} />}</VStack>
+        <VStack>{isSupervisor && <CourseController />}</VStack>
         <VStack>
           <DayPicker
             mode="single"

@@ -128,7 +128,7 @@ function CourseNav() {
 
   if (!course) return <></>
 
-  const toNav = (h: any) =>
+  const toNav = (h: unknown) =>
     join(compact([h, h === t("Assignment") && assignment?.ordinalNum]), " ")
 
   return (

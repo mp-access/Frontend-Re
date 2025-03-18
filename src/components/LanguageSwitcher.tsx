@@ -7,7 +7,7 @@ export const LanguageSwitcher = () => {
 
   const changeLanguage = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newLanguage = event.target.value
-    i18n.changeLanguage(newLanguage, (err, t) => {
+    i18n.changeLanguage(newLanguage, (err) => {
       if (err) return console.log("something went wrong loading", err)
       localStorage.setItem("language", newLanguage)
     })

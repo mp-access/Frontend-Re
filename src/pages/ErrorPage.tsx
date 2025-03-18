@@ -13,12 +13,29 @@ import {
 } from "@chakra-ui/react"
 import React from "react"
 import { GrUndo } from "react-icons/gr"
-import { Link, useRouteError } from "react-router-dom"
+import {
+  Link,
+  useRouteError,
+  isRouteErrorResponse,
+  useNavigate,
+} from "react-router-dom"
 import { LogoButton } from "../components/Buttons"
 import { RobotIcon } from "../components/Icons"
 
-export default function Error() {
-  const error = useRouteError() as any
+export default function ErrorPage() {
+  const navigate = useNavigate()
+
+  const error = useRouteError()
+  let errorMessage: string
+  if (isRouteErrorResponse(error)) {
+    errorMessage = error.error?.message || error.statusText
+  } else if (error instanceof globalThis.Error) {
+    errorMessage = error.message
+  } else if (typeof error === "string") {
+    errorMessage = error
+  } else {
+    errorMessage = "Unknown error"
+  }
   return (
     <Center h="full" bg="bg">
       <VStack
@@ -36,7 +53,7 @@ export default function Error() {
         </VStack>
         <Button
           as={Link}
-          to={-1 as any}
+          onClick={() => navigate(-1)}
           variant="solid"
           size="lg"
           leftIcon={<GrUndo />}
@@ -58,7 +75,7 @@ export default function Error() {
               <AccordionIcon />
             </AccordionButton>
             <AccordionPanel as={Center} p={0}>
-              <Text w="md">{error.message}</Text>
+              <Text w="md">{errorMessage}</Text>
             </AccordionPanel>
           </AccordionItem>
         </Accordion>

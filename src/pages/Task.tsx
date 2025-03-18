@@ -53,12 +53,7 @@ import { HiDownload } from "react-icons/hi"
 import { useOutletContext } from "react-router-dom"
 import { FileTabs } from "../components/FileTab"
 import { FileTree } from "../components/FileTree"
-import {
-  Markdown,
-  Placeholder,
-  SplitHorizontal,
-  SplitVertical,
-} from "../components/Panels"
+import { Markdown, Placeholder, TaskIO, TaskView } from "../components/Panels"
 import { ScoreBar, ScorePie } from "../components/Statistics"
 import { FcFile, FcInspection, FcTimeline, FcTodoList } from "react-icons/fc"
 import {
@@ -144,8 +139,8 @@ export default function Task() {
           unionBy(
             files,
             files.map((file) => find(editableFiles, { id: file.id }) || file),
-            "id",
-          ),
+            "id"
+          )
         )
         setCurrentFile((file) => file && find(editableFiles, { id: file.id }))
       }
@@ -222,7 +217,7 @@ export default function Task() {
     task.information[currentLanguage]?.instructionsFile ||
     task.information["en"].instructionsFile
   const instructionsContent = task.files.filter(
-    (file) => file.path === `/${instructionFile}`,
+    (file) => file.path === `/${instructionFile}`
   )[0]?.template
 
   return (
@@ -311,7 +306,7 @@ export default function Task() {
           </ModalContent>
         </Modal>
       </ButtonGroup>
-      <SplitVertical bg="base" borderTopWidth={1}>
+      <TaskView>
         <Stack h="full" spacing={0} overflow="hidden">
           {isAssistant && (
             <TaskController
@@ -370,11 +365,11 @@ export default function Task() {
                       .forEach((file) =>
                         zip.file(
                           `${task.slug}${file.path}`,
-                          file.template || file.templateBinary,
-                        ),
+                          file.template || file.templateBinary
+                        )
                       )
                     editableFiles.forEach((file) =>
-                      zip.file(`${task.slug}${file.path}`, getContent(file)),
+                      zip.file(`${task.slug}${file.path}`, getContent(file))
                     )
                     zip
                       .generateAsync({ type: "blob" })
@@ -394,7 +389,7 @@ export default function Task() {
             </AccordionItem>
           </Accordion>
         </Stack>
-        <SplitHorizontal>
+        <TaskIO>
           <FileTabs
             id={currentFile.id}
             files={openFiles}
@@ -469,7 +464,7 @@ export default function Task() {
                           <Code fontWeight={700} whiteSpace="pre-wrap">
                             {submissionName(
                               submission.command,
-                              submission.ordinalNum,
+                              submission.ordinalNum
                             )}
                           </Code>
                         </HStack>
@@ -536,7 +531,7 @@ export default function Task() {
               ))}
             </TabPanels>
           </Tabs>
-        </SplitHorizontal>
+        </TaskIO>
         <Stack pos="sticky" minW="3xs" h="full" spacing={0}>
           {!isPrivileged &&
             task.remainingAttempts <= 0 &&
@@ -632,13 +627,13 @@ export default function Task() {
                       <Text lineHeight={1.2} fontWeight={500}>
                         {submissionName(
                           submission.command,
-                          submission.ordinalNum,
+                          submission.ordinalNum
                         )}
                       </Text>
                       <Text fontSize="2xs">
                         {format(
                           parseISO(submission.createdAt),
-                          "dd.MM.yyyy HH:mm",
+                          "dd.MM.yyyy HH:mm"
                         )}
                       </Text>
                       {!submission.valid && (
@@ -734,7 +729,7 @@ export default function Task() {
             </AccordionItem>
           </Accordion>
         </Stack>
-      </SplitVertical>
+      </TaskView>
     </Flex>
   )
 }

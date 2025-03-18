@@ -1,9 +1,6 @@
 import {
-  Box,
   Button,
-  ButtonGroup,
   Center,
-  Divider,
   Highlight,
   HStack,
   Icon,
@@ -15,7 +12,7 @@ import { useKeycloak } from "@react-keycloak/web"
 import React from "react"
 import Typewriter from "typewriter-effect"
 import { SWITCHIcon } from "../components/Icons"
-import { Link, Navigate } from "react-router-dom"
+import { Navigate } from "react-router-dom"
 import { LogoButton } from "../components/Buttons"
 
 export function Landing() {
@@ -37,11 +34,6 @@ export function Landing() {
         justify="space-between"
       >
         <LogoButton />
-        <ButtonGroup variant="ghost">
-          <Button as={Link} to="/contact">
-            Contact
-          </Button>
-        </ButtonGroup>
       </HStack>
       <Center flexGrow={1}>
         <Stack w="lg">
@@ -86,17 +78,6 @@ export function Landing() {
               onClick={() => keycloak.login({ redirectUri })}
             >
               Not a student?
-            </Button>
-          </VStack>
-          <Box w="full" pos="relative" textAlign="center">
-            <Divider borderColor="gray.300" py={2} />
-          </Box>
-          <VStack p={2} textAlign="center">
-            <Text fontSize="sm">
-              {"Would you like to create a new course?"}
-            </Text>
-            <Button variant="outline" as={Link} to="/contact">
-              Get Started
             </Button>
           </VStack>
         </VStack>

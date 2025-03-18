@@ -9,6 +9,7 @@ import "@fontsource/dm-sans/400.css"
 import { ReactKeycloakProvider } from "@react-keycloak/web"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import axios from "axios"
+import { AxiosError } from "axios"
 import Keycloak from "keycloak-js"
 import { compact, flattenDeep, join } from "lodash"
 import React from "react"
@@ -19,13 +20,12 @@ import Assignment from "./pages/Assignment"
 import Course from "./pages/Course"
 import CourseCreator from "./pages/CourseCreator"
 import Courses from "./pages/Courses"
-import Error from "./pages/Error"
+import ErrorPage from "./pages/ErrorPage"
 import { Landing } from "./pages/Landing"
 import Students from "./pages/Students"
 import Task from "./pages/Task"
 import theme from "./Theme"
 import Layout from "./pages/Layout"
-import Contact from "./pages/Contact"
 import i18n from "i18next"
 import { useTranslation, initReactI18next } from "react-i18next"
 import HttpBackend from "i18next-http-backend"
@@ -65,16 +65,25 @@ i18n
 function App() {
   const { t } = useTranslation()
   const toast = useToast()
-  const onError = (error: any) =>
-    toast({ title: error?.response?.data?.message || "Error", status: "error" })
-  const toURL = (...path: any[]) => join(compact(flattenDeep(path)), "/")
+  const onError = (error: AxiosError | unknown) => {
+    if (axios.isAxiosError(error)) {
+      toast({
+        title: error?.response?.data?.message || "Error",
+        status: "error",
+      })
+    } else {
+      toast({ title: "Error", status: "error" })
+    }
+  }
+  const toURL = (path: string[]) => join(compact(flattenDeep(path)), "/")
   const client = new QueryClient()
   client.setDefaultOptions({
     queries: {
       refetchOnWindowFocus: false,
-      queryFn: (context) => axios.get(toURL(context.queryKey)),
+      queryFn: (context) => axios.get(toURL(context.queryKey as string[])),
     },
     mutations: {
+      // eslint-disable-next-line
       mutationFn: (data: any) => axios.post(toURL(data[0]), data[1]),
       onError,
     },
@@ -83,10 +92,9 @@ function App() {
   const router = createBrowserRouter([
     {
       path: "/",
-      errorElement: <Error />,
+      errorElement: <ErrorPage />,
       children: [
         { index: true, element: <Landing /> },
-        { path: "contact", element: <Contact /> },
         { path: "create", element: <CourseCreator /> },
         {
           path: "courses",
@@ -143,5 +151,5 @@ createRoot(document.getElementById("root")!).render(
         </React.StrictMode> */}
       <App />
     </ChakraProvider>
-  </ReactKeycloakProvider>,
+  </ReactKeycloakProvider>
 )

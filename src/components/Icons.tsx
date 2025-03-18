@@ -22,7 +22,7 @@ export const RobotIcon = Robot
 export const SWITCHIcon = SWITCH
 export const GitHubIcon = GitHub
 
-const icons: Record<string, any> = {
+const icons: Record<string, React.FC> = {
   Test: Test,
   Run: Run,
   python: Python,

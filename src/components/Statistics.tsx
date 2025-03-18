@@ -23,7 +23,26 @@ type TimeCounterProps = { values: Array<TimerProps> }
 const toPercent = (value = 0, max = 1) =>
   round(((value || 0) * 100.0) / (max || 1), 1)
 
-const RoundBar = ({ x, y, height, width, background, color }: any) => (
+interface RoundBarProps {
+  x: number
+  y: number
+  height: number
+  width: number
+  background: {
+    height: number
+    width: number
+  }
+  color: string
+}
+
+const RoundBar = ({
+  x,
+  y,
+  height,
+  width,
+  background,
+  color,
+}: RoundBarProps) => (
   <g clipPath="inset(0 round 6)">
     <rect
       x={x}
@@ -185,7 +204,7 @@ export const ScoresPie = ({ value = 0, max = 1, avg = 0 }) => (
   </ResponsiveContainer>
 )
 
-export const HScores = ({ value = 0, max = 1, avg = 0 }) => {
+export const HScores = ({ value = 0, max = 1 }) => {
   const { t } = useTranslation()
   return (
     <ResponsiveContainer minHeight={50}>

@@ -13,7 +13,6 @@ import {
   Thead,
   Tr,
 } from "@chakra-ui/react"
-import React, { ComponentProps } from "react"
 import { useStudents } from "../components/Hooks"
 import { Link } from "react-router-dom"
 import { take } from "lodash"
@@ -60,11 +59,17 @@ export function SupervisorZone() {
   )
 }
 
+interface TaskControllerProps {
+  value: string
+  defaultValue: string
+  onChange: (value: string) => void
+}
+
 export function TaskController({
   value,
   defaultValue,
   onChange,
-}: ComponentProps<any>) {
+}: TaskControllerProps) {
   const { data: students } = useStudents()
   return (
     <HStack p={1} w="full">

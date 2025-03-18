@@ -17,7 +17,7 @@ import { Link } from "react-router-dom"
 import { usePull } from "../components/Hooks"
 import { useTranslation } from "react-i18next"
 
-export default function CourseController(course: CourseProps) {
+export default function CourseController() {
   const { t } = useTranslation()
   const { isOpen, onOpen, onClose } = useDisclosure({
     onClose: () => window.location.reload(),

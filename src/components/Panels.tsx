@@ -10,7 +10,6 @@ import {
   Heading,
   Image,
   ImgProps,
-  Input,
   Link as Href,
   LinkProps as HrefProps,
   ListIcon,
@@ -30,7 +29,7 @@ import {
   useMotionValue,
   useTransform,
 } from "framer-motion"
-import React, { ComponentProps, PropsWithChildren } from "react"
+import React, { ReactNode } from "react"
 import { ReactMarkdownOptions } from "react-markdown/lib/react-markdown"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
@@ -58,13 +57,23 @@ const swap = (to: number) => (r: number) => ({
   opacity: 0,
 })
 
-export const SplitVertical = ({ children, ...props }: ComponentProps<any>) => {
+type TaskViewProps = {
+  children: [ReactNode, ReactNode, ReactNode]
+}
+
+export const TaskView = ({ children }: TaskViewProps) => {
   const size = useWindowSize()
   const x = useMotionValue(700)
   const width = useTransform(x, (value) => size[0] - 224 - value)
 
   return (
-    <Flex w="full" pos="relative" overflow="hidden" {...props}>
+    <Flex
+      w="full"
+      pos="relative"
+      overflow="hidden"
+      bg="base"
+      borderTopWidth={1}
+    >
       <motion.div
         style={{ width: x, marginRight: 2, padding: 10 }}
         children={children[0]}
@@ -100,7 +109,11 @@ export const SplitVertical = ({ children, ...props }: ComponentProps<any>) => {
   )
 }
 
-export const SplitHorizontal = ({ children }: PropsWithChildren<any>) => {
+type TaskIOProps = {
+  children: [ReactNode, ReactNode, ReactNode, ReactNode]
+}
+
+export const TaskIO = ({ children }: TaskIOProps) => {
   const size = useWindowSize()
   const maxHeight = useMotionValue(size[1])
   const y = useTransform(maxHeight, (value) => value * 0.7)
@@ -199,8 +212,6 @@ export const Feature = ({
   </AnimatePresence>
 )
 
-const toBlock = (content: any) => String(content).replace(/\n$/, "")
-
 const MarkdownImg = ({ src }: ImgProps) => <Image src={src} h="auto" pr={3} />
 const MarkdownText = (props: TextProps) => (
   <Text {...props} pb={2} w="full" sx={{ hyphens: "auto" }} />
@@ -217,15 +228,13 @@ const MarkdownHeading = ({ children, node: { tagName } }: HeadingProps) => {
     </Box>
   )
 }
-const MarkdownInput = (props: ComponentProps<any>) =>
-  props.type === "checkbox" ? <></> : <Input {...props} />
 const MarkdownUnorderedList = ({ children }: UnorderedListProps) => (
   <UnorderedList m={0} children={children} />
 )
 const MarkdownOrderedList = ({ children }: OrderedListProps) => (
   <OrderedList m={0} children={children} />
 )
-const MarkdownBlock = ({ children }: ComponentProps<any>) => (
+const MarkdownBlock = ({ children }: { children: React.ReactNode }) => (
   <Stack bg="blackAlpha.100" p={2} m={2} children={children} />
 )
 const MarkdownCode = ({ inline, children, className }: CodeProps) =>
@@ -238,7 +247,7 @@ const MarkdownCode = ({ inline, children, className }: CodeProps) =>
     />
   ) : (
     <SyntaxHighlighter
-      children={toBlock(children)}
+      children={String(children).replace(/\n$/, "")}
       style={atomOneLight}
       language={className}
       wrapLines
@@ -273,7 +282,6 @@ export const Markdown = ({
       li: MarkdownListItem,
       ul: MarkdownUnorderedList,
       ol: MarkdownOrderedList,
-      input: MarkdownInput,
       blockquote: MarkdownBlock,
       img: MarkdownImg,
     }}

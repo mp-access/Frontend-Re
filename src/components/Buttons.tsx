@@ -9,37 +9,24 @@ import {
   Icon,
   IconButton,
   IconButtonProps,
-  Input,
   Stack,
   TabProps,
   Text,
   Tooltip,
   VStack,
 } from "@chakra-ui/react"
-import { motion } from "framer-motion"
 import React from "react"
-import { BsArrowRight, BsCloudDownload, BsPencilSquare } from "react-icons/bs"
-import { Link, NavigateProps } from "react-router-dom"
+import { Link } from "react-router-dom"
 import { ActionIcon } from "./Icons"
 import { FcCalendar } from "react-icons/fc"
 import { InfoOutlineIcon } from "@chakra-ui/icons"
-import { FormState } from "react-hook-form"
-import Dropzone from "react-dropzone"
-import { useImport } from "./Hooks"
 import { flatMap, get, keys } from "lodash"
 import Countdown, { CountdownProps } from "react-countdown"
 import { useTranslation } from "react-i18next"
 
-const transitionStyle = {
-  repeat: Infinity,
-  repeatDelay: 0.7,
-  duration: 0.5,
-  ease: "easeInOut",
-}
-type SaveButtonProps = ButtonProps & { formState: FormState<any> }
 type EventBoxProps = {
   selected: string
-  events: Record<string, Record<string, any[]>>
+  events: Record<string, Record<string, AssignmentProps[]>>
 }
 
 export const LogoButton = () => (
@@ -70,90 +57,6 @@ export const TooltipIconButton = ({
   </Tooltip>
 )
 
-export const TooltipButton = ({ title, ...props }: ButtonProps) => (
-  <Tooltip placement="bottom-end" label={title}>
-    <Button {...props} />
-  </Tooltip>
-)
-
-export const EditButton = ({ to }: NavigateProps) => (
-  <IconButton
-    as={Link}
-    to={to}
-    icon={<BsPencilSquare />}
-    variant="ghost"
-    aria-label="edit"
-  />
-)
-
-export const NavButton = ({
-  onClick,
-  icon,
-  left,
-  right,
-  className,
-}: Partial<IconButtonProps>) => (
-  <IconButton
-    aria-label="nav"
-    size="sm"
-    pos="absolute"
-    top={-10}
-    variant="ghost"
-    p={1}
-    icon={icon}
-    onClick={onClick}
-    left={left}
-    right={right}
-    isDisabled={className?.includes("disabled")}
-  />
-)
-
-export const SaveButton = ({
-  formState: { isSubmitting },
-  ...props
-}: SaveButtonProps) => (
-  <Button
-    alignSelf="center"
-    type="submit"
-    children="Save"
-    {...props}
-    isLoading={isSubmitting}
-  />
-)
-
-export const GoToButton = ({ children, ...props }: BoxProps) => (
-  <HStack
-    as={motion.div}
-    fontSize="lg"
-    fontWeight={600}
-    color="purple.600"
-    whileHover={{ x: [0, 2, 0, -2, 0, 2, 0], transition: transitionStyle }}
-    {...props}
-  >
-    <Text>{children}</Text>
-    <BsArrowRight />
-  </HStack>
-)
-
-export const ImportButton = () => {
-  const { onImport, isLoading } = useImport()
-  return (
-    <Dropzone
-      onDrop={(dropped) =>
-        dropped[0]?.text().then((data) => onImport(JSON.parse(data)))
-      }
-      multiple={false}
-      children={({ getRootProps, getInputProps }) => (
-        <Center {...getRootProps()}>
-          <Button isLoading={isLoading} leftIcon={<BsCloudDownload />}>
-            Import
-          </Button>
-          <Input {...getInputProps()} size="sm" type="file" />
-        </Center>
-      )}
-    />
-  )
-}
 export const Counter = ({ children }: BoxProps) => (
   <Center
     rounded="md"
@@ -214,7 +117,7 @@ export const EventBox = ({ selected, events }: EventBoxProps) => {
                 {get(a, key + "Time")}
               </Text>
             </HStack>
-          )),
+          ))
         )}
       </Stack>
     </Stack>
