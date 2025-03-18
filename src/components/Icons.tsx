@@ -1,14 +1,14 @@
-import { ReactComponent as CourseAlt } from '../assets/course-alt.svg'
-import { ReactComponent as File } from '../assets/file.svg'
-import { ReactComponent as Folder } from '../assets/folder.svg'
-import { ReactComponent as GitHub } from '../assets/github.svg'
-import { ReactComponent as FolderOpen } from '../assets/folder-open.svg'
-import { ReactComponent as Python } from '../assets/python.svg'
-import { ReactComponent as R } from '../assets/r.svg'
-import { ReactComponent as Robot } from '../assets/robot.svg'
-import { ReactComponent as Test } from '../assets/test.svg'
-import { ReactComponent as Run } from '../assets/run.svg'
-import { ReactComponent as SWITCH } from '../assets/switch-edu-id.svg'
+import CourseAlt from '../assets/course-alt.svg?react'
+import File from '../assets/file.svg?react'
+import Folder from '../assets/folder.svg?react'
+import GitHub from '../assets/github.svg?react'
+import FolderOpen from '../assets/folder-open.svg?react'
+import Python from '../assets/python.svg?react'
+import R from '../assets/r.svg?react'
+import Robot from '../assets/robot.svg?react'
+import Test from '../assets/test.svg?react'
+import Run from '../assets/run.svg?react'
+import SWITCH from '../assets/switch-edu-id.svg?react'
 import { AspectRatio, AvatarProps, Icon, IconProps, Image } from '@chakra-ui/react'
 import React from 'react'
 
@@ -32,7 +32,12 @@ export const NodeIcon = ({ name = '', ...props }: IconProps) => <Icon as={icons[
 
 export const ActionIcon = ({ name = '', ...props }: IconProps) => <Icon as={icons[name] || Run} {...props} />
 
-export const CourseAvatar = ({ src, ...props }: AvatarProps) =>
-    <AspectRatio {...props} ratio={1} h='full' minW={36}>
-      <Image src={src} fallback={<Icon as={CourseAlt} rounded='2xl' boxSize={36} />} rounded='2xl' />
+export const CourseAvatar = ({ src, ...props }: AvatarProps) => {
+  return (
+    <AspectRatio {...props} ratio={1} h="full" minW={36} boxSize={36}>
+      {src ? <Image src={src} rounded="2xl" /> : <Image src={Run} />}
     </AspectRatio>
+  )
+}
+
+

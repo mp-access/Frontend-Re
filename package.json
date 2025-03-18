@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "name": "access-frontend",
   "version": "0.1.0",
   "proxy": "http://localhost:8081",
@@ -24,6 +25,7 @@
     "@types/react-dom": "^18.0.10",
     "@types/react-syntax-highlighter": "^15.5.6",
     "@types/react-transition-group": "^4.4.5",
+    "@vitejs/plugin-react-swc": "^3.6.0",
     "axios": "^1.3.2",
     "chakra-react-select": "^4.4.3",
     "date-fns": "^2.30.0",
@@ -50,7 +52,6 @@
     "react-katex": "^3.0.1",
     "react-markdown": "^8.0.5",
     "react-router-dom": "^6.8.1",
-    "react-scripts": "5.0.1",
     "react-syntax-highlighter": "^15.5.0",
     "react-transition-group": "^4.4.5",
     "recharts": "^2.4.1",
@@ -65,14 +66,19 @@
     "yup": "^1.0.0"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "serve": "serve -s build"
+    "start": "vite",
+    "build": "tsc && vite build",
+    "serve": "vite preview"
   },
   "eslintConfig": {
     "extends": "react-app"
+  },
+  "devDependencies": {
+    "@types/ua-parser-js": "^0.7.39",
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.2.11",
+    "vite-plugin-svgr": "^4.3.0",
+    "vite-tsconfig-paths": "^4.3.2"
   },
   "browserslist": {
     "production": [

@@ -31,7 +31,7 @@ import { useTranslation, initReactI18next } from "react-i18next"
 import HttpBackend from 'i18next-http-backend'
 
 const authClient = new Keycloak({
-  url: process.env.REACT_APP_AUTH_SERVER_URL || window.location.origin + ':8443',
+  url: import.meta.env.VITE_AUTH_SERVER_URL || window.location.origin + ':8443',
   realm: 'access',
   clientId: 'access-client'
 })
