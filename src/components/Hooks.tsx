@@ -81,7 +81,7 @@ export const useAssignment = () => {
 export const useExample = () => {
   const { courseSlug, exampleSlug } = useParams()
   return useQuery<ExampleProps>(
-    ["courses", courseSlug, "assignments", exampleSlug],
+    ["courses", courseSlug, "assignments", exampleSlug], // TODO: replace "assignments" with "examples" once backend is ready
     { enabled: !!exampleSlug },
   )
 }
