@@ -29,6 +29,7 @@ import Layout from "./pages/Layout"
 import i18n from "i18next"
 import { useTranslation, initReactI18next } from "react-i18next"
 import HttpBackend from "i18next-http-backend"
+import Example from "./pages/Example"
 
 const authClient = new Keycloak({
   url: import.meta.env.VITE_AUTH_SERVER_URL || window.location.origin + ":8443",
@@ -123,6 +124,23 @@ function App() {
                     },
                   ],
                 },
+                {
+                  path: "examples",
+                  children: [
+                    {
+                      path: ":exampleSlug",
+                      handle: t("Examples"),
+                      children: [
+                        { index: true, element: <Example /> },
+                        {
+                          path: "tasks/:taskSlug",
+                          handle: "Task",
+                          element: <Task />,
+                        },
+                      ],
+                    },
+                  ],
+                },
               ],
             },
           ],
@@ -151,5 +169,5 @@ createRoot(document.getElementById("root")!).render(
         </React.StrictMode> */}
       <App />
     </ChakraProvider>
-  </ReactKeycloakProvider>
+  </ReactKeycloakProvider>,
 )

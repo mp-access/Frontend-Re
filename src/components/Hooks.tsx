@@ -24,9 +24,9 @@ const usePath = (prefix: string): string[] => {
           "assignments",
           assignmentSlug,
           prefix !== "assignments" && ["tasks", taskSlug],
-        ]
-      )
-    )
+        ],
+      ),
+    ),
   )
 }
 
@@ -34,7 +34,7 @@ export const useCreate = (slug: string) => {
   const target = slug === "" ? "/create" : "/edit"
   const { mutate, isLoading } = useMutation<string, AxiosError, object>(
     (repository) => axios.post(target, repository),
-    { onSuccess: () => window.location.reload() }
+    { onSuccess: () => window.location.reload() },
   )
   return { mutate, isLoading }
 }
@@ -43,7 +43,7 @@ export const usePull = () => {
   const path = usePath("")
   const { mutate, isLoading } = useMutation(
     () => axios.post("/courses" + `/${path[1]}/pull`, {}),
-    { onSuccess: () => window.location.reload() }
+    { onSuccess: () => window.location.reload() },
   )
   return { mutate, isLoading }
 }
@@ -74,7 +74,15 @@ export const useAssignment = () => {
   const { courseSlug, assignmentSlug } = useParams()
   return useQuery<AssignmentProps>(
     ["courses", courseSlug, "assignments", assignmentSlug],
-    { enabled: !!assignmentSlug }
+    { enabled: !!assignmentSlug },
+  )
+}
+
+export const useExample = () => {
+  const { courseSlug, exampleSlug } = useParams()
+  return useQuery<ExampleProps>(
+    ["courses", courseSlug, "assignments", exampleSlug],
+    { enabled: !!exampleSlug },
   )
 }
 
@@ -92,7 +100,7 @@ export const useTask = (userId: string) => {
       "users",
       userId,
     ],
-    { enabled: !timer }
+    { enabled: !timer },
   )
   // eslint-disable-next-line
   const { mutateAsync } = useMutation<any, AxiosError, any[]>(
@@ -101,7 +109,7 @@ export const useTask = (userId: string) => {
       onMutate: () => setTimer(Date.now() + 30000),
       onSettled: () => setTimer(undefined),
       onSuccess: query.refetch,
-    }
+    },
   )
   const submit = (data: NewSubmissionProps) =>
     mutateAsync([
