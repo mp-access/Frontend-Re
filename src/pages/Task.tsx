@@ -135,8 +135,8 @@ export default function Task() {
           unionBy(
             files,
             files.map((file) => find(editableFiles, { id: file.id }) || file),
-            "id"
-          )
+            "id",
+          ),
         )
         setCurrentFile((file) => file && find(editableFiles, { id: file.id }))
       }
@@ -213,9 +213,9 @@ export default function Task() {
     task.information[currentLanguage]?.instructionsFile ||
     task.information["en"].instructionsFile
   const instructionsContent = task.files.filter(
-    (file) => file.path === `/${instructionFile}`
+    (file) => file.path === `/${instructionFile}`,
   )[0]?.template
-
+  console.log(instructionsContent)
   return (
     <Flex boxSize="full">
       <ButtonGroup
@@ -361,11 +361,11 @@ export default function Task() {
                       .forEach((file) =>
                         zip.file(
                           `${task.slug}${file.path}`,
-                          file.template || file.templateBinary
-                        )
+                          file.template || file.templateBinary,
+                        ),
                       )
                     editableFiles.forEach((file) =>
-                      zip.file(`${task.slug}${file.path}`, getContent(file))
+                      zip.file(`${task.slug}${file.path}`, getContent(file)),
                     )
                     zip
                       .generateAsync({ type: "blob" })
@@ -460,7 +460,7 @@ export default function Task() {
                           <Code fontWeight={700} whiteSpace="pre-wrap">
                             {submissionName(
                               submission.command,
-                              submission.ordinalNum
+                              submission.ordinalNum,
                             )}
                           </Code>
                         </HStack>
@@ -623,13 +623,13 @@ export default function Task() {
                       <Text lineHeight={1.2} fontWeight={500}>
                         {submissionName(
                           submission.command,
-                          submission.ordinalNum
+                          submission.ordinalNum,
                         )}
                       </Text>
                       <Text fontSize="2xs">
                         {format(
                           parseISO(submission.createdAt),
-                          "dd.MM.yyyy HH:mm"
+                          "dd.MM.yyyy HH:mm",
                         )}
                       </Text>
                       {!submission.valid && (

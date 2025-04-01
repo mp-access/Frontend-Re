@@ -29,7 +29,10 @@ import Layout from "./pages/Layout"
 import i18n from "i18next"
 import { useTranslation, initReactI18next } from "react-i18next"
 import HttpBackend from "i18next-http-backend"
+import Examples from "./pages/Examples"
 import Example from "./pages/Example"
+import { PublicDashboard } from "./pages/PublicDashboard"
+import { PrivateDashboard } from "./pages/PrivateDashboard"
 
 const authClient = new Keycloak({
   url: import.meta.env.VITE_AUTH_SERVER_URL || window.location.origin + ":8443",
@@ -128,14 +131,34 @@ function App() {
                   path: "examples",
                   children: [
                     {
-                      path: ":exampleSlug",
+                      path: ":exampleSlug", // remove once backend is ready (-> examples fetchable from backend via /examples)
                       handle: t("Examples"),
                       children: [
-                        { index: true, element: <Example /> },
+                        { index: true, element: <Examples /> },
+
                         {
+                          // delete once backend is ready and example can be used.
                           path: "tasks/:taskSlug",
                           handle: "Task",
                           element: <Task />,
+                        },
+                        {
+                          path: ":exampleSlug",
+                          handle: t("Example"),
+                          children: [
+                            { index: true, element: <Example /> },
+                            {
+                              path: "private-dashboard",
+                              handle: "Private Dashboard", // add this in translation.json
+                              // element: <PrivateDashboard />,
+                              element: <PrivateDashboard />,
+                            },
+                            {
+                              path: "public-dashboard",
+                              handle: "Public Dashboard", // add this in translation.json
+                              element: <PublicDashboard />,
+                            },
+                          ],
                         },
                       ],
                     },
