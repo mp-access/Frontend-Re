@@ -215,7 +215,7 @@ export default function Task() {
   const instructionsContent = task.files.filter(
     (file) => file.path === `/${instructionFile}`,
   )[0]?.template
-  console.log(instructionsContent)
+
   return (
     <Flex boxSize="full">
       <ButtonGroup
