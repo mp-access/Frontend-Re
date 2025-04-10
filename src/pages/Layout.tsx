@@ -15,7 +15,7 @@ import {
   MenuList,
 } from "@chakra-ui/react"
 import { useKeycloak } from "@react-keycloak/web"
-import React, { useEffect } from "react"
+import React, { useEffect, useState } from "react"
 import { AiOutlineLogout } from "react-icons/ai"
 import {
   Link,
@@ -31,12 +31,62 @@ import { compact, join } from "lodash"
 import { Placeholder } from "../components/Panels"
 import { LanguageSwitcher } from "../components/LanguageSwitcher"
 import { useTranslation } from "react-i18next"
+import { EventSource } from "extended-eventsource"
 
 export default function Layout() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { keycloak } = useKeycloak()
   const { courseSlug } = useParams()
+
+  const [ongoingExamplePath, setOngoingExamplePath] = useState<string | null>(
+    null,
+  )
+  const isSupervisor =
+    !!courseSlug && keycloak.hasRealmRole(courseSlug + "-supervisor")
+
+  useEffect(() => {
+    if (ongoingExamplePath) {
+      navigate(ongoingExamplePath)
+    }
+  }, [ongoingExamplePath])
+
+  useEffect(() => {
+    if (!keycloak.token || !courseSlug) return
+
+    // course slug will only be defined once within a course route.
+    if (courseSlug != undefined) {
+      const eventSource = new EventSource(
+        `/api/courses/${courseSlug}/subscribe`,
+        {
+          headers: {
+            Authorization: `Bearer ${keycloak.token}`,
+          },
+          retry: 3000,
+        },
+      )
+      eventSource.onopen = () => {}
+      if (!isSupervisor) {
+        eventSource.addEventListener("redirect", (event) => {
+          console.log("redirect...")
+          setOngoingExamplePath(event.data)
+        })
+      }
+
+      eventSource.onerror = (error) => {
+        console.error("SSE error occurred:", error)
+      }
+      const handleBeforeUnload = () => {
+        console.log("Closing EventSource (before unload)")
+        eventSource.close()
+      }
+      window.addEventListener("beforeunload", handleBeforeUnload)
+      return () => {
+        console.log("Closing EventSource (component unmount)")
+        eventSource.close()
+      }
+    }
+  }, [courseSlug, keycloak.token, isSupervisor])
 
   useEffect(() => {
     const timeout = setTimeout(() => !keycloak.token && navigate("/"), 2000)

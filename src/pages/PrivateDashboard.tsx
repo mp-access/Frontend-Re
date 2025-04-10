@@ -1,5 +1,4 @@
 import {
-  Button,
   Flex,
   Heading,
   HStack,
@@ -8,10 +7,13 @@ import {
   TagLeftIcon,
   Tag,
   TagLabel,
+  Card,
+  Button,
 } from "@chakra-ui/react"
 import { Markdown } from "../components/Panels"
 import { RadioCard } from "../components/RadioCard"
 import { BsFillCircleFill } from "react-icons/bs"
+import { usePublish } from "../components/Hooks"
 
 const someExampleMarkdownTaskDescription = `Transform the following mathematical expression into a Python program to be able to calculate the
 result for arbitrary values of a, b, c, and d defined in the source code:
@@ -33,7 +35,7 @@ Please make sure that your solution is self-contained within the \`calculate\` f
 
 export function PrivateDashboard() {
   const options = ["2min", "3min", "4min"] // replace with non-hardcoded values once object available
-
+  const { publish } = usePublish()
   const isOngoing = false
 
   const { getRootProps, getRadioProps } = useRadioGroup({
@@ -52,9 +54,10 @@ export function PrivateDashboard() {
         overflow="hidden"
         bg="base"
         borderTopWidth={1}
-        justifyContent={"space-between"}
+        justifyItems={"center"}
         padding={10}
         gap={4}
+        justify="center"
       >
         {isOngoing ? (
           <VStack
@@ -98,21 +101,14 @@ export function PrivateDashboard() {
                     )
                   })}
                 </HStack>
-                <Button>Publish</Button>
+                <Button onClick={() => publish()}>Publish</Button>
               </>
             )}
           </HStack>
 
-          <Flex
-            overflow={"auto"}
-            border={"1px solid"}
-            borderColor={"gray.200"}
-            borderRadius={"md"}
-            direction={"column"}
-            p={"4"}
-          >
+          <Card p={4}>
             <Markdown children={someExampleMarkdownTaskDescription}></Markdown>
-          </Flex>
+          </Card>
         </VStack>
       </Flex>
     </Flex>

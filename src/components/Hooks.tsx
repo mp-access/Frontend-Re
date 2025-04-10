@@ -56,6 +56,26 @@ export const useCourse = (options: UseQueryOptions<CourseProps> = {}) => {
   })
 }
 
+// remove this, handled differently with SSE
+export const usePublish = () => {
+  const { courseSlug, exampleSlug } = useParams()
+  console.log(courseSlug, exampleSlug)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { mutate } = useMutation<any, AxiosError, any[]>({
+    // TODO: type this correctly once backend res is known.
+    onSuccess: () => {
+      // just for now
+      console.log("Redirected")
+    },
+  })
+
+  const publish = () => {
+    mutate([["courses", courseSlug, "examples", exampleSlug, "publish"], {}])
+    console.log("publishing")
+  }
+  return { publish }
+}
+
 export const useStudents = () => {
   const { courseSlug } = useParams()
   return useQuery<StudentProps[]>(["courses", courseSlug, "students"], {
