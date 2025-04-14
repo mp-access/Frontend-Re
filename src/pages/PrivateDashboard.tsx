@@ -2,7 +2,6 @@ import {
   Flex,
   Heading,
   HStack,
-  VStack,
   Grid,
   GridItem,
   Divider,
@@ -53,12 +52,14 @@ const GenearlInformation: React.FC<{ isOngoing: boolean }> = ({
   isOngoing,
 }) => {
   return (
-    <>
+    <Flex layerStyle={"card"} direction={"column"} flex={1} p={3}>
       <Heading fontSize="xl">General Information</Heading>
       <Divider />
       <Flex flexDirection={"column"} justify={"space-between"} flex={1}>
         <HStack w={"full"} p={2}>
-          <Text color={"gray.500"}>Submissions</Text>
+          <Text color={"gray.500"} w={105}>
+            Submissions
+          </Text>
           {isOngoing ? (
             <>
               <Progress
@@ -69,7 +70,14 @@ const GenearlInformation: React.FC<{ isOngoing: boolean }> = ({
                 value={55}
                 flex={1}
               ></Progress>
-              <Text color={"gray.500"}>80/144</Text>
+              <Text
+                w={70}
+                color={"gray.500"}
+                display={"flex"}
+                justifyContent={"end"}
+              >
+                80/144
+              </Text>
             </>
           ) : (
             <Text color={"gray.500"}> - </Text>
@@ -77,7 +85,9 @@ const GenearlInformation: React.FC<{ isOngoing: boolean }> = ({
         </HStack>
 
         <HStack w={"full"} p={2}>
-          <Text color={"gray.500"}>Test pass rate</Text>
+          <Text color={"gray.500"} w={105}>
+            Test pass rate
+          </Text>
           {isOngoing ? (
             <>
               <Progress
@@ -87,7 +97,14 @@ const GenearlInformation: React.FC<{ isOngoing: boolean }> = ({
                 value={30}
                 flex={1}
               ></Progress>
-              <Text color={"gray.500"}>240/960</Text>
+              <Text
+                w={70}
+                color={"gray.500"}
+                display={"flex"}
+                justifyContent={"end"}
+              >
+                240/960
+              </Text>
             </>
           ) : (
             <Text color={"gray.500"}> - </Text>
@@ -103,7 +120,7 @@ const GenearlInformation: React.FC<{ isOngoing: boolean }> = ({
           </Tag>
         </Flex>
       </Flex>
-    </>
+    </Flex>
   )
 }
 
@@ -122,14 +139,14 @@ const ExampleTimeControler: React.FC<{
 }) => {
   if (isOngoing) {
     return (
-      <>
+      <Flex layerStyle={"card"} direction={"column"} p={2}>
         <Heading fontSize="xl">Time Left</Heading>
         <Divider />
-        <Flex flex={1} justify="space-around">
+        <Flex flex={1} justify="space-around" align={"center"}>
           <CircularProgress value={100} color={"green.500"} size={120}>
             <CircularProgressLabel>{durationAsString}</CircularProgressLabel>
           </CircularProgress>
-          <Flex direction={"column"} justify={"space-around"}>
+          <Flex direction={"column"} justify={"center"} h={"100%"} gap={1}>
             <Button variant={"outline"}> +30</Button>
             <Button variant={"outline"}> +60</Button>
             <Button
@@ -141,12 +158,18 @@ const ExampleTimeControler: React.FC<{
             </Button>
           </Flex>
         </Flex>
-      </>
+      </Flex>
     )
   }
 
   return (
-    <Flex direction={"column"} align={"space-around"} flex={1}>
+    <Flex
+      direction={"column"}
+      align={"space-around"}
+      flex={1}
+      layerStyle={"card"}
+      p={3}
+    >
       <Heading fontSize="xl">Submission Duration</Heading>
       <Divider />
       <Flex flexDirection={"column"} flex={1} justify={"center"}>
@@ -230,7 +253,7 @@ export function PrivateDashboard() {
       layerStyle={"container"}
       templateColumns="1fr 1fr 1fr"
       templateRows={"3fr 1fr"}
-      gap={4}
+      gap={2}
       height={"full"}
     >
       <GridItem
@@ -240,40 +263,29 @@ export function PrivateDashboard() {
         rowEnd={-1}
         colStart={1}
         colEnd={2}
+        p={3}
       >
-        <VStack overflow={"auto"} p={2} align={"start "}>
-          <Heading fontSize="xl">Testcases pass rate</Heading>
-          <Divider />
-          <div>...</div>
-        </VStack>
+        <Heading fontSize="xl">Testcases</Heading>
+        <Divider />
+        <div>...</div>
       </GridItem>
-      <GridItem layerStyle={"card"} gap={4} colStart={2} colEnd={4} p={4}>
+      <GridItem layerStyle={"card"} gap={4} colStart={2} colEnd={4} p={3}>
         <Heading fontSize="xl">Some Title</Heading>
         <Divider />
         <Spacer height={1}></Spacer>
         <Markdown children={someExampleMarkdownTaskDescription}></Markdown>
       </GridItem>
       <GridItem
-        layerStyle={"card"}
-        p={2}
         rowStart={2}
         rowEnd={-1}
         colStart={2}
-        colEnd={3}
+        colEnd={-1}
         display={"flex"}
-        flexDirection={"column"}
-        gap={1}
+        flexDirection={"row"}
+        gap={3}
       >
         <GenearlInformation isOngoing={isOngoing}></GenearlInformation>
-      </GridItem>
-      <GridItem
-        layerStyle={"card"}
-        p={2}
-        rowStart={2}
-        display={"flex"}
-        flexDirection={"column"}
-        gap={1}
-      >
+
         <ExampleTimeControler
           handleTimeAdjustment={handleTimeAdjustment}
           durationAsString={durationAsString} // will be some derived state once implemented properly
