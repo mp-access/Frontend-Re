@@ -193,7 +193,7 @@ const ExampleTimeControler: React.FC<{
       <Flex layerStyle={"card"} direction={"column"} p={2}>
         <Heading fontSize="xl">Time Left</Heading>
         <Divider />
-        <Flex flex={1} justify="space-around" align={"center"}>
+        <Flex flex={1} justify="space-around" align={"center"} gap={2} p={2}>
           <CircularProgress value={100} color={"green.500"} size={120}>
             <CircularProgressLabel>{durationAsString}</CircularProgressLabel>
           </CircularProgress>
