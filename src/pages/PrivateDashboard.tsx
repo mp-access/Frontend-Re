@@ -14,11 +14,19 @@ import {
   Button,
   CircularProgress,
   CircularProgressLabel,
+  useDisclosure,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogCloseButton,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogOverlay,
 } from "@chakra-ui/react"
 import { Markdown } from "../components/Panels"
 import { BsFillCircleFill } from "react-icons/bs"
 import { usePublish } from "../components/Hooks"
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo, useRef, useState } from "react"
 
 const CIRCLE_BUTTON_DIAMETER = 12
 const someExampleMarkdownTaskDescription = `Transform the following mathematical expression into a Python program to be able to calculate the
@@ -46,6 +54,49 @@ const formatSeconds = (totalSeconds: number) => {
   const padded = (num: number) => String(num).padStart(2, "0")
 
   return `${padded(minutes)}:${padded(seconds)}`
+}
+
+const TerminationDialog: React.FC<{ handleTermination: () => void }> = ({
+  handleTermination,
+}) => {
+  const { isOpen, onOpen, onClose } = useDisclosure()
+  const cancelRef = useRef()
+  return (
+    <>
+      <Button onClick={onOpen} colorScheme="red" backgroundColor={"red.600"}>
+        Terminate
+      </Button>
+      <AlertDialog
+        motionPreset="slideInBottom"
+        leastDestructiveRef={cancelRef}
+        onClose={onClose}
+        isOpen={isOpen}
+        isCentered
+      >
+        <AlertDialogOverlay />
+
+        <AlertDialogContent>
+          <AlertDialogHeader>Terminate Example?</AlertDialogHeader>
+          <AlertDialogCloseButton />
+          <AlertDialogBody>
+            Are you sure you already want to Terminate this example?
+          </AlertDialogBody>
+          <AlertDialogFooter gap={2}>
+            <Button variant={"outline"} ref={cancelRef} onClick={onClose}>
+              No
+            </Button>
+            <Button
+              onClick={handleTermination}
+              colorScheme="red"
+              backgroundColor={"red.600"}
+            >
+              Terminate
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  )
 }
 
 const GenearlInformation: React.FC<{ isOngoing: boolean }> = ({
@@ -149,13 +200,9 @@ const ExampleTimeControler: React.FC<{
           <Flex direction={"column"} justify={"center"} h={"100%"} gap={1}>
             <Button variant={"outline"}> +30</Button>
             <Button variant={"outline"}> +60</Button>
-            <Button
-              onClick={handleTermination}
-              colorScheme="red"
-              backgroundColor={"red.600"}
-            >
-              Terminate
-            </Button>
+            <TerminationDialog
+              handleTermination={handleTermination}
+            ></TerminationDialog>
           </Flex>
         </Flex>
       </Flex>
