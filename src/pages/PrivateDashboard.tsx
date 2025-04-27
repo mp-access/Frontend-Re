@@ -27,6 +27,12 @@ import { Markdown } from "../components/Panels"
 import { BsFillCircleFill } from "react-icons/bs"
 import { usePublish } from "../components/Hooks"
 import { useCallback, useMemo, useRef, useState } from "react"
+import { t } from "i18next"
+import {
+  ListIcon,
+  RotateFromRightIcon,
+  UprightFromSquareIcon,
+} from "../components/CustomIcons"
 
 const CIRCLE_BUTTON_DIAMETER = 12
 const someExampleMarkdownTaskDescription = `Transform the following mathematical expression into a Python program to be able to calculate the
@@ -47,6 +53,8 @@ Implement it in a function \`calculate\` where it should be returned.
 
 Please make sure that your solution is self-contained within the \`calculate\` function. In other words, only change the body of the function, not the code outside the function.`
 
+type ExampleState = "unpublished" | "ongoing" | "finished"
+
 const formatSeconds = (totalSeconds: number) => {
   const seconds = Math.floor(totalSeconds % 60)
   const minutes = Math.floor((totalSeconds / 60) % 60)
@@ -63,7 +71,12 @@ const TerminationDialog: React.FC<{ handleTermination: () => void }> = ({
   const cancelRef = useRef()
   return (
     <>
-      <Button onClick={onOpen} colorScheme="red" backgroundColor={"red.600"}>
+      <Button
+        onClick={onOpen}
+        colorScheme="red"
+        backgroundColor={"red.600"}
+        borderRadius={"lg"}
+      >
         Terminate
       </Button>
       <AlertDialog
@@ -99,19 +112,68 @@ const TerminationDialog: React.FC<{ handleTermination: () => void }> = ({
   )
 }
 
-const GenearlInformation: React.FC<{ isOngoing: boolean }> = ({
-  isOngoing,
+const ResetDialog: React.FC<{ handleReset: () => void }> = ({
+  handleReset,
+}) => {
+  const { isOpen, onOpen, onClose } = useDisclosure()
+  const cancelRef = useRef()
+  return (
+    <>
+      <Button
+        onClick={onOpen}
+        colorScheme="red"
+        backgroundColor={"red.600"}
+        borderRadius={"lg"}
+        leftIcon={<RotateFromRightIcon color="white" size={4} />}
+      >
+        Reset Example
+      </Button>
+      <AlertDialog
+        motionPreset="slideInBottom"
+        leastDestructiveRef={cancelRef}
+        onClose={onClose}
+        isOpen={isOpen}
+        isCentered
+      >
+        <AlertDialogOverlay />
+
+        <AlertDialogContent>
+          <AlertDialogHeader>Terminate Example?</AlertDialogHeader>
+          <AlertDialogCloseButton />
+          <AlertDialogBody>
+            Are you sure you want to reset this example?
+          </AlertDialogBody>
+          <AlertDialogFooter gap={2}>
+            <Button variant={"outline"} ref={cancelRef} onClick={onClose}>
+              No
+            </Button>
+            <Button
+              onClick={handleReset}
+              colorScheme="red"
+              backgroundColor={"red.600"}
+            >
+              Reset
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  )
+}
+
+const GenearlInformation: React.FC<{ exampleState: ExampleState }> = ({
+  exampleState,
 }) => {
   return (
     <Flex layerStyle={"card"} direction={"column"} flex={1} p={3}>
-      <Heading fontSize="xl">General Information</Heading>
+      <Heading fontSize="xl">{t("General Information")}</Heading>
       <Divider />
       <Flex flexDirection={"column"} justify={"space-between"} flex={1}>
         <HStack w={"full"} p={2}>
           <Text color={"gray.500"} w={105}>
-            Submissions
+            {t("Submissions")}
           </Text>
-          {isOngoing ? (
+          {exampleState === "ongoing" ? (
             <>
               <Progress
                 display={"flex"}
@@ -139,7 +201,7 @@ const GenearlInformation: React.FC<{ isOngoing: boolean }> = ({
           <Text color={"gray.500"} w={105}>
             Test pass rate
           </Text>
-          {isOngoing ? (
+          {exampleState === "ongoing" ? (
             <>
               <Progress
                 display={"flex"}
@@ -180,18 +242,82 @@ const ExampleTimeControler: React.FC<{
   handleStart: () => void
   handleTermination: () => void
   durationAsString: string
-  isOngoing: boolean
+  exampleState: ExampleState
 }> = ({
   handleTimeAdjustment,
   durationAsString,
-  isOngoing,
+  exampleState,
   handleStart,
   handleTermination,
 }) => {
-  if (isOngoing) {
+  if (exampleState === "unpublished") {
+    return (
+      <Flex
+        direction={"column"}
+        align={"space-around"}
+        flex={1}
+        layerStyle={"card"}
+        p={3}
+      >
+        <Heading fontSize="xl">{t("Duration")}</Heading>
+        <Divider />
+        <Flex flexDirection={"column"} flex={1} justify={"center"}>
+          <Flex justify={"space-around"} align={"center"}>
+            <Button
+              w={CIRCLE_BUTTON_DIAMETER}
+              h={CIRCLE_BUTTON_DIAMETER}
+              variant={"outline"}
+              onClick={() => handleTimeAdjustment(-30)}
+            >
+              -30
+            </Button>
+            <Button
+              w={CIRCLE_BUTTON_DIAMETER}
+              h={CIRCLE_BUTTON_DIAMETER}
+              variant={"outline"}
+              borderRadius={"full"}
+              onClick={() => handleTimeAdjustment(-15)}
+            >
+              -15
+            </Button>
+            <Text width={"110px"} fontSize={"4xl"}>
+              {durationAsString}
+            </Text>
+            <Button
+              w={CIRCLE_BUTTON_DIAMETER}
+              h={CIRCLE_BUTTON_DIAMETER}
+              variant={"outline"}
+              borderRadius={"full"}
+              onClick={() => handleTimeAdjustment(15)}
+            >
+              +15
+            </Button>
+            <Button
+              w={CIRCLE_BUTTON_DIAMETER}
+              h={CIRCLE_BUTTON_DIAMETER}
+              variant={"outline"}
+              borderRadius={"full"}
+              onClick={() => handleTimeAdjustment(30)}
+            >
+              +30
+            </Button>
+          </Flex>
+        </Flex>
+        <Button
+          colorScheme="green"
+          borderRadius={"lg"}
+          onClick={() => handleStart()}
+        >
+          Start
+        </Button>
+      </Flex>
+    )
+  }
+
+  if (exampleState === "ongoing") {
     return (
       <Flex layerStyle={"card"} direction={"column"} p={2}>
-        <Heading fontSize="xl">Time Left</Heading>
+        <Heading fontSize="xl">{t("Remaining Time")}</Heading>
         <Divider />
         <Flex flex={1} justify="space-around" align={"center"} gap={2} p={2}>
           <CircularProgress value={100} color={"green.500"} size={120}>
@@ -210,60 +336,33 @@ const ExampleTimeControler: React.FC<{
   }
 
   return (
-    <Flex
-      direction={"column"}
-      align={"space-around"}
-      flex={1}
-      layerStyle={"card"}
-      p={3}
-    >
-      <Heading fontSize="xl">Submission Duration</Heading>
+    <Flex layerStyle={"card"} direction={"column"} p={2}>
+      <Heading fontSize="xl">{t("Controls")}</Heading>
       <Divider />
-      <Flex flexDirection={"column"} flex={1} justify={"center"}>
-        <Flex justify={"space-around"} align={"center"}>
+      <Flex flex={1} align={"center"} p={2}>
+        <Flex direction={"column"} justify={"center"} h={"100%"} gap={2}>
           <Button
-            w={CIRCLE_BUTTON_DIAMETER}
-            h={CIRCLE_BUTTON_DIAMETER}
             variant={"outline"}
-            onClick={() => handleTimeAdjustment(-30)}
+            borderRadius={"lg"}
+            leftIcon={
+              <UprightFromSquareIcon
+                color="purple.600"
+                size={4}
+              ></UprightFromSquareIcon>
+            }
           >
-            -30
+            Public Dashboard
           </Button>
           <Button
-            w={CIRCLE_BUTTON_DIAMETER}
-            h={CIRCLE_BUTTON_DIAMETER}
             variant={"outline"}
-            borderRadius={"full"}
-            onClick={() => handleTimeAdjustment(-15)}
+            borderRadius={"lg"}
+            leftIcon={<ListIcon color="purple.600" size={4}></ListIcon>}
           >
-            -15
+            Back to List
           </Button>
-          <Text width={"110px"} fontSize={"4xl"}>
-            {durationAsString}
-          </Text>
-          <Button
-            w={CIRCLE_BUTTON_DIAMETER}
-            h={CIRCLE_BUTTON_DIAMETER}
-            variant={"outline"}
-            borderRadius={"full"}
-            onClick={() => handleTimeAdjustment(15)}
-          >
-            +15
-          </Button>
-          <Button
-            w={CIRCLE_BUTTON_DIAMETER}
-            h={CIRCLE_BUTTON_DIAMETER}
-            variant={"outline"}
-            borderRadius={"full"}
-            onClick={() => handleTimeAdjustment(30)}
-          >
-            +30
-          </Button>
+          <ResetDialog handleTermination={handleTermination}></ResetDialog>
         </Flex>
       </Flex>
-      <Button colorScheme="green" onClick={() => handleStart()}>
-        Start
-      </Button>
     </Flex>
   )
 }
@@ -273,7 +372,9 @@ export function PrivateDashboard() {
   const { publish } = usePublish()
   const [durationInSeconds, setDurationInSeconds] = useState<number>(150)
 
-  const [isOngoing, setIsOngoing] = useState(false)
+  const [exampleState, setExampleState] = useState<
+    "unpublished" | "ongoing" | "finished"
+  >("unpublished")
 
   const durationAsString = useMemo(() => {
     return formatSeconds(durationInSeconds || 0)
@@ -288,11 +389,11 @@ export function PrivateDashboard() {
 
   const handleStart = useCallback(() => {
     publish()
-    setIsOngoing(true)
+    setExampleState("ongoing")
   }, [])
 
   const handleTermination = useCallback(() => {
-    setIsOngoing(false)
+    setExampleState("finished")
   }, [])
 
   return (
@@ -331,12 +432,12 @@ export function PrivateDashboard() {
         flexDirection={"row"}
         gap={3}
       >
-        <GenearlInformation isOngoing={isOngoing}></GenearlInformation>
+        <GenearlInformation exampleState={exampleState}></GenearlInformation>
 
         <ExampleTimeControler
           handleTimeAdjustment={handleTimeAdjustment}
           durationAsString={durationAsString} // will be some derived state once implemented properly
-          isOngoing={isOngoing}
+          exampleState={exampleState}
           handleStart={handleStart}
           handleTermination={handleTermination}
         ></ExampleTimeControler>

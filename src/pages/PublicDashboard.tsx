@@ -13,6 +13,7 @@ import {
 } from "@chakra-ui/react"
 import { Markdown } from "../components/Panels"
 import { FcAlarmClock, FcDocument } from "react-icons/fc"
+import { t } from "i18next"
 
 const someExampleMarkdownTaskDescription = `Transform the following mathematical expression into a Python program to be able to calculate the
 result for arbitrary values of a, b, c, and d defined in the source code:
@@ -40,6 +41,7 @@ export function PublicDashboard() {
       templateRows={"1fr 1fr"}
       gap={2}
       h={"full"}
+      maxH={900}
     >
       <GridItem
         layerStyle={"card"}
@@ -55,10 +57,10 @@ export function PublicDashboard() {
         <Spacer height={1} />
         <Markdown children={someExampleMarkdownTaskDescription}></Markdown>
       </GridItem>
-      <GridItem layerStyle={"card"} p={3}>
+      <GridItem layerStyle={"card"} p={3} maxHeight={450}>
         <HStack>
           <Icon as={FcAlarmClock} boxSize={6} />
-          <Heading fontSize="xl">Remaining Time</Heading>
+          <Heading fontSize="xl">{t("Remaining Time")}</Heading>
         </HStack>
         <Divider />
         <Spacer height={1} />
@@ -68,10 +70,10 @@ export function PublicDashboard() {
           </CircularProgress>
         </Flex>
       </GridItem>
-      <GridItem layerStyle={"card"} p={3}>
+      <GridItem layerStyle={"card"} p={3} maxHeight={450}>
         <HStack>
           <Icon as={FcDocument} boxSize={6} />
-          <Heading fontSize="xl">Submissions</Heading>
+          <Heading fontSize="xl">{t("Submissions")}</Heading>
         </HStack>
         <Divider />
         <Spacer height={1} />
