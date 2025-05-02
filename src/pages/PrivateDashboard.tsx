@@ -161,6 +161,56 @@ const ResetDialog: React.FC<{ handleReset: () => void }> = ({
   )
 }
 
+const SubmissionInspector: React.FC = () => {
+  return (
+    <>
+      <Flex layerStyle={"card"} direction={"column"}>
+        <Heading fontSize="xl">Implementation Type #2</Heading>
+        <Divider />
+        <Flex justify={"space-around"} pt={2}>
+          <Text display={"flex"} flexDirection={"row"} gap={2}>
+            Commonality: <Text fontWeight={"bold"}>21%</Text>
+          </Text>
+          <Text display={"flex"} flexDirection={"row"} gap={2}>
+            Number of variations: <Text fontWeight={"bold"}>115</Text>
+          </Text>
+          <Text display={"flex"} flexDirection={"row"} gap={2}>
+            Avg. Score: <Text fontWeight={"bold"}>3.2</Text>
+          </Text>
+          <Text display={"flex"} flexDirection={"row"} gap={2}>
+            Std. Dev.: <Text fontWeight={"bold"}>0.8</Text>
+          </Text>
+        </Flex>
+      </Flex>
+      <Flex layerStyle={"card"} direction={"column"} grow={1}>
+        <Heading fontSize="lg">{"{Student Username}"}</Heading>
+        <Divider />
+      </Flex>
+      <Flex gap={2}>
+        <Button variant={"outline"} borderRadius={"lg"} flex={1}>
+          Previous Type
+        </Button>
+        <Button borderRadius={"lg"} flex={1}>
+          Open in Editor
+        </Button>
+        <Button variant={"outline"} borderRadius={"lg"} flex={1}>
+          Next Type
+        </Button>
+      </Flex>
+    </>
+  )
+}
+
+const TaskDescription: React.FC = () => {
+  return (
+    <Flex layerStyle={"card"} direction={"column"} grow={1}>
+      <Heading fontSize="xl">Some Title</Heading>
+      <Divider />
+      <Markdown children={someExampleMarkdownTaskDescription}></Markdown>
+    </Flex>
+  )
+}
+
 const GenearlInformation: React.FC<{ exampleState: ExampleState }> = ({
   exampleState,
 }) => {
@@ -173,7 +223,7 @@ const GenearlInformation: React.FC<{ exampleState: ExampleState }> = ({
           <Text color={"gray.500"} w={105}>
             {t("Submissions")}
           </Text>
-          {exampleState === "ongoing" ? (
+          {exampleState === "ongoing" || exampleState === "finished" ? (
             <>
               <Progress
                 display={"flex"}
@@ -201,7 +251,7 @@ const GenearlInformation: React.FC<{ exampleState: ExampleState }> = ({
           <Text color={"gray.500"} w={105}>
             Test pass rate
           </Text>
-          {exampleState === "ongoing" ? (
+          {exampleState === "ongoing" || exampleState === "finished" ? (
             <>
               <Progress
                 display={"flex"}
@@ -417,11 +467,14 @@ export function PrivateDashboard() {
         <Divider />
         <div>...</div>
       </GridItem>
-      <GridItem layerStyle={"card"} gap={4} colStart={2} colEnd={4} p={3}>
-        <Heading fontSize="xl">Some Title</Heading>
-        <Divider />
-        <Spacer height={1}></Spacer>
-        <Markdown children={someExampleMarkdownTaskDescription}></Markdown>
+      <GridItem gap={4} colStart={2} colEnd={4}>
+        <Flex direction={"column"} h={"full"} gap={2}>
+          {exampleState === "unpublished" ? (
+            <TaskDescription />
+          ) : (
+            <SubmissionInspector />
+          )}
+        </Flex>
       </GridItem>
       <GridItem
         rowStart={2}
