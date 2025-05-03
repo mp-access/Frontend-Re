@@ -128,36 +128,23 @@ function App() {
                 },
                 {
                   path: "examples",
+                  handle: t("Examples"),
                   children: [
+                    { index: true, element: <Examples /> },
                     {
-                      path: ":exampleSlug", // remove once backend is ready (-> examples fetchable from backend via /examples)
-                      handle: t("Examples"),
+                      path: "example/:exampleSlug", // remove once backend is ready (-> examples fetchable from backend via /examples)
+                      handle: t("Example"),
                       children: [
-                        { index: true, element: <Examples /> },
-
+                        { index: true, element: <Example /> },
                         {
-                          // delete once backend is ready and example can be used.
-                          path: "tasks/:taskSlug",
-                          handle: "Task",
-                          element: <Task />,
+                          path: "private-dashboard",
+                          handle: "Private Dashboard", // add this in translation.json
+                          element: <PrivateDashboard />,
                         },
                         {
-                          path: ":exampleSlug",
-                          handle: t("Example"),
-                          children: [
-                            { index: true, element: <Example /> },
-                            {
-                              path: "private-dashboard",
-                              handle: "Private Dashboard", // add this in translation.json
-                              // element: <PrivateDashboard />,
-                              element: <PrivateDashboard />,
-                            },
-                            {
-                              path: "public-dashboard",
-                              handle: "Public Dashboard", // add this in translation.json
-                              element: <PublicDashboard />,
-                            },
-                          ],
+                          path: "public-dashboard",
+                          handle: "Public Dashboard", // add this in translation.json
+                          element: <PublicDashboard />,
                         },
                       ],
                     },

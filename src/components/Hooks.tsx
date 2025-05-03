@@ -100,10 +100,15 @@ export const useAssignment = () => {
 
 export const useExample = () => {
   const { courseSlug, exampleSlug } = useParams()
-  return useQuery<ExampleProps>(
-    ["courses", courseSlug, "assignments", exampleSlug], // TODO: replace "assignments" with "examples" once backend is ready
+  return useQuery<TaskProps>(
+    ["courses", courseSlug, "examples", exampleSlug], // TODO: replace "assignments" with "examples" once backend is ready
     { enabled: !!exampleSlug },
   )
+}
+
+export const useExamples = () => {
+  const { courseSlug } = useParams()
+  return useQuery<TaskOverview[]>(["courses", courseSlug, "examples"])
 }
 
 export const useTask = (userId: string) => {

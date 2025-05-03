@@ -171,16 +171,24 @@ function CourseNav() {
   const { i18n, t } = useTranslation()
   const currentLanguage = i18n.language
   const matches = useMatches()
-  const { courseSlug, taskSlug } = useParams()
+  const { courseSlug, taskSlug, exampleSlug } = useParams()
   const { data: course } = useCourse()
   const { data: assignment } = useAssignment()
   const task = assignment?.tasks.find((task) => task.slug === taskSlug)
+  const example = course?.examples.find((e) => e.slug === exampleSlug)
 
   if (!course) return <></>
 
   const toNav = (h: unknown) =>
-    join(compact([h, h === t("Assignment") && assignment?.ordinalNum]), " ")
-
+    join(
+      compact([
+        h,
+        (h === t("Assignment") && assignment?.ordinalNum) ||
+          (h == t("Example") && example?.ordinalNum),
+      ]),
+      " ",
+    )
+  console.log("matches: ", matches)
   return (
     <Breadcrumb
       layerStyle="float"

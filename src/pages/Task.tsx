@@ -83,7 +83,6 @@ export default function Task() {
   const [openFiles, setOpenFiles] = useState<TaskFileProps[]>([])
   const [userId, setUserId] = useState(user.email)
   const { data: task, submit, refetch, timer } = useTask(userId)
-  console.log("Task Data: ", task)
 
   const getUpdate = (file: TaskFileProps, submission?: WorkspaceProps) =>
     submission?.files?.find((s) => s.taskFileId === file.id)?.content ||

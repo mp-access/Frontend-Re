@@ -1,9 +1,7 @@
 import {
-  Box,
   Button,
   Center,
   Divider,
-  Flex,
   Heading,
   HStack,
   Icon,
@@ -20,59 +18,45 @@ import { range } from "lodash"
 import React from "react"
 import { FcTodoList } from "react-icons/fc"
 import { Link, useOutletContext } from "react-router-dom"
-import { Counter } from "../components/Buttons"
 import { HScores } from "../components/Statistics"
-import { useExample } from "../components/Hooks"
 import { useTranslation } from "react-i18next"
+import { useExamples } from "../components/Hooks"
 
 export default function Examples() {
   const { i18n, t } = useTranslation()
   const currentLanguage = i18n.language
   const { isAssistant } = useOutletContext<UserContext>()
-  const { data: example } = useExample() // replace this by useExample
+  const { data: examples } = useExamples() //  TODO: only get TaskOverview, not TaskProps, once related backend problem is fixed
 
-  if (!example) return <></>
+  if (!examples) return <></>
 
   return (
     <Stack layerStyle="container" spacing={4}>
-      <Stack layerStyle="segment">
-        <Flex justify="space-between">
-          <Box>
-            <Heading>
-              {t("Lecture Examples") || example.information["en"].title}
-            </Heading>
-          </Box>
-          <Center pr="1em">
-            {/* {example.active && <TimeCountDown values={example.countDown} />} */}
-          </Center>
-        </Flex>
-      </Stack>
       <TableContainer layerStyle="segment">
         <HStack>
           <Icon as={FcTodoList} boxSize={6} />
           <Heading fontSize="2xl">{t("Examples")}</Heading>
-          <Counter>{example.tasks.length}</Counter>
         </HStack>
         <Divider borderColor="gray.300" my={4} />
         <Table>
           <Tbody>
-            {example.tasks
+            {examples
               .sort((a, b) => a.ordinalNum - b.ordinalNum)
-              .map((task) => (
-                <Tr key={task.id}>
+              .map((example) => (
+                <Tr key={example.id}>
                   <Td p={0} whiteSpace="nowrap" fontSize="sm">
-                    {task.ordinalNum}
+                    {example.ordinalNum}
                   </Td>
                   <Td>
                     <Heading fontSize="lg">
-                      {task.information[currentLanguage]?.title ||
-                        task.information["en"].title}
+                      {example.information[currentLanguage]?.title ||
+                        example.information["en"].title}
                     </Heading>
                   </Td>
                   {(example.active && (
                     <Td>
                       <SimpleGrid columns={5} gap={1} w="fit-content">
-                        {range(Math.min(task.maxAttempts, 10)).map((i) => (
+                        {range(Math.min(example.maxAttempts, 10)).map((i) => (
                           <Center
                             key={i}
                             rounded="full"
@@ -80,7 +64,7 @@ export default function Examples() {
                             borderWidth={2}
                             borderColor="purple.500"
                             bg={
-                              isAssistant || i < task.remainingAttempts
+                              isAssistant || i < example.remainingAttempts
                                 ? "purple.500"
                                 : "transparent"
                             }
@@ -89,14 +73,14 @@ export default function Examples() {
                       </SimpleGrid>
                       <Text fontSize="sm">
                         {t("Submissions left", {
-                          count: isAssistant ? 99 : task.remainingAttempts,
-                          max: task.maxAttempts,
+                          count: isAssistant ? 99 : example.remainingAttempts,
+                          max: example.maxAttempts,
                         })}
                       </Text>
                     </Td>
                   )) || <Td>{t("Submission Closed")}</Td>}
                   <Td w="xs">
-                    <HScores value={task.points} max={task.maxPoints} />
+                    <HScores value={example.points} max={example.maxPoints} />
                   </Td>
                   <Td>
                     <HStack spacing={2} justify={"flex-end"}>
@@ -104,20 +88,20 @@ export default function Examples() {
                         <>
                           <Button
                             as={Link}
-                            to={`${example.slug}/private-dashboard`}
+                            to={`example/${example.slug}/private-dashboard`}
                           >
                             {t("Private Dashboard")}
                           </Button>
                           <Button
                             as={Link}
-                            to={`${example.slug}/public-dashboard`}
+                            to={`example/${example.slug}/public-dashboard`}
                           >
                             {t("Public Dashboard")}
                           </Button>
                         </>
                       ) : null}
 
-                      <Button as={Link} to={`tasks/${task.slug}`}>
+                      <Button as={Link} to={`example/${example.slug}`}>
                         {t("View")}
                       </Button>
                     </HStack>

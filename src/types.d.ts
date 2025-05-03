@@ -24,8 +24,7 @@ declare interface CourseInformation {
 
 declare interface CourseProps extends CourseOverview {
   assignments: Array<AssignmentProps>
-  // TODO: Add Array of type ExampleProps here
-  // tasks: Array<ExampleProps>
+  examples: Array<TaskOverview>
   events: Array<CourseEventProps>
   rank: number
 }
@@ -64,26 +63,6 @@ declare interface AssignmentProps {
   pastDue: boolean
   active: boolean
   maxPoints: number
-  points: number
-  tasks: Array<TaskOverview>
-}
-
-declare interface ExampleProps {
-  id: number
-  slug: string
-  information: Record<string, AssignmentInformation> // why not Record<Language, AssignmentInformation>, where Language is e.g., Type Language = "english | german"
-  ordinalNum: number
-  start: string
-  end: string
-  publishedDate: string
-  publishedTime: string
-  // dueDate: string
-  // dueTime: string
-  // countDown: Array<TimerProps>
-  published: boolean
-  // pastDue: boolean
-  active: boolean
-  // maxPoints: number
   points: number
   tasks: Array<TaskOverview>
 }

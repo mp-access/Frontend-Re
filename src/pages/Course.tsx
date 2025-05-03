@@ -62,6 +62,17 @@ export default function Course() {
     course.assignments,
     (a) => a.published,
   )
+
+  const [activeExamples, inactiveExamples] = fork(
+    course.examples,
+    (e) => e.active,
+  )
+
+  const nrOfSolvedExampels = activeExamples.reduce(
+    (total, example) => total + example.points,
+    0,
+  )
+
   const [activeAssignments, pastAssignments] = fork(
     publishedAssignments,
     (a) => a.active,
@@ -174,53 +185,27 @@ export default function Course() {
           <Divider borderColor="gray.300" my={4} />
           <Table>
             <Tbody>
-              {upcomingAssignments.map((assignment) => (
-                <Tr key={assignment.id}>
-                  <Td
-                    p={0}
-                    whiteSpace="nowrap"
-                    fontSize="sm"
-                    w="2em"
-                    maxW="2em"
+              <Tr key={course.slug}>
+                {" "}
+                {/* replace this with something better*/}
+                <Td>
+                  <VStack>
+                    <Heading fontSize="lg">{t("Examples")}</Heading>
+                  </VStack>
+                </Td>
+                <Td w="17em" maxW="17em"></Td>
+                <Td w="12em" maxW="12em"></Td>
+                <Td w="10em" maxW="13em">
+                  <Button
+                    w="full"
+                    colorScheme="green"
+                    as={Link}
+                    to={"examples"}
                   >
-                    {assignment.ordinalNum}
-                  </Td>
-                  <Td>
-                    <VStack>
-                      <Heading fontSize="lg">{t("Examples")}</Heading>
-                    </VStack>
-                  </Td>
-                  <Td w="17em" maxW="17em">
-                    <VStack>
-                      <Tag bg="transparent">
-                        <TagLeftIcon
-                          as={AiOutlineClockCircle}
-                          marginBottom={1}
-                        />
-                        <TagLabel>
-                          {formatDateRange(assignment.start, assignment.end)}
-                        </TagLabel>
-                      </Tag>
-                    </VStack>
-                  </Td>
-                  <Td w="12em" maxW="12em">
-                    <ScoreBar
-                      value={assignment.points}
-                      max={assignment.maxPoints}
-                    />
-                  </Td>
-                  <Td w="10em" maxW="13em">
-                    <Button
-                      w="full"
-                      colorScheme="green"
-                      as={Link}
-                      to={`examples/${assignment.slug}`}
-                    >
-                      {assignment.points ? "Continue" : t("Examples")}
-                    </Button>
-                  </Td>
-                </Tr>
-              ))}
+                    {nrOfSolvedExampels ? t("Continue") : t("Examples")}
+                  </Button>
+                </Td>
+              </Tr>
             </Tbody>
           </Table>
         </TableContainer>
