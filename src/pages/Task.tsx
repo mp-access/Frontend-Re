@@ -89,7 +89,6 @@ export default function Task({ type }: { type: "task" | "example" }) {
     timer,
   } = type == "task" ? useTask(userId) : useExample(userId)
 
-  console.log({ task })
   const getUpdate = (file: TaskFileProps, submission?: WorkspaceProps) =>
     submission?.files?.find((s) => s.taskFileId === file.id)?.content ||
     file.template
