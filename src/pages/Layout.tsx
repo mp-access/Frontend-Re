@@ -188,7 +188,6 @@ function CourseNav() {
       ]),
       " ",
     )
-  console.log("matches: ", matches)
   return (
     <Breadcrumb
       layerStyle="float"

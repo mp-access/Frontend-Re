@@ -62,12 +62,12 @@ import {
   NextAttemptAt,
   TooltipIconButton,
 } from "../components/Buttons"
-import { useCodeEditor, useTask } from "../components/Hooks"
+import { useCodeEditor, useExample, useTask } from "../components/Hooks"
 import { TaskController } from "./Supervisor"
 import { detectType, createDownloadHref } from "../components/Util"
 import { useTranslation } from "react-i18next"
 
-export default function Task() {
+export default function Task({ type }: { type: "task" | "example" }) {
   const { i18n, t } = useTranslation()
   const currentLanguage = i18n.language
   const editor = useCodeEditor()
@@ -82,8 +82,14 @@ export default function Task() {
   const [editorReload, setEditorReload] = useState(1) // counts up every time Editor should re-render
   const [openFiles, setOpenFiles] = useState<TaskFileProps[]>([])
   const [userId, setUserId] = useState(user.email)
-  const { data: task, submit, refetch, timer } = useTask(userId)
+  const {
+    data: task,
+    submit,
+    refetch,
+    timer,
+  } = type == "task" ? useTask(userId) : useExample(userId)
 
+  console.log({ task })
   const getUpdate = (file: TaskFileProps, submission?: WorkspaceProps) =>
     submission?.files?.find((s) => s.taskFileId === file.id)?.content ||
     file.template
