@@ -29,7 +29,6 @@ import i18n from "i18next"
 import { useTranslation, initReactI18next } from "react-i18next"
 import HttpBackend from "i18next-http-backend"
 import Examples from "./pages/Examples"
-import Example from "./pages/Example"
 import { PublicDashboard } from "./pages/PublicDashboard"
 import { PrivateDashboard } from "./pages/PrivateDashboard"
 
@@ -120,7 +119,7 @@ function App() {
                         {
                           path: "tasks/:taskSlug",
                           handle: "Task",
-                          element: <Task />,
+                          element: <Task type="task" />,
                         },
                       ],
                     },
@@ -135,7 +134,7 @@ function App() {
                       path: "example/:exampleSlug", // remove once backend is ready (-> examples fetchable from backend via /examples)
                       handle: t("Example"),
                       children: [
-                        { index: true, element: <Example /> },
+                        { index: true, element: <Task type="example" /> },
                         {
                           path: "private-dashboard",
                           handle: "Private Dashboard", // add this in translation.json

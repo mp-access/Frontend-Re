@@ -98,17 +98,33 @@ export const useAssignment = () => {
   )
 }
 
-export const useExample = () => {
-  const { courseSlug, exampleSlug } = useParams()
-  return useQuery<TaskProps>(
-    ["courses", courseSlug, "examples", exampleSlug], // TODO: replace "assignments" with "examples" once backend is ready
-    { enabled: !!exampleSlug },
-  )
-}
-
 export const useExamples = () => {
   const { courseSlug } = useParams()
   return useQuery<TaskOverview[]>(["courses", courseSlug, "examples"])
+}
+
+export const useExample = (userId: string) => {
+  const [timer, setTimer] = useState<number>()
+  const { courseSlug, exampleSlug } = useParams()
+  const query = useQuery<TaskProps>(
+    ["courses", courseSlug, "examples", exampleSlug, "users", userId],
+    { enabled: !timer },
+  )
+  // eslint-disable-next-line
+  const { mutateAsync } = useMutation<any, AxiosError, any[]>(
+    ["submit", courseSlug, "exampels", exampleSlug],
+    {
+      onMutate: () => setTimer(Date.now() + 30000),
+      onSettled: () => setTimer(undefined),
+      onSuccess: query.refetch,
+    },
+  )
+  const submit = (data: NewSubmissionProps) =>
+    mutateAsync([
+      ["courses", courseSlug, "examples", exampleSlug, "submit"],
+      data,
+    ])
+  return { ...query, submit, timer }
 }
 
 export const useTask = (userId: string) => {
