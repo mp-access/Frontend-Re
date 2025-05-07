@@ -75,7 +75,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const { isAssistant, user } = useOutletContext<UserContext>()
   const [taskId, setTaskId] = useState(-1)
-  const [submissionId, setSubmissionId] = useState(0)
+  const [submissionId, setSubmissionId] = useState<number | null>(null)
   const [currentTab, setCurrentTab] = useState(0)
   const [currentFile, setCurrentFile] = useState<TaskFileProps>()
   const [editableFiles, setEditableFiles] = useState<TaskFileProps[]>([])
@@ -115,7 +115,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
 
   useEffect(() => {
     if (task) {
-      if (submissionId == -1) {
+      if (submissionId == -1 || submissionId == null) {
         const defaultFiles = task.files.filter((file) => file.editable)
         setEditableFiles(defaultFiles)
       } else {
