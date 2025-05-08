@@ -24,6 +24,7 @@ declare interface CourseInformation {
 
 declare interface CourseProps extends CourseOverview {
   assignments: Array<AssignmentProps>
+  examples: Array<TaskOverview>
   events: Array<CourseEventProps>
   rank: number
 }

@@ -29,7 +29,7 @@ import { DayPicker } from "react-day-picker"
 import { enUS, de } from "date-fns/locale"
 import { AiOutlineTeam, AiOutlineClockCircle } from "react-icons/ai"
 import { BsFillCircleFill } from "react-icons/bs"
-import { FcAlarmClock, FcLock, FcPlanner } from "react-icons/fc"
+import { FcAlarmClock, FcIdea, FcLock, FcPlanner } from "react-icons/fc"
 import { Link, useOutletContext } from "react-router-dom"
 import { Detail, EventBox } from "../components/Buttons"
 import { CourseAvatar } from "../components/Icons"
@@ -60,11 +60,22 @@ export default function Course() {
 
   const [publishedAssignments, upcomingAssignments] = fork(
     course.assignments,
-    (a) => a.published
+    (a) => a.published,
   )
+
+  const [activeExamples, inactiveExamples] = fork(
+    course.examples,
+    (e) => e.active,
+  )
+
+  const nrOfSolvedExampels = activeExamples.reduce(
+    (total, example) => total + example.points,
+    0,
+  )
+
   const [activeAssignments, pastAssignments] = fork(
     publishedAssignments,
-    (a) => a.active
+    (a) => a.active,
   )
 
   const collectEvents = (prop: string) =>
@@ -72,7 +83,7 @@ export default function Course() {
   const events = objectify(
     ["published", "due"],
     (key) => key,
-    (key) => collectEvents(key)
+    (key) => collectEvents(key),
   )
 
   return (
@@ -166,11 +177,43 @@ export default function Course() {
         </VStack>
       </GridItem>
       <GridItem as={Stack} layerStyle="container" p={0} spacing={4}>
+        <TableContainer layerStyle="segment">
+          <HStack>
+            <Icon as={FcIdea} boxSize={6} />
+            <Heading fontSize="2xl">{t("Lecture Examples")}</Heading>
+          </HStack>
+          <Divider borderColor="gray.300" my={4} />
+          <Table>
+            <Tbody>
+              <Tr key={course.slug}>
+                {" "}
+                {/* replace this with something better*/}
+                <Td>
+                  <VStack>
+                    <Heading fontSize="lg">{t("Examples")}</Heading>
+                  </VStack>
+                </Td>
+                <Td w="17em" maxW="17em"></Td>
+                <Td w="12em" maxW="12em"></Td>
+                <Td w="10em" maxW="13em">
+                  <Button
+                    w="full"
+                    colorScheme="green"
+                    as={Link}
+                    to={"examples"}
+                  >
+                    {nrOfSolvedExampels ? t("Continue") : t("Examples")}
+                  </Button>
+                </Td>
+              </Tr>
+            </Tbody>
+          </Table>
+        </TableContainer>
         {!!upcomingAssignments.length && (
           <TableContainer layerStyle="segment">
             <HStack>
               <Icon as={FcPlanner} boxSize={6} />
-              <Heading fontSize="2xl">Upcoming Assignments</Heading>
+              <Heading fontSize="2xl">{t("Upcoming Assignments")}</Heading>
             </HStack>
             <Divider borderColor="gray.300" my={4} />
             <Table>
@@ -231,7 +274,6 @@ export default function Course() {
             </Table>
           </TableContainer>
         )}
-
         <TableContainer layerStyle="segment">
           <HStack>
             <Icon as={FcAlarmClock} boxSize={6} />

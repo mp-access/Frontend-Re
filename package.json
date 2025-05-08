@@ -35,6 +35,7 @@
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-jsx-a11y": "^6.8.0",
     "eslint-plugin-react": "^7.34.1",
+    "extended-eventsource": "^2.1.0",
     "framer-motion": "^9.0.2",
     "i18next": "^23.8.2",
     "i18next-http-backend": "^2.4.3",
