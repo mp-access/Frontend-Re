@@ -88,20 +88,20 @@ export default function Examples() {
                         <>
                           <Button
                             as={Link}
-                            to={`example/${example.slug}/private-dashboard`}
+                            to={`${example.slug}/private-dashboard`}
                           >
                             {t("Private Dashboard")}
                           </Button>
                           <Button
                             as={Link}
-                            to={`example/${example.slug}/public-dashboard`}
+                            to={`${example.slug}/public-dashboard`}
                           >
                             {t("Public Dashboard")}
                           </Button>
                         </>
                       ) : null}
 
-                      <Button as={Link} to={`example/${example.slug}`}>
+                      <Button as={Link} to={`${example.slug}`}>
                         {t("View")}
                       </Button>
                     </HStack>

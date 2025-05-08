@@ -131,18 +131,18 @@ function App() {
                   children: [
                     { index: true, element: <Examples /> },
                     {
-                      path: "example/:exampleSlug", // remove once backend is ready (-> examples fetchable from backend via /examples)
+                      path: ":exampleSlug",
                       handle: t("Example"),
                       children: [
                         { index: true, element: <Task type="example" /> },
                         {
                           path: "private-dashboard",
-                          handle: "Private Dashboard", // add this in translation.json
+                          handle: t("Private Dashboard"), // add this in translation.json
                           element: <PrivateDashboard />,
                         },
                         {
                           path: "public-dashboard",
-                          handle: "Public Dashboard", // add this in translation.json
+                          handle: t("Public Dashboard"), // add this in translation.json
                           element: <PublicDashboard />,
                         },
                       ],
