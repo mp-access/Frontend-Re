@@ -12,7 +12,6 @@ import axios from "axios"
 import { AxiosError } from "axios"
 import Keycloak from "keycloak-js"
 import { compact, flattenDeep, join } from "lodash"
-import React from "react"
 import "react-day-picker/dist/style.css"
 import { createRoot } from "react-dom/client"
 import { createBrowserRouter, RouterProvider } from "react-router-dom"
@@ -29,6 +28,9 @@ import Layout from "./pages/Layout"
 import i18n from "i18next"
 import { useTranslation, initReactI18next } from "react-i18next"
 import HttpBackend from "i18next-http-backend"
+import Examples from "./pages/Examples"
+import { PublicDashboard } from "./pages/PublicDashboard"
+import { PrivateDashboard } from "./pages/PrivateDashboard"
 
 const authClient = new Keycloak({
   url: import.meta.env.VITE_AUTH_SERVER_URL || window.location.origin + ":8443",
@@ -117,7 +119,31 @@ function App() {
                         {
                           path: "tasks/:taskSlug",
                           handle: "Task",
-                          element: <Task />,
+                          element: <Task type="task" />,
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  path: "examples",
+                  handle: t("Examples"),
+                  children: [
+                    { index: true, element: <Examples /> },
+                    {
+                      path: ":exampleSlug",
+                      handle: t("Example"),
+                      children: [
+                        { index: true, element: <Task type="example" /> },
+                        {
+                          path: "private-dashboard",
+                          handle: t("Private Dashboard"), // add this in translation.json
+                          element: <PrivateDashboard />,
+                        },
+                        {
+                          path: "public-dashboard",
+                          handle: t("Public Dashboard"), // add this in translation.json
+                          element: <PublicDashboard />,
                         },
                       ],
                     },
@@ -151,5 +177,5 @@ createRoot(document.getElementById("root")!).render(
         </React.StrictMode> */}
       <App />
     </ChakraProvider>
-  </ReactKeycloakProvider>
+  </ReactKeycloakProvider>,
 )

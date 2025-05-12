@@ -3,8 +3,13 @@
   "Assignment": "Übung",
   "Active Assignments": "Offene Übungen",
   "Closed Assignments": "Geschlossene Übungen",
+  "Upcoming Assignments": "Bevorstehende Übungen",
   "Task": "Aufgabe",
   "Tasks": "Aufgaben",
+  "Example": "Beispiel",
+  "Examples": "Beispiele",
+  "Lecture Example": "Vorlesungsbeispiel",
+  "Lecture Examples": "Vorlesungsbeispiele",
   "task_one": "{{count}} Aufgabe",
   "task_other": "{{count}} Aufgaben",
   "Show tasks": "Aufgaben anzeigen",
@@ -40,5 +45,10 @@
   "Students_one": "{{count}} Studierende/r",
   "Students_other": "{{count}} Studierende",
   "Notice Board": "Ankündigungen",
-  "Import new course": "Neuen Kurs importieren"
+  "Import new course": "Neuen Kurs importieren",
+  "Private Dashboard": "Privates Dashboard",
+  "Public Dashboard": "Öffentliches Dashboard",
+  "Remaining Time": "Verbleibende Zeit",
+  "General Information": "Allgemeine Informationen",
+  "Duration": "Dauer"
 }

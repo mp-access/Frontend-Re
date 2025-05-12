@@ -24,9 +24,9 @@ const usePath = (prefix: string): string[] => {
           "assignments",
           assignmentSlug,
           prefix !== "assignments" && ["tasks", taskSlug],
-        ]
-      )
-    )
+        ],
+      ),
+    ),
   )
 }
 
@@ -34,7 +34,7 @@ export const useCreate = (slug: string) => {
   const target = slug === "" ? "/create" : "/edit"
   const { mutate, isLoading } = useMutation<string, AxiosError, object>(
     (repository) => axios.post(target, repository),
-    { onSuccess: () => window.location.reload() }
+    { onSuccess: () => window.location.reload() },
   )
   return { mutate, isLoading }
 }
@@ -43,7 +43,7 @@ export const usePull = () => {
   const path = usePath("")
   const { mutate, isLoading } = useMutation(
     () => axios.post("/courses" + `/${path[1]}/pull`, {}),
-    { onSuccess: () => window.location.reload() }
+    { onSuccess: () => window.location.reload() },
   )
   return { mutate, isLoading }
 }
@@ -54,6 +54,26 @@ export const useCourse = (options: UseQueryOptions<CourseProps> = {}) => {
     enabled: !!courseSlug,
     ...options,
   })
+}
+
+// remove this, handled differently with SSE
+export const usePublish = () => {
+  const { courseSlug, exampleSlug } = useParams()
+  console.log(courseSlug, exampleSlug)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { mutate } = useMutation<any, AxiosError, any[]>({
+    // TODO: type this correctly once backend res is known.
+    onSuccess: () => {
+      // just for now
+      console.log("Redirected")
+    },
+  })
+
+  const publish = () => {
+    mutate([["courses", courseSlug, "examples", exampleSlug, "publish"], {}])
+    console.log("publishing")
+  }
+  return { publish }
 }
 
 export const useStudents = () => {
@@ -74,8 +94,37 @@ export const useAssignment = () => {
   const { courseSlug, assignmentSlug } = useParams()
   return useQuery<AssignmentProps>(
     ["courses", courseSlug, "assignments", assignmentSlug],
-    { enabled: !!assignmentSlug }
+    { enabled: !!assignmentSlug },
   )
+}
+
+export const useExamples = () => {
+  const { courseSlug } = useParams()
+  return useQuery<TaskOverview[]>(["courses", courseSlug, "examples"])
+}
+
+export const useExample = (userId: string) => {
+  const [timer, setTimer] = useState<number>()
+  const { courseSlug, exampleSlug } = useParams()
+  const query = useQuery<TaskProps>(
+    ["courses", courseSlug, "examples", exampleSlug, "users", userId],
+    { enabled: !timer },
+  )
+  // eslint-disable-next-line
+  const { mutateAsync } = useMutation<any, AxiosError, any[]>(
+    ["submit", courseSlug, "exampels", exampleSlug],
+    {
+      onMutate: () => setTimer(Date.now() + 30000),
+      onSettled: () => setTimer(undefined),
+      onSuccess: query.refetch,
+    },
+  )
+  const submit = (data: NewSubmissionProps) =>
+    mutateAsync([
+      ["courses", courseSlug, "examples", exampleSlug, "submit"],
+      data,
+    ])
+  return { ...query, submit, timer }
 }
 
 export const useTask = (userId: string) => {
@@ -92,7 +141,7 @@ export const useTask = (userId: string) => {
       "users",
       userId,
     ],
-    { enabled: !timer }
+    { enabled: !timer },
   )
   // eslint-disable-next-line
   const { mutateAsync } = useMutation<any, AxiosError, any[]>(
@@ -101,7 +150,7 @@ export const useTask = (userId: string) => {
       onMutate: () => setTimer(Date.now() + 30000),
       onSettled: () => setTimer(undefined),
       onSuccess: query.refetch,
-    }
+    },
   )
   const submit = (data: NewSubmissionProps) =>
     mutateAsync([
