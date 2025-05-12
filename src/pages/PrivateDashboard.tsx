@@ -33,6 +33,7 @@ import {
   RotateFromRightIcon,
   UprightFromSquareIcon,
 } from "../components/CustomIcons"
+import { Carousel } from "../components/Carousel"
 
 const CIRCLE_BUTTON_DIAMETER = 12
 const someExampleMarkdownTaskDescription = `Transform the following mathematical expression into a Python program to be able to calculate the
@@ -52,6 +53,9 @@ result for arbitrary values of a, b, c, and d defined in the source code:
 Implement it in a function \`calculate\` where it should be returned.
 
 Please make sure that your solution is self-contained within the \`calculate\` function. In other words, only change the body of the function, not the code outside the function.`
+
+const exampleSubmission =
+  "```python\n def calculate(a, b, c, d): return a - (b**2 / (c - d * (a + b)))"
 
 type ExampleState = "unpublished" | "ongoing" | "finished"
 
@@ -185,6 +189,8 @@ const SubmissionInspector: React.FC = () => {
       <Flex layerStyle={"card"} direction={"column"} grow={1}>
         <Heading fontSize="lg">{"{Student Username}"}</Heading>
         <Divider />
+        <Carousel></Carousel>
+        {/* <Markdown children={exampleSubmission}></Markdown> */}
       </Flex>
       <Flex gap={2}>
         <Button variant={"outline"} borderRadius={"lg"} flex={1}>
