@@ -84,33 +84,6 @@ export const useExamples = () => {
   return useQuery<TaskOverview[]>(["courses", courseSlug, "examples"])
 }
 
-export const useRedirectionToExample = () => {
-  const navigate = useNavigate()
-  const { courseSlug } = useParams()
-  const { data: examples } = useExamples()
-
-  const handleLateExampleRedirect = () => {
-    console.log("examples??", examples)
-    if (!courseSlug || !examples) return
-
-    const interactiveExample = examples.find(
-      (example) => example.status === "Interactive",
-    )
-    console.log(examples)
-
-    console.log("INteractive Example : ", interactiveExample)
-    if (interactiveExample) {
-      const interactiveExamplePath = `/courses/${courseSlug}/examples/${interactiveExample.slug}`
-
-      console.log("interactiveExamplePath: ", interactiveExamplePath)
-
-      navigate(interactiveExamplePath)
-    }
-  }
-
-  return { handleLateExampleRedirect }
-}
-
 export const useStudents = () => {
   const { courseSlug } = useParams()
   return useQuery<StudentProps[]>(["courses", courseSlug, "students"], {
