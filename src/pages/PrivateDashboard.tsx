@@ -24,7 +24,6 @@ import {
 } from "@chakra-ui/react"
 import { Markdown } from "../components/Panels"
 import { BsFillCircleFill } from "react-icons/bs"
-import { usePublish } from "../components/Hooks"
 import { useCallback, useMemo, useRef, useState } from "react"
 import { t } from "i18next"
 import {
@@ -32,6 +31,9 @@ import {
   RotateFromRightIcon,
   UprightFromSquareIcon,
 } from "../components/CustomIcons"
+import { useMutation } from "@tanstack/react-query"
+import { AxiosError } from "axios"
+import { useParams } from "react-router-dom"
 
 const CIRCLE_BUTTON_DIAMETER = 12
 const someExampleMarkdownTaskDescription = `Transform the following mathematical expression into a Python program to be able to calculate the
@@ -52,7 +54,7 @@ Implement it in a function \`calculate\` where it should be returned.
 
 Please make sure that your solution is self-contained within the \`calculate\` function. In other words, only change the body of the function, not the code outside the function.`
 
-type ExampleState = "unpublished" | "ongoing" | "finished"
+type ExampleState = "unpublished" | "publishing" | "ongoing" | "finished"
 
 const formatSeconds = (totalSeconds: number) => {
   const seconds = Math.floor(totalSeconds % 60)
@@ -299,7 +301,7 @@ const ExampleTimeControler: React.FC<{
   handleStart,
   handleTermination,
 }) => {
-  if (exampleState === "unpublished") {
+  if (exampleState === "unpublished" || exampleState === "publishing") {
     return (
       <Flex
         direction={"column"}
@@ -356,6 +358,7 @@ const ExampleTimeControler: React.FC<{
           colorScheme="green"
           borderRadius={"lg"}
           onClick={() => handleStart()}
+          isLoading={exampleState === "publishing"}
         >
           Start
         </Button>
@@ -417,13 +420,23 @@ const ExampleTimeControler: React.FC<{
 }
 
 export function PrivateDashboard() {
-  // replace with non-hardcoded values once object available
-  const { publish } = usePublish()
   const [durationInSeconds, setDurationInSeconds] = useState<number>(150)
+  const { courseSlug, exampleSlug } = useParams()
 
-  const [exampleState, setExampleState] = useState<
-    "unpublished" | "ongoing" | "finished"
-  >("unpublished")
+  const { mutate: publish } = useMutation<void, AxiosError, object>({
+    onSuccess: () => {
+      setExampleState("ongoing")
+    },
+  })
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // const { mutate: terminate } = useMutation<any, AxiosError, any[]>({
+  //   onSuccess: () => {
+  //     setExampleState("finished")
+  //   },
+  // })
+
+  const [exampleState, setExampleState] = useState<ExampleState>("unpublished")
 
   const durationAsString = useMemo(() => {
     return formatSeconds(durationInSeconds || 0)
@@ -437,12 +450,16 @@ export function PrivateDashboard() {
   )
 
   const handleStart = useCallback(() => {
-    publish(durationInSeconds)
-    setExampleState("ongoing")
-  }, [])
+    setExampleState("publishing")
+    publish([
+      ["courses", courseSlug, "examples", exampleSlug, "publish"],
+      { duration: durationInSeconds },
+    ])
+  }, [durationInSeconds, courseSlug, exampleSlug, publish])
 
   const handleTermination = useCallback(() => {
-    setExampleState("finished")
+    console.log("To be implemented")
+    // terminate([["courses", courseSlug, "examples", exampleSlug, "terminate"]])
   }, [])
 
   return (
