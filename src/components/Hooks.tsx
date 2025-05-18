@@ -81,7 +81,6 @@ export const usePublish = () => {
 
 export const useExamples = () => {
   const { courseSlug } = useParams()
-  console.log("couresSlug? ", courseSlug)
   return useQuery<TaskOverview[]>(["courses", courseSlug, "examples"])
 }
 
@@ -89,7 +88,6 @@ export const useRedirectionToExample = () => {
   const navigate = useNavigate()
   const { courseSlug } = useParams()
   const { data: examples } = useExamples()
-  console.log("exampels", examples)
 
   const handleLateExampleRedirect = () => {
     console.log("examples??", examples)
