@@ -27,7 +27,6 @@ import { fork } from "radash"
 import { AiOutlineClockCircle } from "react-icons/ai"
 import { TFunction } from "i18next"
 import { IconType } from "react-icons/lib"
-import { AiOutlineCalendar } from "react-icons/ai"
 
 export const ExamplesCard: React.FC<{
   examples: TaskOverview[]

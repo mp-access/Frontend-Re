@@ -33,7 +33,9 @@ import {
 } from "../components/CustomIcons"
 import { useMutation } from "@tanstack/react-query"
 import { AxiosError } from "axios"
-import { useParams } from "react-router-dom"
+import { useOutletContext, useParams } from "react-router-dom"
+import { useExample } from "../components/Hooks"
+import { useTranslation } from "react-i18next"
 
 const CIRCLE_BUTTON_DIAMETER = 12
 const someExampleMarkdownTaskDescription = `Transform the following mathematical expression into a Python program to be able to calculate the
@@ -202,12 +204,14 @@ const SubmissionInspector: React.FC = () => {
   )
 }
 
-const TaskDescription: React.FC = () => {
+const TaskDescription: React.FC<{ instructionContent: string | undefined }> = ({
+  instructionContent,
+}) => {
   return (
     <Flex layerStyle={"card"} direction={"column"} grow={1}>
       <Heading fontSize="xl">Some Title</Heading>
       <Divider />
-      <Markdown children={someExampleMarkdownTaskDescription}></Markdown>
+      <Markdown children={instructionContent}></Markdown>
     </Flex>
   )
 }
@@ -420,14 +424,24 @@ const ExampleTimeControler: React.FC<{
 }
 
 export function PrivateDashboard() {
-  const [durationInSeconds, setDurationInSeconds] = useState<number>(150)
+  const { i18n } = useTranslation()
+  const currentLanguage = i18n.language
+  const { user } = useOutletContext<UserContext>()
   const { courseSlug, exampleSlug } = useParams()
-
+  const [durationInSeconds, setDurationInSeconds] = useState<number>(150)
+  const { data: example } = useExample(user.email)
   const { mutate: publish } = useMutation<void, AxiosError, object>({
     onSuccess: () => {
       setExampleState("ongoing")
     },
   })
+
+  const instructionFile =
+    example?.information[currentLanguage]?.instructionsFile ||
+    example?.information["en"].instructionsFile
+  const instructionsContent = example?.files.filter(
+    (file) => file.path === `/${instructionFile}`,
+  )[0]?.template
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   // const { mutate: terminate } = useMutation<any, AxiosError, any[]>({
@@ -486,7 +500,7 @@ export function PrivateDashboard() {
       <GridItem gap={4} colStart={2} colEnd={4}>
         <Flex direction={"column"} h={"full"} gap={2}>
           {exampleState === "unpublished" ? (
-            <TaskDescription />
+            <TaskDescription instructionContent={instructionsContent} />
           ) : (
             <SubmissionInspector />
           )}
