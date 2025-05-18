@@ -74,6 +74,8 @@ declare interface AssignmentInformation {
   description: string
 }
 
+type TaskStatus = "Planned" | "Interactive" | "Active" | "Closed"
+
 declare interface TaskOverview {
   id: number
   slug: string
@@ -82,7 +84,7 @@ declare interface TaskOverview {
   maxPoints: number
   maxAttempts: number
   timeLimit: number
-  active: boolean
+  status: TaskStatus
   avgPoints: number
   remainingAttempts: number
   points: number
@@ -101,7 +103,7 @@ declare interface TaskProps extends TaskOverview {
   files: Array<TaskFileProps>
   submissions: Array<SubmissionProps>
   nextAttemptAt: string
-  deadline: string
+  deadline: string | null
 }
 
 declare interface TaskFileProps {
@@ -171,6 +173,10 @@ declare interface NewSubmissionProps {
   restricted: boolean
   command: string
   files: Array<{ taskFileId: number; content: string }>
+}
+
+declare interface PublishExampleProps {
+  duration: number
 }
 
 declare type WorkspaceProps = Partial<SubmissionProps>

@@ -1,10 +1,11 @@
 import { useMonaco } from "@monaco-editor/react"
 import { Uri } from "monaco-editor"
-import { useParams } from "react-router-dom"
+import { useLocation, useNavigate, useParams } from "react-router-dom"
 import { useMutation, useQuery, UseQueryOptions } from "@tanstack/react-query"
 import { useState } from "react"
 import axios, { AxiosError } from "axios"
 import { compact, concat, flatten } from "lodash"
+import Examples from "../pages/Examples"
 
 export const useCodeEditor = () => {
   const monaco = useMonaco()
@@ -59,7 +60,6 @@ export const useCourse = (options: UseQueryOptions<CourseProps> = {}) => {
 // remove this, handled differently with SSE
 export const usePublish = () => {
   const { courseSlug, exampleSlug } = useParams()
-  console.log(courseSlug, exampleSlug)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { mutate } = useMutation<any, AxiosError, any[]>({
     // TODO: type this correctly once backend res is known.
@@ -69,11 +69,19 @@ export const usePublish = () => {
     },
   })
 
-  const publish = () => {
-    mutate([["courses", courseSlug, "examples", exampleSlug, "publish"], {}])
+  const publish = (duration: number) => {
+    mutate([
+      ["courses", courseSlug, "examples", exampleSlug, "publish"],
+      { duration },
+    ])
     console.log("publishing")
   }
   return { publish }
+}
+
+export const useExamples = () => {
+  const { courseSlug } = useParams()
+  return useQuery<TaskOverview[]>(["courses", courseSlug, "examples"])
 }
 
 export const useStudents = () => {
@@ -96,11 +104,6 @@ export const useAssignment = () => {
     ["courses", courseSlug, "assignments", assignmentSlug],
     { enabled: !!assignmentSlug },
   )
-}
-
-export const useExamples = () => {
-  const { courseSlug } = useParams()
-  return useQuery<TaskOverview[]>(["courses", courseSlug, "examples"])
 }
 
 export const useExample = (userId: string) => {

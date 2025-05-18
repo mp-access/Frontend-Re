@@ -26,7 +26,7 @@ import {
   useParams,
 } from "react-router-dom"
 import { LogoButton } from "../components/Buttons"
-import { useAssignment, useCourse } from "../components/Hooks"
+import { useAssignment, useCourse, useExamples } from "../components/Hooks"
 import { compact, join } from "lodash"
 import { Placeholder } from "../components/Panels"
 import { LanguageSwitcher } from "../components/LanguageSwitcher"
@@ -36,9 +36,10 @@ import { EventSource } from "extended-eventsource"
 export default function Layout() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+
   const { keycloak } = useKeycloak()
   const { courseSlug } = useParams()
-
+  const { data: examples } = useExamples()
   const [ongoingExamplePath, setOngoingExamplePath] = useState<string | null>(
     null,
   )
@@ -50,6 +51,22 @@ export default function Layout() {
       navigate(ongoingExamplePath)
     }
   }, [ongoingExamplePath])
+
+  useEffect(() => {
+    if (!courseSlug || !examples || isSupervisor) return
+
+    const interactiveExample = examples.find(
+      (example) => example.status === "Interactive",
+    )
+
+    if (interactiveExample) {
+      const interactiveExamplePath = `/courses/${courseSlug}/examples/${interactiveExample.slug}`
+
+      if (interactiveExamplePath !== location.pathname) {
+        navigate(interactiveExamplePath)
+      }
+    }
+  }, [examples, courseSlug, navigate, location.pathname])
 
   useEffect(() => {
     if (!keycloak.token || !courseSlug) return

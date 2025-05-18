@@ -5,7 +5,6 @@ import {
   Grid,
   GridItem,
   Divider,
-  Spacer,
   Progress,
   Text,
   TagLabel,
@@ -438,7 +437,7 @@ export function PrivateDashboard() {
   )
 
   const handleStart = useCallback(() => {
-    publish()
+    publish(durationInSeconds)
     setExampleState("ongoing")
   }, [])
 
