@@ -65,7 +65,7 @@ export default function Course() {
 
   const [activeExamples, inactiveExamples] = fork(
     course.examples,
-    (e) => e.active,
+    (e) => e.status === "Active" || e.status === "Interactive",
   )
 
   const nrOfSolvedExampels = activeExamples.reduce(
