@@ -111,7 +111,7 @@ export default function Course() {
             />
             <Detail
               as={AiOutlineTeam}
-              title={t("Students", { count: course.studentsCount })}
+              title={t("Participants", { count: course.participantCount })}
             />
           </Wrap>
           <Text noOfLines={2} fontSize="sm">

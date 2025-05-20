@@ -106,7 +106,7 @@ export default function Courses() {
                   />
                   <Detail
                     as={AiOutlineTeam}
-                    title={t("Students", { count: course.studentsCount })}
+                    title={t("Participants", { count: course.participantCount })}
                   />
                 </Wrap>
                 <ScoreBar value={course.points} max={course.maxPoints} />

@@ -56,16 +56,16 @@ export const useCourse = (options: UseQueryOptions<CourseProps> = {}) => {
   })
 }
 
-export const useStudents = () => {
+export const useParticipants = () => {
   const { courseSlug } = useParams()
-  return useQuery<StudentProps[]>(["courses", courseSlug, "students"], {
+  return useQuery<ParticipantProps[]>(["courses", courseSlug, "participants"], {
     enabled: !!courseSlug,
   })
 }
 
-export const useStudentPoints = () => {
+export const usePoints = () => {
   const { courseSlug } = useParams()
-  return useQuery<StudentProps[]>(["courses", courseSlug, "studentPoints"], {
+  return useQuery<ParticipantProps[]>(["courses", courseSlug, "points"], {
     enabled: !!courseSlug,
   })
 }

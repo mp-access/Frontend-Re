@@ -22,7 +22,7 @@ import CourseCreator from "./pages/CourseCreator"
 import Courses from "./pages/Courses"
 import ErrorPage from "./pages/ErrorPage"
 import { Landing } from "./pages/Landing"
-import Students from "./pages/Students"
+import Participants from "./pages/Participants"
 import Task from "./pages/Task"
 import theme from "./Theme"
 import Layout from "./pages/Layout"
@@ -105,7 +105,7 @@ function App() {
               path: ":courseSlug",
               children: [
                 { index: true, element: <Course /> },
-                { path: "students", element: <Students /> },
+                { path: "participants", element: <Participants /> },
                 {
                   path: "assignments",
                   children: [

@@ -4,7 +4,7 @@ declare interface CourseOverview {
   logo: string
   overrideStart: string
   overrideEnd: string
-  studentsCount: number
+  participantCount: number
   onlineCount: number
   maxPoints: number
   points: number
@@ -195,7 +195,7 @@ declare interface TimerProps {
   max: number
 }
 
-declare interface StudentProps {
+declare interface ParticipantProps {
   firstName: string
   lastName: string
   email: string

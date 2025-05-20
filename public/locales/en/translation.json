@@ -20,7 +20,7 @@
   "Submission Output": "Submission Output",
   "Cancel": "Cancel",
   "Confirm submission": "Confirm submission",
-  "Are you sure you want to submit":"Are you sure you want to submit",
+  "Are you sure you want to submit": "Are you sure you want to submit",
   "View": "View",
   "DAYS": "days",
   "HOURS": "hours",
@@ -36,9 +36,9 @@
   "Welcome": "Welcome",
   "Welcome to ACCESS!": "Welcome to ACCESS!",
   "My Courses": "My Courses",
-  "Students": "Students",
-  "Students_one": "{{count}} Students",
-  "Students_other": "{{count}} Students",
+  "Participants": "Participants",
+  "Participants_one": "{{count}} Participants",
+  "Participants_other": "{{count}} Participants",
   "Notice Board": "Notice Board",
   "Import new course": "Import new Course"
 }
