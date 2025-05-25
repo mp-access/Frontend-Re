@@ -22,8 +22,10 @@ import {
   AlertDialogHeader,
   AlertDialogOverlay,
   Skeleton,
+  Spinner,
+  Container,
 } from "@chakra-ui/react"
-import { Markdown } from "../components/Panels"
+import { Markdown, Placeholder } from "../components/Panels"
 import { BsFillCircleFill } from "react-icons/bs"
 import { useCallback, useMemo, useRef, useState } from "react"
 import { t } from "i18next"
@@ -414,10 +416,15 @@ export function PrivateDashboard() {
   const { user } = useOutletContext<UserContext>()
   const { courseSlug, exampleSlug } = useParams()
   const [durationInSeconds, setDurationInSeconds] = useState<number>(150)
+  const [exampleState, setExampleState] = useState<ExampleState>("unpublished")
   const { data: example } = useExample(user.email)
   const { mutate: publish } = useMutation<void, AxiosError, object>({
     onSuccess: () => {
       setExampleState("ongoing")
+    },
+    onError: (e) => {
+      setExampleState("unpublished")
+      console.log(e)
     },
   })
 
@@ -436,8 +443,6 @@ export function PrivateDashboard() {
   //     setExampleState("finished")
   //   },
   // })
-
-  const [exampleState, setExampleState] = useState<ExampleState>("unpublished")
 
   const durationAsString = useMemo(() => {
     return formatSeconds(durationInSeconds || 0)
@@ -463,6 +468,9 @@ export function PrivateDashboard() {
     // terminate([["courses", courseSlug, "examples", exampleSlug, "terminate"]])
   }, [])
 
+  if (!example) {
+    return <Placeholder />
+  }
   return (
     <Grid
       layerStyle={"container"}
@@ -486,7 +494,7 @@ export function PrivateDashboard() {
       </GridItem>
       <GridItem gap={4} colStart={2} colEnd={4}>
         <Flex direction={"column"} h={"full"} gap={2}>
-          {exampleState === "unpublished" ? (
+          {exampleState === "unpublished" || exampleState == "publishing" ? (
             <TaskDescription
               instructionContent={instructionsContent}
               title={title ?? "Placeholder Title"}
