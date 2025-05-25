@@ -21,6 +21,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogOverlay,
+  Skeleton,
 } from "@chakra-ui/react"
 import { Markdown } from "../components/Panels"
 import { BsFillCircleFill } from "react-icons/bs"
@@ -38,23 +39,6 @@ import { useExample } from "../components/Hooks"
 import { useTranslation } from "react-i18next"
 
 const CIRCLE_BUTTON_DIAMETER = 12
-const someExampleMarkdownTaskDescription = `Transform the following mathematical expression into a Python program to be able to calculate the
-result for arbitrary values of a, b, c, and d defined in the source code:
-
-\`a - (b^2 / (c - d * (a + b)))\`
-
-Implement it in a function \`calculate\` where it should be returned.
-
-Please make sure that your solution is self-contained within the \`calculate\` function. In other words, only change the body of the function, not the code outside the function.
-
-Transform the following mathematical expression into a Python program to be able to calculate the
-result for arbitrary values of a, b, c, and d defined in the source code:
-
-\`a - (b^2 / (c - d * (a + b)))\`
-
-Implement it in a function \`calculate\` where it should be returned.
-
-Please make sure that your solution is self-contained within the \`calculate\` function. In other words, only change the body of the function, not the code outside the function.`
 
 type ExampleState = "unpublished" | "publishing" | "ongoing" | "finished"
 
@@ -204,12 +188,13 @@ const SubmissionInspector: React.FC = () => {
   )
 }
 
-const TaskDescription: React.FC<{ instructionContent: string | undefined }> = ({
-  instructionContent,
-}) => {
+const TaskDescription: React.FC<{
+  instructionContent: string | undefined
+  title: string
+}> = ({ instructionContent, title }) => {
   return (
     <Flex layerStyle={"card"} direction={"column"} grow={1}>
-      <Heading fontSize="xl">Some Title</Heading>
+      <Heading fontSize="xl">{title}</Heading>
       <Divider />
       <Markdown children={instructionContent}></Markdown>
     </Flex>
@@ -442,7 +427,9 @@ export function PrivateDashboard() {
   const instructionsContent = example?.files.filter(
     (file) => file.path === `/${instructionFile}`,
   )[0]?.template
-
+  const title =
+    example?.information[currentLanguage]?.title ||
+    example?.information["en"]?.title
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   // const { mutate: terminate } = useMutation<any, AxiosError, any[]>({
   //   onSuccess: () => {
@@ -500,7 +487,10 @@ export function PrivateDashboard() {
       <GridItem gap={4} colStart={2} colEnd={4}>
         <Flex direction={"column"} h={"full"} gap={2}>
           {exampleState === "unpublished" ? (
-            <TaskDescription instructionContent={instructionsContent} />
+            <TaskDescription
+              instructionContent={instructionsContent}
+              title={title ?? "Placeholder Title"}
+            />
           ) : (
             <SubmissionInspector />
           )}

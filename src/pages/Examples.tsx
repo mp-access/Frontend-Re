@@ -81,9 +81,6 @@ export const ExamplesCard: React.FC<{
                     </Tag>
                   </VStack>
                 </Td>
-                <Td w="xs">
-                  <HScores value={example.points} max={example.maxPoints} />
-                </Td>
                 <Td>
                   <HStack spacing={2} justify={"flex-end"}>
                     {isAssistant ? (
