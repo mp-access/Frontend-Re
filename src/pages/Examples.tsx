@@ -27,7 +27,6 @@ import { fork } from "radash"
 import { AiOutlineClockCircle } from "react-icons/ai"
 import { TFunction } from "i18next"
 import { IconType } from "react-icons/lib"
-import { AiOutlineCalendar } from "react-icons/ai"
 
 export const ExamplesCard: React.FC<{
   examples: TaskOverview[]
@@ -81,9 +80,6 @@ export const ExamplesCard: React.FC<{
                       <TagLabel>{example.status}</TagLabel>
                     </Tag>
                   </VStack>
-                </Td>
-                <Td w="xs">
-                  <HScores value={example.points} max={example.maxPoints} />
                 </Td>
                 <Td>
                   <HStack spacing={2} justify={"flex-end"}>
