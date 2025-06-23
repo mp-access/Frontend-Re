@@ -25,7 +25,7 @@ import {
 import { Markdown } from "../components/Panels"
 import { BsFillCircleFill } from "react-icons/bs"
 import { useExtendExample, usePublish, useTerminate } from "../components/Hooks"
-import { useCallback, useMemo, useRef, useState } from "react"
+import React, { useCallback, useMemo, useRef, useState } from "react"
 import { t } from "i18next"
 import {
   ListIcon,
@@ -293,12 +293,14 @@ const ExampleTimeControler: React.FC<{
   handleTermination: () => void
   durationAsString: string
   exampleState: ExampleState
+  setDurationInSeconds: React.Dispatch<React.SetStateAction<number>>
 }> = ({
   handleTimeAdjustment,
   durationAsString,
   exampleState,
   handleStart,
   handleTermination,
+  setDurationInSeconds,
 }) => {
   const { extendExampleDuration } = useExtendExample()
 
@@ -306,6 +308,7 @@ const ExampleTimeControler: React.FC<{
     try {
       // TODO: make sure new time feteched properly once clock is implemented
       await extendExampleDuration(duration)
+      setDurationInSeconds((oldVal) => oldVal + duration)
     } catch (e) {
       console.log("Error extending example duration: ", e)
     }
@@ -517,6 +520,7 @@ export function PrivateDashboard() {
           exampleState={exampleState}
           handleStart={handleStart}
           handleTermination={handleTermination}
+          setDurationInSeconds={setDurationInSeconds}
         ></ExampleTimeControler>
       </GridItem>
     </Grid>
