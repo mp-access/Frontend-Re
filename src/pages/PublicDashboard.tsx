@@ -10,7 +10,7 @@ import {
   Icon,
   Spacer,
 } from "@chakra-ui/react"
-import { Markdown } from "../components/Panels"
+import { Markdown, Placeholder } from "../components/Panels"
 import { FcAlarmClock, FcDocument } from "react-icons/fc"
 import { t } from "i18next"
 import { useOutletContext } from "react-router-dom"
@@ -23,15 +23,20 @@ export function PublicDashboard() {
   const { i18n } = useTranslation()
 
   const currentLanguage = i18n.language
+
+  if (!example) {
+    return <Placeholder />
+  }
+
   const instructionFile =
-    example?.information[currentLanguage]?.instructionsFile ||
-    example?.information["en"].instructionsFile
+    example.information[currentLanguage]?.instructionsFile ||
+    example.information["en"].instructionsFile
   const instructionsContent = example?.files.filter(
     (file) => file.path === `/${instructionFile}`,
   )[0]?.template
   const title =
-    example?.information[currentLanguage]?.title ||
-    example?.information["en"]?.title
+    example.information[currentLanguage]?.title ||
+    example.information["en"]?.title
 
   return (
     <Grid
@@ -54,7 +59,7 @@ export function PublicDashboard() {
         <Heading fontSize="xl">{title}</Heading>
         <Divider />
         <Spacer height={1} />
-        <Markdown children={instructionsContent ?? "Placeholder"}></Markdown>
+        <Markdown children={instructionsContent}></Markdown>
       </GridItem>
       <GridItem layerStyle={"card"} p={3} maxHeight={450}>
         <HStack>

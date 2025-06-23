@@ -425,16 +425,6 @@ export function PrivateDashboard() {
     },
   })
 
-  const instructionFile =
-    example?.information[currentLanguage]?.instructionsFile ||
-    example?.information["en"].instructionsFile
-  const instructionsContent = example?.files.filter(
-    (file) => file.path === `/${instructionFile}`,
-  )[0]?.template
-  const title =
-    example?.information[currentLanguage]?.title ||
-    example?.information["en"]?.title
-
   const durationAsString = useMemo(() => {
     return formatSeconds(durationInSeconds || 0)
   }, [durationInSeconds])
@@ -462,6 +452,17 @@ export function PrivateDashboard() {
   if (!example) {
     return <Placeholder />
   }
+
+  const instructionFile =
+    example?.information[currentLanguage]?.instructionsFile ||
+    example?.information["en"].instructionsFile
+  const instructionsContent = example?.files.filter(
+    (file) => file.path === `/${instructionFile}`,
+  )[0]?.template
+  const title =
+    example?.information[currentLanguage]?.title ||
+    example?.information["en"]?.title
+
   return (
     <Grid
       layerStyle={"container"}
@@ -487,8 +488,8 @@ export function PrivateDashboard() {
         <Flex direction={"column"} h={"full"} gap={2}>
           {exampleState === "unpublished" || exampleState == "publishing" ? (
             <TaskDescription
-              instructionContent={instructionsContent ?? "Placeholder Content"}
-              title={title ?? "Placeholder Title"}
+              instructionContent={instructionsContent}
+              title={title}
             />
           ) : (
             <SubmissionInspector />
