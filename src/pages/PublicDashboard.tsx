@@ -1,7 +1,6 @@
 import {
   CircularProgress,
   CircularProgressLabel,
-  Container,
   Divider,
   Flex,
   Grid,
@@ -14,26 +13,26 @@ import {
 import { Markdown } from "../components/Panels"
 import { FcAlarmClock, FcDocument } from "react-icons/fc"
 import { t } from "i18next"
-
-const someExampleMarkdownTaskDescription = `Transform the following mathematical expression into a Python program to be able to calculate the
-result for arbitrary values of a, b, c, and d defined in the source code:
-
-\`a - (b^2 / (c - d * (a + b)))\`
-
-Implement it in a function \`calculate\` where it should be returned.
-
-Please make sure that your solution is self-contained within the \`calculate\` function. In other words, only change the body of the function, not the code outside the function.
-
-Transform the following mathematical expression into a Python program to be able to calculate the
-result for arbitrary values of a, b, c, and d defined in the source code:
-
-\`a - (b^2 / (c - d * (a + b)))\`
-
-Implement it in a function \`calculate\` where it should be returned.
-
-Please make sure that your solution is self-contained within the \`calculate\` function. In other words, only change the body of the function, not the code outside the function.`
+import { useOutletContext } from "react-router-dom"
+import { useExample } from "../components/Hooks"
+import { useTranslation } from "react-i18next"
 
 export function PublicDashboard() {
+  const { user } = useOutletContext<UserContext>()
+  const { data: example } = useExample(user.email)
+  const { i18n } = useTranslation()
+
+  const currentLanguage = i18n.language
+  const instructionFile =
+    example?.information[currentLanguage]?.instructionsFile ||
+    example?.information["en"].instructionsFile
+  const instructionsContent = example?.files.filter(
+    (file) => file.path === `/${instructionFile}`,
+  )[0]?.template
+  const title =
+    example?.information[currentLanguage]?.title ||
+    example?.information["en"]?.title
+
   return (
     <Grid
       layerStyle={"container"}
@@ -52,10 +51,10 @@ export function PublicDashboard() {
         colEnd={2}
         p={3}
       >
-        <Heading fontSize="xl">Some Title</Heading>
+        <Heading fontSize="xl">{title}</Heading>
         <Divider />
         <Spacer height={1} />
-        <Markdown children={someExampleMarkdownTaskDescription}></Markdown>
+        <Markdown children={instructionsContent ?? "Placeholder"}></Markdown>
       </GridItem>
       <GridItem layerStyle={"card"} p={3} maxHeight={450}>
         <HStack>

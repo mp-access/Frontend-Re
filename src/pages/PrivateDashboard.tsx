@@ -434,12 +434,6 @@ export function PrivateDashboard() {
   const title =
     example?.information[currentLanguage]?.title ||
     example?.information["en"]?.title
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  // const { mutate: terminate } = useMutation<any, AxiosError, any[]>({
-  //   onSuccess: () => {
-  //     setExampleState("finished")
-  //   },
-  // })
 
   const durationAsString = useMemo(() => {
     return formatSeconds(durationInSeconds || 0)
