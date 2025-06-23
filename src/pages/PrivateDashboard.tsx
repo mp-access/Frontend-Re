@@ -192,7 +192,7 @@ const TaskDescription: React.FC<{
   title: string
 }> = ({ instructionContent, title }) => {
   return (
-    <Flex layerStyle={"card"} direction={"column"} grow={1}>
+    <Flex layerStyle={"card"} direction={"column"} grow={1} p={3}>
       <Heading fontSize="xl">{title}</Heading>
       <Divider />
       <Markdown children={instructionContent}></Markdown>
@@ -485,7 +485,7 @@ export function PrivateDashboard() {
         <div>...</div>
       </GridItem>
       <GridItem gap={4} colStart={2} colEnd={4}>
-        <Flex direction={"column"} h={"full"} gap={2}>
+        <Flex direction={"column"} h={"full"}>
           {exampleState === "unpublished" || exampleState == "publishing" ? (
             <TaskDescription
               instructionContent={instructionsContent}
