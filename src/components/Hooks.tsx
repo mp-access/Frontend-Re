@@ -1,11 +1,10 @@
 import { useMonaco } from "@monaco-editor/react"
 import { Uri } from "monaco-editor"
-import { useLocation, useNavigate, useParams } from "react-router-dom"
+import { useParams } from "react-router-dom"
 import { useMutation, useQuery, UseQueryOptions } from "@tanstack/react-query"
 import { useState } from "react"
 import axios, { AxiosError } from "axios"
 import { compact, concat, flatten } from "lodash"
-import Examples from "../pages/Examples"
 
 export const useCodeEditor = () => {
   const monaco = useMonaco()
@@ -57,11 +56,10 @@ export const useCourse = (options: UseQueryOptions<CourseProps> = {}) => {
   })
 }
 
-// remove this, handled differently with SSE
 export const usePublish = () => {
   const { courseSlug, exampleSlug } = useParams()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { mutate } = useMutation<any, AxiosError, any[]>({
+  const { mutateAsync } = useMutation<any, AxiosError, any[]>({
     // TODO: type this correctly once backend res is known.
     onSuccess: () => {
       // just for now
@@ -69,14 +67,45 @@ export const usePublish = () => {
     },
   })
 
-  const publish = (duration: number) => {
-    mutate([
+  const publish = (duration: number) =>
+    mutateAsync([
       ["courses", courseSlug, "examples", exampleSlug, "publish"],
       { duration },
     ])
-    console.log("publishing")
-  }
+  console.log("publishing")
+
   return { publish }
+}
+
+export const useExtendExample = () => {
+  const { courseSlug, exampleSlug } = useParams()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { mutateAsync } = useMutation<any, AxiosError, any[]>({
+    mutationFn: (duration) => {
+      const url = `/courses/${courseSlug}/examples/${exampleSlug}/extend`
+      return axios.put<void>(url, { duration: duration[0] })
+    },
+  })
+
+  const extendExampleDuration = (duration: number) => mutateAsync([duration])
+
+  return { extendExampleDuration }
+}
+
+export const useTerminate = () => {
+  const { courseSlug, exampleSlug } = useParams()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { mutateAsync } = useMutation<any, AxiosError, any[]>({
+    mutationFn: () => {
+      const url = `/courses/${courseSlug}/examples/${exampleSlug}/terminate`
+      return axios.put<void>(url)
+    },
+  })
+
+  const terminate = () =>
+    mutateAsync([["courses", courseSlug, "examples", exampleSlug, "terminate"]])
+
+  return { terminate }
 }
 
 export const useExamples = () => {

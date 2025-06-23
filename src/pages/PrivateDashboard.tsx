@@ -24,7 +24,7 @@ import {
 } from "@chakra-ui/react"
 import { Markdown } from "../components/Panels"
 import { BsFillCircleFill } from "react-icons/bs"
-import { usePublish } from "../components/Hooks"
+import { useExtendExample, usePublish, useTerminate } from "../components/Hooks"
 import { useCallback, useMemo, useRef, useState } from "react"
 import { t } from "i18next"
 import {
@@ -32,7 +32,7 @@ import {
   RotateFromRightIcon,
   UprightFromSquareIcon,
 } from "../components/CustomIcons"
-import { set } from "lodash"
+import { extend, set } from "lodash"
 
 const CIRCLE_BUTTON_DIAMETER = 12
 const someExampleMarkdownTaskDescription = `Transform the following mathematical expression into a Python program to be able to calculate the
@@ -300,6 +300,17 @@ const ExampleTimeControler: React.FC<{
   handleStart,
   handleTermination,
 }) => {
+  const { extendExampleDuration } = useExtendExample()
+
+  const handleExtendTime = useCallback(async (duration: number) => {
+    try {
+      // TODO: make sure new time feteched properly once clock is implemented
+      await extendExampleDuration(duration)
+    } catch (e) {
+      console.log("Error extending example duration: ", e)
+    }
+  }, [])
+
   if (exampleState === "unpublished") {
     return (
       <Flex
@@ -374,8 +385,12 @@ const ExampleTimeControler: React.FC<{
             <CircularProgressLabel>{durationAsString}</CircularProgressLabel>
           </CircularProgress>
           <Flex direction={"column"} justify={"center"} h={"100%"} gap={1}>
-            <Button variant={"outline"}> +30</Button>
-            <Button variant={"outline"}> +60</Button>
+            <Button variant={"outline"} onClick={() => handleExtendTime(30)}>
+              +30
+            </Button>
+            <Button variant={"outline"} onClick={() => handleExtendTime(60)}>
+              +60
+            </Button>
             <TerminationDialog
               handleTermination={handleTermination}
             ></TerminationDialog>
@@ -420,6 +435,7 @@ const ExampleTimeControler: React.FC<{
 export function PrivateDashboard() {
   // replace with non-hardcoded values once object available
   const { publish } = usePublish()
+  const { terminate } = useTerminate()
   const [durationInSeconds, setDurationInSeconds] = useState<number>(150)
   const [exampleState, setExampleState] = useState<
     "unpublished" | "ongoing" | "finished"
@@ -432,18 +448,26 @@ export function PrivateDashboard() {
   const handleTimeAdjustment = useCallback(
     (value: number) => {
       setDurationInSeconds((oldVal) => Math.max(0, oldVal + value))
-      console.log("durationInSeconds", durationInSeconds)
     },
     [durationInSeconds, setDurationInSeconds],
   )
 
-  const handleStart = useCallback(() => {
-    publish(durationInSeconds)
-    setExampleState("ongoing")
+  const handleStart = useCallback(async () => {
+    try {
+      await publish(durationInSeconds)
+      setExampleState("ongoing")
+    } catch (e) {
+      console.log("Error publishing example: ", e)
+    }
   }, [setExampleState, durationInSeconds])
 
-  const handleTermination = useCallback(() => {
-    setExampleState("finished")
+  const handleTermination = useCallback(async () => {
+    try {
+      await terminate()
+      setExampleState("finished")
+    } catch (e) {
+      console.log("Error terminating example: ", e)
+    }
   }, [setExampleState])
 
   return (
