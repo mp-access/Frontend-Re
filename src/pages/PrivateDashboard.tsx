@@ -21,9 +21,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogOverlay,
-  Skeleton,
-  Spinner,
-  Container,
 } from "@chakra-ui/react"
 import { Markdown, Placeholder } from "../components/Panels"
 import { BsFillCircleFill } from "react-icons/bs"
@@ -57,7 +54,7 @@ const TerminationDialog: React.FC<{ handleTermination: () => void }> = ({
   handleTermination,
 }) => {
   const { isOpen, onOpen, onClose } = useDisclosure()
-  const cancelRef = useRef()
+  const cancelRef = useRef<HTMLButtonElement>(null)
   return (
     <>
       <Button
@@ -105,7 +102,7 @@ const ResetDialog: React.FC<{ handleReset: () => void }> = ({
   handleReset,
 }) => {
   const { isOpen, onOpen, onClose } = useDisclosure()
-  const cancelRef = useRef()
+  const cancelRef = useRef<HTMLButtonElement>(null)
   return (
     <>
       <Button
@@ -191,7 +188,7 @@ const SubmissionInspector: React.FC = () => {
 }
 
 const TaskDescription: React.FC<{
-  instructionContent: string | undefined
+  instructionContent: string
   title: string
 }> = ({ instructionContent, title }) => {
   return (
@@ -403,7 +400,7 @@ const ExampleTimeControler: React.FC<{
           >
             Back to List
           </Button>
-          <ResetDialog handleTermination={handleTermination}></ResetDialog>
+          <ResetDialog handleReset={handleTermination}></ResetDialog>
         </Flex>
       </Flex>
     </Flex>
@@ -496,7 +493,7 @@ export function PrivateDashboard() {
         <Flex direction={"column"} h={"full"} gap={2}>
           {exampleState === "unpublished" || exampleState == "publishing" ? (
             <TaskDescription
-              instructionContent={instructionsContent}
+              instructionContent={instructionsContent ?? "Placeholder Content"}
               title={title ?? "Placeholder Title"}
             />
           ) : (
