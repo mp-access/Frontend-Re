@@ -24,10 +24,9 @@ import { HScores } from "../components/Statistics"
 import { useTranslation } from "react-i18next"
 import { useExamples } from "../components/Hooks"
 import { fork } from "radash"
-import { AiOutlineClockCircle } from "react-icons/ai"
+import { AiOutlineAreaChart, AiOutlineClockCircle } from "react-icons/ai"
 import { TFunction } from "i18next"
 import { IconType } from "react-icons/lib"
-import { AiOutlineCalendar } from "react-icons/ai"
 
 export const ExamplesCard: React.FC<{
   examples: TaskOverview[]
@@ -36,17 +35,20 @@ export const ExamplesCard: React.FC<{
   t: TFunction<"translation", undefined>
   icon: IconType | null
   title: string
-}> = ({ examples, currentLanguage, isAssistant, t, icon, title }) => {
+  published: boolean
+}> = ({ examples, currentLanguage, isAssistant, t, icon, published }) => {
+  const title = published ? t("Published Examples") : t("Planned Examples")
+
   if (!examples || examples.length === 0)
     return (
       <TableContainer layerStyle={"segment"}>
         <HStack>
           {icon ? <Icon as={icon} boxSize={6} /> : null}
-          <Heading fontSize="2xl">{t(title)}</Heading>
+          <Heading fontSize="2xl">{title}</Heading>
         </HStack>
         <Divider borderColor="gray.300" my={4} />
         <Flex justify={"center"}>
-          <Text>There are no {title.toLowerCase()} yet.</Text>
+          <Text>There are no {title} yet.</Text>
         </Flex>
       </TableContainer>
     )
@@ -55,7 +57,7 @@ export const ExamplesCard: React.FC<{
     <TableContainer layerStyle="segment">
       <HStack>
         {icon ? <Icon as={icon} boxSize={6} /> : null}
-        <Heading fontSize="2xl">{t(title)}</Heading>
+        <Heading fontSize="2xl">{title}</Heading>
       </HStack>
       <Divider borderColor="gray.300" my={4} />
       <Table>
@@ -82,9 +84,20 @@ export const ExamplesCard: React.FC<{
                     </Tag>
                   </VStack>
                 </Td>
-                <Td w="xs">
-                  <HScores value={example.points} max={example.maxPoints} />
-                </Td>
+                {!isAssistant ? (
+                  <Td w="xs">
+                    <HScores value={example.points} max={example.maxPoints} />
+                  </Td>
+                ) : published ? (
+                  <Td w="17em" maxW="17em">
+                    <Tag bg="transparent">
+                      <TagLeftIcon as={AiOutlineAreaChart} marginBottom={1} />
+                      {/* TODO: Replace with actual values */}
+                      <TagLabel>Submissions: 137</TagLabel>
+                    </Tag>
+                  </Td>
+                ) : null}
+
                 <Td>
                   <HStack spacing={2} justify={"flex-end"}>
                     {isAssistant ? (
@@ -140,6 +153,7 @@ export default function Examples() {
           t={t}
           icon={FcTodoList}
           title="Examples"
+          published={true}
         />
       </Stack>
     )
@@ -153,6 +167,7 @@ export default function Examples() {
         t={t}
         icon={FcPlanner}
         title="Planned Examples"
+        published={false}
       />
       <ExamplesCard
         examples={publishedExamples}
@@ -161,6 +176,7 @@ export default function Examples() {
         t={t}
         icon={FcTodoList}
         title="Published Examples"
+        published={true}
       />
     </Stack>
   )
