@@ -32,6 +32,7 @@ import {
   RotateFromRightIcon,
   UprightFromSquareIcon,
 } from "../components/CustomIcons"
+import { set } from "lodash"
 
 const CIRCLE_BUTTON_DIAMETER = 12
 const someExampleMarkdownTaskDescription = `Transform the following mathematical expression into a Python program to be able to calculate the
@@ -420,7 +421,6 @@ export function PrivateDashboard() {
   // replace with non-hardcoded values once object available
   const { publish } = usePublish()
   const [durationInSeconds, setDurationInSeconds] = useState<number>(150)
-
   const [exampleState, setExampleState] = useState<
     "unpublished" | "ongoing" | "finished"
   >("unpublished")
@@ -432,18 +432,19 @@ export function PrivateDashboard() {
   const handleTimeAdjustment = useCallback(
     (value: number) => {
       setDurationInSeconds((oldVal) => Math.max(0, oldVal + value))
+      console.log("durationInSeconds", durationInSeconds)
     },
-    [durationInSeconds],
+    [durationInSeconds, setDurationInSeconds],
   )
 
   const handleStart = useCallback(() => {
     publish(durationInSeconds)
     setExampleState("ongoing")
-  }, [])
+  }, [setExampleState, durationInSeconds])
 
   const handleTermination = useCallback(() => {
     setExampleState("finished")
-  }, [])
+  }, [setExampleState])
 
   return (
     <Grid
