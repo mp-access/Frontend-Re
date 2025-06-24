@@ -22,9 +22,14 @@ import {
   AlertDialogHeader,
   AlertDialogOverlay,
 } from "@chakra-ui/react"
-import { Markdown } from "../components/Panels"
+import { Markdown, Placeholder } from "../components/Panels"
 import { BsFillCircleFill } from "react-icons/bs"
-import { useExtendExample, usePublish, useTerminate } from "../components/Hooks"
+import {
+  useExample,
+  useExtendExample,
+  usePublish,
+  useTerminate,
+} from "../components/Hooks"
 import React, { useCallback, useMemo, useRef, useState } from "react"
 import { t } from "i18next"
 import {
@@ -32,28 +37,12 @@ import {
   RotateFromRightIcon,
   UprightFromSquareIcon,
 } from "../components/CustomIcons"
-import { extend, set } from "lodash"
+import { useTranslation } from "react-i18next"
+import { useOutletContext, useParams } from "react-router-dom"
 
 const CIRCLE_BUTTON_DIAMETER = 12
-const someExampleMarkdownTaskDescription = `Transform the following mathematical expression into a Python program to be able to calculate the
-result for arbitrary values of a, b, c, and d defined in the source code:
 
-\`a - (b^2 / (c - d * (a + b)))\`
-
-Implement it in a function \`calculate\` where it should be returned.
-
-Please make sure that your solution is self-contained within the \`calculate\` function. In other words, only change the body of the function, not the code outside the function.
-
-Transform the following mathematical expression into a Python program to be able to calculate the
-result for arbitrary values of a, b, c, and d defined in the source code:
-
-\`a - (b^2 / (c - d * (a + b)))\`
-
-Implement it in a function \`calculate\` where it should be returned.
-
-Please make sure that your solution is self-contained within the \`calculate\` function. In other words, only change the body of the function, not the code outside the function.`
-
-type ExampleState = "unpublished" | "ongoing" | "finished"
+type ExampleState = "unpublished" | "publishing" | "ongoing" | "finished"
 
 const formatSeconds = (totalSeconds: number) => {
   const seconds = Math.floor(totalSeconds % 60)
@@ -68,7 +57,7 @@ const TerminationDialog: React.FC<{ handleTermination: () => void }> = ({
   handleTermination,
 }) => {
   const { isOpen, onOpen, onClose } = useDisclosure()
-  const cancelRef = useRef()
+  const cancelRef = useRef<HTMLButtonElement>(null)
   return (
     <>
       <Button
@@ -116,7 +105,7 @@ const ResetDialog: React.FC<{ handleReset: () => void }> = ({
   handleReset,
 }) => {
   const { isOpen, onOpen, onClose } = useDisclosure()
-  const cancelRef = useRef()
+  const cancelRef = useRef<HTMLButtonElement>(null)
   return (
     <>
       <Button
@@ -201,12 +190,15 @@ const SubmissionInspector: React.FC = () => {
   )
 }
 
-const TaskDescription: React.FC = () => {
+const TaskDescription: React.FC<{
+  instructionContent: string
+  title: string
+}> = ({ instructionContent, title }) => {
   return (
-    <Flex layerStyle={"card"} direction={"column"} grow={1}>
-      <Heading fontSize="xl">Some Title</Heading>
+    <Flex layerStyle={"card"} direction={"column"} grow={1} p={3}>
+      <Heading fontSize="xl">{title}</Heading>
       <Divider />
-      <Markdown children={someExampleMarkdownTaskDescription}></Markdown>
+      <Markdown children={instructionContent}></Markdown>
     </Flex>
   )
 }
@@ -304,17 +296,20 @@ const ExampleTimeControler: React.FC<{
 }) => {
   const { extendExampleDuration } = useExtendExample()
 
-  const handleExtendTime = useCallback(async (duration: number) => {
-    try {
-      // TODO: make sure new time feteched properly once clock is implemented
-      await extendExampleDuration(duration)
-      setDurationInSeconds((oldVal) => oldVal + duration)
-    } catch (e) {
-      console.log("Error extending example duration: ", e)
-    }
-  }, [])
+  const handleExtendTime = useCallback(
+    async (duration: number) => {
+      try {
+        // TODO: make sure new time feteched properly once clock is implemented
+        await extendExampleDuration(duration)
+        setDurationInSeconds((oldVal) => oldVal + duration)
+      } catch (e) {
+        console.log("Error extending example duration: ", e)
+      }
+    },
+    [extendExampleDuration, setDurationInSeconds],
+  )
 
-  if (exampleState === "unpublished") {
+  if (exampleState === "unpublished" || exampleState === "publishing") {
     return (
       <Flex
         direction={"column"}
@@ -371,6 +366,7 @@ const ExampleTimeControler: React.FC<{
           colorScheme="green"
           borderRadius={"lg"}
           onClick={() => handleStart()}
+          isLoading={exampleState === "publishing"}
         >
           Start
         </Button>
@@ -428,7 +424,7 @@ const ExampleTimeControler: React.FC<{
           >
             Back to List
           </Button>
-          <ResetDialog handleTermination={handleTermination}></ResetDialog>
+          <ResetDialog handleReset={handleTermination}></ResetDialog>
         </Flex>
       </Flex>
     </Flex>
@@ -440,9 +436,11 @@ export function PrivateDashboard() {
   const { publish } = usePublish()
   const { terminate } = useTerminate()
   const [durationInSeconds, setDurationInSeconds] = useState<number>(150)
-  const [exampleState, setExampleState] = useState<
-    "unpublished" | "ongoing" | "finished"
-  >("unpublished")
+  const [exampleState, setExampleState] = useState<ExampleState>("unpublished")
+  const { i18n } = useTranslation()
+  const currentLanguage = i18n.language
+  const { user } = useOutletContext<UserContext>()
+  const { data: example } = useExample(user.email)
 
   const durationAsString = useMemo(() => {
     return formatSeconds(durationInSeconds || 0)
@@ -473,6 +471,20 @@ export function PrivateDashboard() {
     }
   }, [setExampleState])
 
+  if (!example) {
+    return <Placeholder />
+  }
+
+  const instructionFile =
+    example?.information[currentLanguage]?.instructionsFile ||
+    example?.information["en"].instructionsFile
+  const instructionsContent = example?.files.filter(
+    (file) => file.path === `/${instructionFile}`,
+  )[0]?.template
+  const title =
+    example?.information[currentLanguage]?.title ||
+    example?.information["en"]?.title
+
   return (
     <Grid
       layerStyle={"container"}
@@ -495,9 +507,12 @@ export function PrivateDashboard() {
         <div>...</div>
       </GridItem>
       <GridItem gap={4} colStart={2} colEnd={4}>
-        <Flex direction={"column"} h={"full"} gap={2}>
-          {exampleState === "unpublished" ? (
-            <TaskDescription />
+        <Flex direction={"column"} h={"full"}>
+          {exampleState === "unpublished" || exampleState == "publishing" ? (
+            <TaskDescription
+              instructionContent={instructionsContent}
+              title={title}
+            />
           ) : (
             <SubmissionInspector />
           )}
