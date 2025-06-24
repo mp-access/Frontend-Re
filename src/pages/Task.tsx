@@ -45,7 +45,7 @@ import { format, parseISO } from "date-fns"
 import fileDownload from "js-file-download"
 import JSZip from "jszip"
 import { compact, find, range, unionBy } from "lodash"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import Countdown from "react-countdown"
 import { AiOutlineBulb, AiOutlineCode, AiOutlineReload } from "react-icons/ai"
 import { BsCircleFill } from "react-icons/bs"
@@ -88,10 +88,17 @@ export default function Task({ type }: { type: "task" | "example" }) {
     refetch,
     timer,
   } = type == "task" ? useTask(userId) : useExample(userId)
-
   const getUpdate = (file: TaskFileProps, submission?: WorkspaceProps) =>
     submission?.files?.find((s) => s.taskFileId === file.id)?.content ||
     file.template
+
+  const showRunCommand = useMemo(() => {
+    if (!task) return false
+
+    if (isAssistant) return true
+
+    return task.runCommandAvailable
+  }, [isAssistant, task])
 
   useEffect(() => {
     if (task) {
@@ -240,12 +247,15 @@ export default function Task({ type }: { type: "task" | "example" }) {
             onClick={onSubmit("test")}
           />
         )}
-        <ActionButton
-          name="Run"
-          color="gray.600"
-          isLoading={!!timer}
-          onClick={onSubmit("run")}
-        />
+        {showRunCommand ? (
+          <ActionButton
+            name="Run"
+            color="gray.600"
+            isLoading={!!timer}
+            onClick={onSubmit("run")}
+          />
+        ) : null}
+
         <Button
           colorScheme="green"
           leftIcon={<FcInspection />}
