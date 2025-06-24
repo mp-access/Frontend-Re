@@ -88,6 +88,11 @@ declare interface TaskOverview {
   avgPoints: number
   remainingAttempts: number
   points: number
+  start: string | null
+  end: string | null
+  runCommandAvailable: boolean
+  testCommandAvailable: boolean
+  gradeCommandAvailable: boolean
 }
 
 declare interface TaskInformation {
