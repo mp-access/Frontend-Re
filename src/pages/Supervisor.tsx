@@ -13,19 +13,19 @@ import {
   Thead,
   Tr,
 } from "@chakra-ui/react"
-import { useStudents } from "../components/Hooks"
+import { usePoints } from "../components/Hooks"
 import { Link } from "react-router-dom"
 import { take } from "lodash"
 import { Select } from "chakra-react-select"
 
 export function SupervisorZone() {
-  const { data: students } = useStudents()
-  if (!students) return <></>
+  const { data: participants } = usePoints()
+  if (!participants) return <></>
   return (
     <Stack flexGrow={1} p={4}>
       <TableContainer py={2}>
         <Heading fontSize="lg" textAlign="center" my={4}>
-          Top Students
+          Top Participants
         </Heading>
         <Table size="sm">
           <Thead>
@@ -35,22 +35,22 @@ export function SupervisorZone() {
             </Tr>
           </Thead>
           <Tbody>
-            {take(students, 3).map((student) => (
-              <Tr key={student.email}>
+            {take(participants, 3).map((participant) => (
+              <Tr key={participant.email}>
                 <Td>
-                  {student.firstName} {student.lastName}
+                  {participant.firstName} {participant.lastName}
                 </Td>
-                <Td isNumeric>{student.points}</Td>
+                <Td isNumeric>{participant.points}</Td>
               </Tr>
             ))}
           </Tbody>
           <TableCaption>
-            {students.length ? (
-              <Button as={Link} to="supervisor/students" variant="link">
-                All Students
+            {participants.length ? (
+              <Button as={Link} to="supervisor/participants" variant="link">
+                All Participants
               </Button>
             ) : (
-              <Center color="gray.400">No students found.</Center>
+              <Center color="gray.400">No participants found.</Center>
             )}
           </TableCaption>
         </Table>
@@ -70,16 +70,16 @@ export function TaskController({
   defaultValue,
   onChange,
 }: TaskControllerProps) {
-  const { data: students } = useStudents()
+  const { data: participants } = usePoints()
   return (
     <HStack p={1} w="full">
       <Stack fontSize="sm" flexGrow={1}>
         <Select
-          placeholder="View as student..."
+          placeholder="View as participant..."
           value={{ email: value }}
           getOptionValue={(data) => data?.email}
           getOptionLabel={(data) => data?.email}
-          options={students}
+          options={participants}
           size="sm"
           controlShouldRenderValue={value !== defaultValue}
           isClearable
