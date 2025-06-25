@@ -1,10 +1,10 @@
 import { useMonaco } from "@monaco-editor/react"
-import { Uri } from "monaco-editor"
-import { useParams } from "react-router-dom"
 import { useMutation, useQuery, UseQueryOptions } from "@tanstack/react-query"
-import { useState } from "react"
 import axios, { AxiosError } from "axios"
 import { compact, concat, flatten } from "lodash"
+import { Uri } from "monaco-editor"
+import { useState } from "react"
+import { useParams } from "react-router-dom"
 
 export const useCodeEditor = () => {
   const monaco = useMonaco()
@@ -113,16 +113,16 @@ export const useExamples = () => {
   return useQuery<TaskOverview[]>(["courses", courseSlug, "examples"])
 }
 
-export const useStudents = () => {
+export const useParticipants = () => {
   const { courseSlug } = useParams()
-  return useQuery<StudentProps[]>(["courses", courseSlug, "students"], {
+  return useQuery<ParticipantProps[]>(["courses", courseSlug, "participants"], {
     enabled: !!courseSlug,
   })
 }
 
-export const useStudentPoints = () => {
+export const usePoints = () => {
   const { courseSlug } = useParams()
-  return useQuery<StudentProps[]>(["courses", courseSlug, "studentPoints"], {
+  return useQuery<ParticipantProps[]>(["courses", courseSlug, "points"], {
     enabled: !!courseSlug,
   })
 }

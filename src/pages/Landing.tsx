@@ -77,7 +77,7 @@ export function Landing() {
               variant="ghost"
               onClick={() => keycloak.login({ redirectUri })}
             >
-              Not a student?
+              Local account
             </Button>
           </VStack>
         </VStack>

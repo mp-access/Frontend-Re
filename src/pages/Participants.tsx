@@ -12,16 +12,16 @@ import {
   VStack,
 } from "@chakra-ui/react"
 import React from "react"
-import { useStudentPoints } from "../components/Hooks"
+import { usePoints } from "../components/Hooks"
 
-export default function Students() {
-  const { data: students } = useStudentPoints()
-  if (!students) return <></>
+export default function Participants() {
+  const { data: participants } = usePoints()
+  if (!participants) return <></>
   return (
     <VStack>
       <TableContainer p={8} my={4} layerStyle="segment">
         <Heading m={2} mt={0} fontSize="3xl">
-          {students.length} Students
+          {participants.length} Participants
         </Heading>
         <Table maxW="container.sm">
           <Thead>
@@ -35,20 +35,20 @@ export default function Students() {
             </Tr>
           </Thead>
           <Tbody>
-            {students.map((student) => (
-              <Tr key={student.email}>
-                <Td>{student.registrationId}</Td>
-                <Td>{student.username}</Td>
-                <Td>{student.lastName}</Td>
-                <Td>{student.firstName}</Td>
-                <Td>{student.email}</Td>
-                <Td>{student.points}</Td>
+            {participants.map((participant) => (
+              <Tr key={participant.username || participant.registrationId}>
+                <Td>{participant.registrationId}</Td>
+                <Td>{participant.username}</Td>
+                <Td>{participant.lastName}</Td>
+                <Td>{participant.firstName}</Td>
+                <Td>{participant.email}</Td>
+                <Td>{participant.points}</Td>
               </Tr>
             ))}
           </Tbody>
           <TableCaption>
-            {!students.length && (
-              <Center color="gray.400">No students found.</Center>
+            {!participants.length && (
+              <Center color="gray.400">No participants found.</Center>
             )}
           </TableCaption>
         </Table>

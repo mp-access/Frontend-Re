@@ -136,7 +136,6 @@ export default function Task({ type }: { type: "task" | "example" }) {
       }
     }
   }, [submissionId])
-
   useEffect(() => {
     if (task) {
       if (currentFile == undefined || taskId != task.id) {
@@ -652,7 +651,8 @@ export default function Task({ type }: { type: "task" | "example" }) {
                           Invalid
                         </Badge>
                       )}
-                      {submission.createdAt > task.deadline && (
+                      {task.deadline &&
+                        submission.createdAt > task.deadline && (
                         <Badge colorScheme="purple" mr={1}>
                           Late
                         </Badge>
