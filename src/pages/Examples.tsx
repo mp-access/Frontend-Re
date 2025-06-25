@@ -76,9 +76,6 @@ export const ExamplesCard: React.FC<{
             })
             .map((example) => (
               <Tr key={example.id}>
-                <Td p={0} whiteSpace="nowrap" fontSize="sm">
-                  {example.start == null ? example.ordinalNum : null}
-                </Td>
                 <Td>
                   <Heading fontSize="lg">
                     {example.information[currentLanguage]?.title ||
