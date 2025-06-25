@@ -56,6 +56,58 @@ export const useCourse = (options: UseQueryOptions<CourseProps> = {}) => {
   })
 }
 
+export const usePublish = () => {
+  const { courseSlug, exampleSlug } = useParams()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { mutateAsync } = useMutation<any, AxiosError, any[]>({
+    // TODO: type this correctly once backend res is known.
+    onSuccess: () => {
+      // just for now
+      console.log("Redirected")
+    },
+  })
+
+  const publish = (duration: number) =>
+    mutateAsync([
+      ["courses", courseSlug, "examples", exampleSlug, "publish"],
+      { duration },
+    ])
+  console.log("publishing")
+
+  return { publish }
+}
+
+export const useExtendExample = () => {
+  const { courseSlug, exampleSlug } = useParams()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { mutateAsync } = useMutation<any, AxiosError, any[]>({
+    mutationFn: (duration) => {
+      const url = `/courses/${courseSlug}/examples/${exampleSlug}/extend`
+      return axios.put<void>(url, { duration: duration[0] })
+    },
+  })
+
+  const extendExampleDuration = (duration: number) => mutateAsync([duration])
+
+  return { extendExampleDuration }
+}
+
+export const useTerminate = () => {
+  const { courseSlug, exampleSlug } = useParams()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { mutateAsync } = useMutation<any, AxiosError, any[]>({
+    mutationFn: () => {
+      const url = `/courses/${courseSlug}/examples/${exampleSlug}/terminate`
+      return axios.put<void>(url)
+    },
+  })
+
+  const terminate = () =>
+    mutateAsync([["courses", courseSlug, "examples", exampleSlug, "terminate"]])
+
+  return { terminate }
+}
+
 export const useExamples = () => {
   const { courseSlug } = useParams()
   return useQuery<TaskOverview[]>(["courses", courseSlug, "examples"])

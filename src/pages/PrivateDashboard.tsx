@@ -24,18 +24,21 @@ import {
 } from "@chakra-ui/react"
 import { Markdown, Placeholder } from "../components/Panels"
 import { BsFillCircleFill } from "react-icons/bs"
-import { useCallback, useMemo, useRef, useState } from "react"
+import {
+  useExample,
+  useExtendExample,
+  usePublish,
+  useTerminate,
+} from "../components/Hooks"
+import React, { useCallback, useMemo, useRef, useState } from "react"
 import { t } from "i18next"
 import {
   ListIcon,
   RotateFromRightIcon,
   UprightFromSquareIcon,
 } from "../components/CustomIcons"
-import { useMutation } from "@tanstack/react-query"
-import { AxiosError } from "axios"
-import { useOutletContext, useParams } from "react-router-dom"
-import { useExample } from "../components/Hooks"
 import { useTranslation } from "react-i18next"
+import { useOutletContext, useParams } from "react-router-dom"
 
 const CIRCLE_BUTTON_DIAMETER = 12
 
@@ -282,13 +285,30 @@ const ExampleTimeControler: React.FC<{
   handleTermination: () => void
   durationAsString: string
   exampleState: ExampleState
+  setDurationInSeconds: React.Dispatch<React.SetStateAction<number>>
 }> = ({
   handleTimeAdjustment,
   durationAsString,
   exampleState,
   handleStart,
   handleTermination,
+  setDurationInSeconds,
 }) => {
+  const { extendExampleDuration } = useExtendExample()
+
+  const handleExtendTime = useCallback(
+    async (duration: number) => {
+      try {
+        // TODO: make sure new time feteched properly once clock is implemented
+        await extendExampleDuration(duration)
+        setDurationInSeconds((oldVal) => oldVal + duration)
+      } catch (e) {
+        console.log("Error extending example duration: ", e)
+      }
+    },
+    [extendExampleDuration, setDurationInSeconds],
+  )
+
   if (exampleState === "unpublished" || exampleState === "publishing") {
     return (
       <Flex
@@ -364,8 +384,12 @@ const ExampleTimeControler: React.FC<{
             <CircularProgressLabel>{durationAsString}</CircularProgressLabel>
           </CircularProgress>
           <Flex direction={"column"} justify={"center"} h={"100%"} gap={1}>
-            <Button variant={"outline"}> +30</Button>
-            <Button variant={"outline"}> +60</Button>
+            <Button variant={"outline"} onClick={() => handleExtendTime(30)}>
+              +30
+            </Button>
+            <Button variant={"outline"} onClick={() => handleExtendTime(60)}>
+              +60
+            </Button>
             <TerminationDialog
               handleTermination={handleTermination}
             ></TerminationDialog>
@@ -408,22 +432,15 @@ const ExampleTimeControler: React.FC<{
 }
 
 export function PrivateDashboard() {
+  // replace with non-hardcoded values once object available
+  const { publish } = usePublish()
+  const { terminate } = useTerminate()
+  const [durationInSeconds, setDurationInSeconds] = useState<number>(150)
+  const [exampleState, setExampleState] = useState<ExampleState>("unpublished")
   const { i18n } = useTranslation()
   const currentLanguage = i18n.language
   const { user } = useOutletContext<UserContext>()
-  const { courseSlug, exampleSlug } = useParams()
-  const [durationInSeconds, setDurationInSeconds] = useState<number>(150)
-  const [exampleState, setExampleState] = useState<ExampleState>("unpublished")
   const { data: example } = useExample(user.email)
-  const { mutate: publish } = useMutation<void, AxiosError, object>({
-    onSuccess: () => {
-      setExampleState("ongoing")
-    },
-    onError: (e) => {
-      setExampleState("unpublished")
-      console.log(e)
-    },
-  })
 
   const durationAsString = useMemo(() => {
     return formatSeconds(durationInSeconds || 0)
@@ -433,21 +450,26 @@ export function PrivateDashboard() {
     (value: number) => {
       setDurationInSeconds((oldVal) => Math.max(0, oldVal + value))
     },
-    [durationInSeconds],
+    [durationInSeconds, setDurationInSeconds],
   )
 
-  const handleStart = useCallback(() => {
-    setExampleState("publishing")
-    publish([
-      ["courses", courseSlug, "examples", exampleSlug, "publish"],
-      { duration: durationInSeconds },
-    ])
-  }, [durationInSeconds, courseSlug, exampleSlug, publish])
+  const handleStart = useCallback(async () => {
+    try {
+      await publish(durationInSeconds)
+      setExampleState("ongoing")
+    } catch (e) {
+      console.log("Error publishing example: ", e)
+    }
+  }, [setExampleState, durationInSeconds])
 
-  const handleTermination = useCallback(() => {
-    console.log("To be implemented")
-    // terminate([["courses", courseSlug, "examples", exampleSlug, "terminate"]])
-  }, [])
+  const handleTermination = useCallback(async () => {
+    try {
+      await terminate()
+      setExampleState("finished")
+    } catch (e) {
+      console.log("Error terminating example: ", e)
+    }
+  }, [setExampleState])
 
   if (!example) {
     return <Placeholder />
@@ -513,6 +535,7 @@ export function PrivateDashboard() {
           exampleState={exampleState}
           handleStart={handleStart}
           handleTermination={handleTermination}
+          setDurationInSeconds={setDurationInSeconds}
         ></ExampleTimeControler>
       </GridItem>
     </Grid>
