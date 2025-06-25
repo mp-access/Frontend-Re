@@ -30,7 +30,7 @@ import {
   usePublish,
   useTerminate,
 } from "../components/Hooks"
-import React, { useCallback, useMemo, useRef, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { t } from "i18next"
 import {
   ListIcon,
@@ -38,7 +38,7 @@ import {
   UprightFromSquareIcon,
 } from "../components/CustomIcons"
 import { useTranslation } from "react-i18next"
-import { useOutletContext, useParams } from "react-router-dom"
+import { useOutletContext } from "react-router-dom"
 
 const CIRCLE_BUTTON_DIAMETER = 12
 
@@ -436,7 +436,7 @@ export function PrivateDashboard() {
   const { publish } = usePublish()
   const { terminate } = useTerminate()
   const [durationInSeconds, setDurationInSeconds] = useState<number>(150)
-  const [exampleState, setExampleState] = useState<ExampleState>("unpublished")
+  const [exampleState, setExampleState] = useState<ExampleState | null>(null)
   const { i18n } = useTranslation()
   const currentLanguage = i18n.language
   const { user } = useOutletContext<UserContext>()
@@ -450,7 +450,7 @@ export function PrivateDashboard() {
     (value: number) => {
       setDurationInSeconds((oldVal) => Math.max(0, oldVal + value))
     },
-    [durationInSeconds, setDurationInSeconds],
+    [setDurationInSeconds],
   )
 
   const handleStart = useCallback(async () => {
@@ -460,7 +460,7 @@ export function PrivateDashboard() {
     } catch (e) {
       console.log("Error publishing example: ", e)
     }
-  }, [setExampleState, durationInSeconds])
+  }, [publish, durationInSeconds])
 
   const handleTermination = useCallback(async () => {
     try {
@@ -469,9 +469,28 @@ export function PrivateDashboard() {
     } catch (e) {
       console.log("Error terminating example: ", e)
     }
-  }, [setExampleState])
+  }, [terminate])
 
-  if (!example) {
+  useEffect(() => {
+    if (!example) return
+
+    if (!example.start || !example.end) {
+      setExampleState("unpublished")
+      return
+    }
+
+    const now = Date.now()
+    const startTime = Date.parse(example.start)
+    const endTime = Date.parse(example.end)
+
+    if (startTime < now && endTime > now) {
+      setExampleState("ongoing")
+    } else if (endTime < now) {
+      setExampleState("finished")
+    }
+  }, [example])
+
+  if (!example || !exampleState) {
     return <Placeholder />
   }
 
