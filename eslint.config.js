@@ -10,13 +10,10 @@ export default tseslint.config(
   {
     ignores: ["dist/*"],
     plugins: {
-      // register the plugin under its short name
       "react-hooks": reactHooksPlugin,
     },
     rules: {
-      // enforce exhaustive deps on hooks
       "react-hooks/exhaustive-deps": "error",
-      // if you want also the basic rules-of-hooks check:
       "react-hooks/rules-of-hooks": "error",
     },
   },
