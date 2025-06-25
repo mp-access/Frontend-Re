@@ -24,9 +24,14 @@ import { HScores } from "../components/Statistics"
 import { useTranslation } from "react-i18next"
 import { useExamples } from "../components/Hooks"
 import { fork } from "radash"
-import { AiOutlineAreaChart, AiOutlineClockCircle } from "react-icons/ai"
+import {
+  AiOutlineAreaChart,
+  AiOutlineGlobal,
+  AiOutlineInfoCircle,
+} from "react-icons/ai"
 import { TFunction } from "i18next"
 import { IconType } from "react-icons/lib"
+import { formatDate } from "../components/Util"
 
 export const ExamplesCard: React.FC<{
   examples: TaskOverview[]
@@ -62,14 +67,15 @@ export const ExamplesCard: React.FC<{
       <Divider borderColor="gray.300" my={4} />
       <Table>
         <Tbody>
-          {/* change this to unpublishedExmaples later */}
           {examples
-            .sort((a, b) => a.ordinalNum - b.ordinalNum)
+            .sort((a, b) => {
+              if (a.start === null || b.start === null) {
+                return a.ordinalNum - b.ordinalNum
+              }
+              return Date.parse(a.start) - Date.parse(b.start)
+            })
             .map((example) => (
               <Tr key={example.id}>
-                <Td p={0} whiteSpace="nowrap" fontSize="sm">
-                  {example.ordinalNum}
-                </Td>
                 <Td>
                   <Heading fontSize="lg">
                     {example.information[currentLanguage]?.title ||
@@ -78,11 +84,23 @@ export const ExamplesCard: React.FC<{
                 </Td>
                 <Td w="17em" maxW="17em">
                   <VStack>
-                    <Tag bg="transparent">
-                      <TagLeftIcon as={AiOutlineClockCircle} marginBottom={1} />
-                      <TagLabel>{example.status}</TagLabel>
-                    </Tag>
+                    {published ? (
+                      <Tag bg="transparent">
+                        <TagLeftIcon as={AiOutlineInfoCircle} />
+                        <TagLabel>{example.status}</TagLabel>
+                      </Tag>
+                    ) : null}
                   </VStack>
+                </Td>
+                <Td>
+                  {example.start ? (
+                    <VStack>
+                      <Tag bg="transparent">
+                        <TagLeftIcon as={AiOutlineGlobal} />
+                        <TagLabel>{formatDate(example.start)}</TagLabel>
+                      </Tag>
+                    </VStack>
+                  ) : null}
                 </Td>
                 {!isAssistant ? (
                   <Td w="xs">
@@ -93,7 +111,7 @@ export const ExamplesCard: React.FC<{
                     <Tag bg="transparent">
                       <TagLeftIcon as={AiOutlineAreaChart} marginBottom={1} />
                       {/* TODO: Replace with actual values */}
-                      <TagLabel>Submissions: 137</TagLabel>
+                      <TagLabel> 137</TagLabel>
                     </Tag>
                   </Td>
                 ) : null}
