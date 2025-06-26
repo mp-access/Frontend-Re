@@ -14,20 +14,37 @@ import { Markdown, Placeholder } from "../components/Panels"
 import { FcAlarmClock, FcDocument } from "react-icons/fc"
 import { t } from "i18next"
 import { useOutletContext } from "react-router-dom"
-import { useExample } from "../components/Hooks"
+import { useExample, useTimeframeFromSSE } from "../components/Hooks"
 import { useTranslation } from "react-i18next"
 import { CountdownTimer } from "../components/CountdownTimer"
+import { useMemo } from "react"
 
 export function PublicDashboard() {
   const { user } = useOutletContext<UserContext>()
   const { data: example } = useExample(user.email)
   const { i18n } = useTranslation()
   const currentLanguage = i18n.language
+  const { timeFrameFromEvent } = useTimeframeFromSSE()
 
-  if (!example || !example.start || !example.end) {
+  const [derivedStartDate, derivedEndDate] = useMemo(() => {
+    if (!example) {
+      return [null, null]
+    }
+
+    if (timeFrameFromEvent) {
+      return timeFrameFromEvent
+    }
+
+    if (!example.start || !example.end) {
+      return [null, null]
+    }
+
+    return [Date.parse(example.start), Date.parse(example.end)]
+  }, [example, timeFrameFromEvent])
+
+  if (!example) {
     return <Placeholder />
   }
-
   const instructionFile =
     example.information[currentLanguage]?.instructionsFile ||
     example.information["en"].instructionsFile
@@ -69,7 +86,11 @@ export function PublicDashboard() {
         <Divider />
         <Spacer height={1} />
         <Flex justify={"center"} align={"center"} flex={1} h={"100%"}>
-          <CountdownTimer startTime={example.start} endTime={example.end} />
+          <CountdownTimer
+            startTime={derivedStartDate}
+            endTime={derivedEndDate}
+            size="large"
+          />
         </Flex>
       </GridItem>
       <GridItem layerStyle={"card"} p={3} maxHeight={450}>
