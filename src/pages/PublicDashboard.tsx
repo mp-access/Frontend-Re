@@ -16,15 +16,15 @@ import { t } from "i18next"
 import { useOutletContext } from "react-router-dom"
 import { useExample } from "../components/Hooks"
 import { useTranslation } from "react-i18next"
+import { CountdownTimer } from "../components/CountdownTimer"
 
 export function PublicDashboard() {
   const { user } = useOutletContext<UserContext>()
   const { data: example } = useExample(user.email)
   const { i18n } = useTranslation()
-
   const currentLanguage = i18n.language
 
-  if (!example) {
+  if (!example || !example.start || !example.end) {
     return <Placeholder />
   }
 
@@ -69,9 +69,7 @@ export function PublicDashboard() {
         <Divider />
         <Spacer height={1} />
         <Flex justify={"center"} align={"center"} flex={1} h={"100%"}>
-          <CircularProgress size={175} value={80} color="green.500">
-            <CircularProgressLabel>2:30</CircularProgressLabel>
-          </CircularProgress>
+          <CountdownTimer startTime={example.start} endTime={example.end} />
         </Flex>
       </GridItem>
       <GridItem layerStyle={"card"} p={3} maxHeight={450}>

@@ -3,7 +3,7 @@ import { useMutation, useQuery, UseQueryOptions } from "@tanstack/react-query"
 import axios, { AxiosError } from "axios"
 import { compact, concat, flatten } from "lodash"
 import { Uri } from "monaco-editor"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 
 export const useCodeEditor = () => {
@@ -198,4 +198,21 @@ export const useTask = (userId: string) => {
       data,
     ])
   return { ...query, submit, timer }
+}
+
+export const useCountdown = (startUnix: number, endUnix: number) => {
+  const [timeLeftInSeconds, setTimeLeftInSeconds] = useState<number>(
+    endUnix - startUnix,
+  )
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now()
+      const timeLeft = endUnix - now
+      setTimeLeftInSeconds(Math.max(0, Math.floor(timeLeft / 1000)))
+    }, 100)
+    return () => clearInterval(interval)
+  }, [endUnix])
+
+  return { timeLeftInSeconds }
 }

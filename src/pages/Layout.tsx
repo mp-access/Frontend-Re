@@ -50,7 +50,7 @@ export default function Layout() {
     if (ongoingExamplePath) {
       navigate(ongoingExamplePath)
     }
-  }, [ongoingExamplePath])
+  }, [navigate, ongoingExamplePath])
 
   useEffect(() => {
     if (!courseSlug || !examples || isSupervisor) return
@@ -66,7 +66,9 @@ export default function Layout() {
         navigate(interactiveExamplePath)
       }
     }
-  }, [examples, courseSlug, navigate, location.pathname])
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [examples, courseSlug, navigate, isSupervisor, location.pathname])
 
   useEffect(() => {
     if (!keycloak.token || !courseSlug) return

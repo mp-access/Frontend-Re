@@ -653,10 +653,10 @@ export default function Task({ type }: { type: "task" | "example" }) {
                       )}
                       {task.deadline &&
                         submission.createdAt > task.deadline && (
-                        <Badge colorScheme="purple" mr={1}>
-                          Late
-                        </Badge>
-                      )}
+                          <Badge colorScheme="purple" mr={1}>
+                            Late
+                          </Badge>
+                        )}
                     </Box>
                     <ButtonGroup size="sm" variant="ghost" spacing={1}>
                       <Popover placement="left">
