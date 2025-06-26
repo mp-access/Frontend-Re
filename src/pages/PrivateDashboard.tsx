@@ -27,6 +27,7 @@ import {
   useExtendExample,
   usePublish,
   useTerminate,
+  useTimeframeFromSSE,
 } from "../components/Hooks"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { t } from "i18next"
@@ -431,8 +432,6 @@ const ExampleTimeControler: React.FC<{
 
 export function PrivateDashboard() {
   // replace with non-hardcoded values once object available
-  const { keycloak } = useKeycloak()
-  const { courseSlug } = useParams()
   const { publish } = usePublish()
   const { terminate } = useTerminate()
   const [durationInSeconds, setDurationInSeconds] = useState<number>(150)
@@ -441,10 +440,10 @@ export function PrivateDashboard() {
   const currentLanguage = i18n.language
   const { user } = useOutletContext<UserContext>()
   const { data: example } = useExample(user.email)
-  const [timeFrameFromEvent, setTimeFrameFromEvent] = useState<
-    [number, number] | null
-  >(null)
 
+  const { timeFrameFromEvent } = useTimeframeFromSSE()
+
+  console.log("timeFrameFromEvent: ", timeFrameFromEvent)
   const durationAsString = useMemo(() => {
     return formatSeconds(durationInSeconds || 0)
   }, [durationInSeconds])
@@ -472,45 +471,6 @@ export function PrivateDashboard() {
       console.log("Error terminating example: ", e)
     }
   }, [terminate])
-
-  useEffect(() => {
-    if (!keycloak.token || !courseSlug) return
-
-    // course slug will only be defined once within a course route.
-    if (courseSlug != undefined) {
-      const eventSource = new EventSource(
-        `/api/courses/${courseSlug}/subscribe`,
-        {
-          headers: {
-            Authorization: `Bearer ${keycloak.token}`,
-          },
-          retry: 3000,
-        },
-      )
-      eventSource.onopen = () => {}
-
-      eventSource.addEventListener("timer-update", (event) => {
-        console.log("time update")
-        const [startTime, endTime] = (event.data as string)
-          .split("/")
-          .map((item) => Date.parse(item))
-        setTimeFrameFromEvent([startTime, endTime])
-      })
-
-      eventSource.onerror = (error) => {
-        console.error("SSE error occurred:", error)
-      }
-      const handleBeforeUnload = () => {
-        console.log("Closing EventSource (before unload)")
-        eventSource.close()
-      }
-      window.addEventListener("beforeunload", handleBeforeUnload)
-      return () => {
-        console.log("Closing EventSource (component unmount)")
-        eventSource.close()
-      }
-    }
-  }, [courseSlug, keycloak.token])
 
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
     if (!example) {
