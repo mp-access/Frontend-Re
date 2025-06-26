@@ -37,11 +37,9 @@ import {
   UprightFromSquareIcon,
 } from "../components/CustomIcons"
 import { useTranslation } from "react-i18next"
-import { useOutletContext, useParams } from "react-router-dom"
+import { useOutletContext } from "react-router-dom"
 import { formatSeconds } from "../components/Util"
 import { CountdownTimer } from "../components/CountdownTimer"
-import { useKeycloak } from "@react-keycloak/web"
-import { EventSource } from "extended-eventsource"
 
 const CIRCLE_BUTTON_DIAMETER = 12
 
@@ -381,6 +379,7 @@ const ExampleTimeControler: React.FC<{
           <CountdownTimer
             startTime={startTime}
             endTime={endTime}
+            size={"medium"}
           ></CountdownTimer>
           <Flex direction={"column"} justify={"center"} h={"100%"} gap={1}>
             <Button variant={"outline"} onClick={() => handleExtendTime(30)}>
@@ -443,7 +442,6 @@ export function PrivateDashboard() {
 
   const { timeFrameFromEvent } = useTimeframeFromSSE()
 
-  console.log("timeFrameFromEvent: ", timeFrameFromEvent)
   const durationAsString = useMemo(() => {
     return formatSeconds(durationInSeconds || 0)
   }, [durationInSeconds])
