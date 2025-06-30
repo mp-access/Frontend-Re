@@ -1,7 +1,7 @@
 import { CircularProgress, CircularProgressLabel } from "@chakra-ui/react"
 import { useCountdown } from "./Hooks"
 import { formatSeconds } from "./Util"
-import { useCallback, useMemo } from "react"
+import { useMemo } from "react"
 
 const sizeMap = {
   small: 100,
