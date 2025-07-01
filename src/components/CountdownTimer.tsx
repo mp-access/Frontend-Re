@@ -37,14 +37,21 @@ export const CountdownTimer: React.FC<{
 
     return "red.500"
   }, [timeLeftInSeconds, totalTimeInSeconds])
-
   return (
     <CircularProgress
       size={sizeMap[size]}
       value={circleValue}
       color={dynamicColor}
     >
-      <CircularProgressLabel>{remainingTimeString}</CircularProgressLabel>
+      <CircularProgressLabel
+        style={{
+          fontVariantNumeric: "tabular-nums",
+          fontFamily: "monospace",
+        }}
+        fontSize={size === "large" ? "4xl" : size === "medium" ? "2xl" : "md"}
+      >
+        {remainingTimeString}
+      </CircularProgressLabel>
     </CircularProgress>
   )
 }
