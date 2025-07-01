@@ -32,10 +32,10 @@ export const CountdownTimer: React.FC<{
       return "green.500"
     }
     if (timeLeftInSeconds > totalTimeInSeconds / 10) {
-      return "yellow.500"
+      return "orange.200"
     }
 
-    return "red.500"
+    return "red.600"
   }, [timeLeftInSeconds, totalTimeInSeconds])
   return (
     <CircularProgress
