@@ -3,8 +3,10 @@ import { useMutation, useQuery, UseQueryOptions } from "@tanstack/react-query"
 import axios, { AxiosError } from "axios"
 import { compact, concat, flatten } from "lodash"
 import { Uri } from "monaco-editor"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
+import { EventSource } from "extended-eventsource"
+import { useKeycloak } from "@react-keycloak/web"
 
 export const useCodeEditor = () => {
   const monaco = useMonaco()
@@ -198,4 +200,69 @@ export const useTask = (userId: string) => {
       data,
     ])
   return { ...query, submit, timer }
+}
+
+export const useCountdown = (startUnix: number, endUnix: number) => {
+  const [timeLeftInSeconds, setTimeLeftInSeconds] = useState<number>(
+    endUnix - startUnix,
+  )
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now()
+      const timeLeft = endUnix - now
+      setTimeLeftInSeconds(Math.max(0, Math.floor(timeLeft / 1000)))
+    }, 100)
+    return () => clearInterval(interval)
+  }, [endUnix])
+
+  return { timeLeftInSeconds }
+}
+
+export const useTimeframeFromSSE = () => {
+  const { keycloak } = useKeycloak()
+  const { courseSlug } = useParams()
+  const token = keycloak.token
+
+  const [timeFrameFromEvent, setTimeFrameFromEvent] = useState<
+    [number, number] | null
+  >(null)
+  const [error, setError] = useState<Error | null>(null)
+
+  useEffect(() => {
+    if (!token || !courseSlug) return
+    const eventSource = new EventSource(
+      `/api/courses/${courseSlug}/subscribe`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        retry: 3000,
+      },
+    )
+
+    const onTimeEvent = (e: MessageEvent) => {
+      const [startTimeString, endTimeString] = (e.data as string).split("/")
+      setTimeFrameFromEvent([
+        Date.parse(startTimeString),
+        Date.parse(endTimeString),
+      ])
+    }
+
+    eventSource.addEventListener("timer-update", onTimeEvent)
+    eventSource.onerror = (error) => {
+      console.error("SSE error", error)
+      setError(new Error("SSE connection error"))
+    }
+
+    const cleanup = () => {
+      eventSource.removeEventListener("timer-update", onTimeEvent)
+      eventSource.close()
+    }
+    window.addEventListener("beforeunload", cleanup)
+    return () => {
+      window.removeEventListener("beforeunload", cleanup)
+      cleanup()
+    }
+  }, [courseSlug, token])
+
+  return { timeFrameFromEvent, error }
 }

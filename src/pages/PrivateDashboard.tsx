@@ -11,8 +11,6 @@ import {
   Tag,
   TagLeftIcon,
   Button,
-  CircularProgress,
-  CircularProgressLabel,
   useDisclosure,
   AlertDialog,
   AlertDialogBody,
@@ -29,6 +27,7 @@ import {
   useExtendExample,
   usePublish,
   useTerminate,
+  useTimeframeFromSSE,
 } from "../components/Hooks"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { t } from "i18next"
@@ -39,19 +38,12 @@ import {
 } from "../components/CustomIcons"
 import { useTranslation } from "react-i18next"
 import { useOutletContext } from "react-router-dom"
+import { formatSeconds } from "../components/Util"
+import { CountdownTimer } from "../components/CountdownTimer"
 
 const CIRCLE_BUTTON_DIAMETER = 12
 
 type ExampleState = "unpublished" | "publishing" | "ongoing" | "finished"
-
-const formatSeconds = (totalSeconds: number) => {
-  const seconds = Math.floor(totalSeconds % 60)
-  const minutes = Math.floor((totalSeconds / 60) % 60)
-
-  const padded = (num: number) => String(num).padStart(2, "0")
-
-  return `${padded(minutes)}:${padded(seconds)}`
-}
 
 const TerminationDialog: React.FC<{ handleTermination: () => void }> = ({
   handleTermination,
@@ -286,6 +278,8 @@ const ExampleTimeControler: React.FC<{
   durationAsString: string
   exampleState: ExampleState
   setDurationInSeconds: React.Dispatch<React.SetStateAction<number>>
+  startTime: number | null
+  endTime: number | null
 }> = ({
   handleTimeAdjustment,
   durationAsString,
@@ -293,6 +287,8 @@ const ExampleTimeControler: React.FC<{
   handleStart,
   handleTermination,
   setDurationInSeconds,
+  startTime,
+  endTime,
 }) => {
   const { extendExampleDuration } = useExtendExample()
 
@@ -374,15 +370,17 @@ const ExampleTimeControler: React.FC<{
     )
   }
 
-  if (exampleState === "ongoing") {
+  if (exampleState === "ongoing" && startTime !== null && endTime !== null) {
     return (
       <Flex layerStyle={"card"} direction={"column"} p={2}>
         <Heading fontSize="xl">{t("Remaining Time")}</Heading>
         <Divider />
         <Flex flex={1} justify="space-around" align={"center"} gap={2} p={2}>
-          <CircularProgress value={100} color={"green.500"} size={120}>
-            <CircularProgressLabel>{durationAsString}</CircularProgressLabel>
-          </CircularProgress>
+          <CountdownTimer
+            startTime={startTime}
+            endTime={endTime}
+            size={"medium"}
+          ></CountdownTimer>
           <Flex direction={"column"} justify={"center"} h={"100%"} gap={1}>
             <Button variant={"outline"} onClick={() => handleExtendTime(30)}>
               +30
@@ -442,6 +440,8 @@ export function PrivateDashboard() {
   const { user } = useOutletContext<UserContext>()
   const { data: example } = useExample(user.email)
 
+  const { timeFrameFromEvent } = useTimeframeFromSSE()
+
   const durationAsString = useMemo(() => {
     return formatSeconds(durationInSeconds || 0)
   }, [durationInSeconds])
@@ -456,7 +456,6 @@ export function PrivateDashboard() {
   const handleStart = useCallback(async () => {
     try {
       await publish(durationInSeconds)
-      setExampleState("ongoing")
     } catch (e) {
       console.log("Error publishing example: ", e)
     }
@@ -471,24 +470,36 @@ export function PrivateDashboard() {
     }
   }, [terminate])
 
-  useEffect(() => {
-    if (!example) return
+  const [derivedStartDate, derivedEndDate] = useMemo(() => {
+    if (!example) {
+      return [null, null]
+    }
+
+    if (timeFrameFromEvent) {
+      return timeFrameFromEvent
+    }
 
     if (!example.start || !example.end) {
+      return [null, null]
+    }
+
+    return [Date.parse(example.start), Date.parse(example.end)]
+  }, [example, timeFrameFromEvent])
+
+  useEffect(() => {
+    if (!derivedEndDate || !derivedEndDate) {
       setExampleState("unpublished")
       return
     }
 
     const now = Date.now()
-    const startTime = Date.parse(example.start)
-    const endTime = Date.parse(example.end)
 
-    if (startTime < now && endTime > now) {
+    if (derivedStartDate < now && derivedEndDate > now) {
       setExampleState("ongoing")
-    } else if (endTime < now) {
+    } else if (derivedEndDate < now) {
       setExampleState("finished")
     }
-  }, [example])
+  }, [derivedEndDate, derivedStartDate, example])
 
   if (!example || !exampleState) {
     return <Placeholder />
@@ -555,6 +566,8 @@ export function PrivateDashboard() {
           handleStart={handleStart}
           handleTermination={handleTermination}
           setDurationInSeconds={setDurationInSeconds}
+          startTime={derivedStartDate}
+          endTime={derivedEndDate}
         ></ExampleTimeControler>
       </GridItem>
     </Grid>

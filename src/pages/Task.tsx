@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import {
   Accordion,
   AccordionButton,
@@ -62,10 +63,16 @@ import {
   NextAttemptAt,
   TooltipIconButton,
 } from "../components/Buttons"
-import { useCodeEditor, useExample, useTask } from "../components/Hooks"
+import {
+  useCodeEditor,
+  useExample,
+  useTask,
+  useTimeframeFromSSE,
+} from "../components/Hooks"
 import { TaskController } from "./Supervisor"
 import { detectType, createDownloadHref } from "../components/Util"
 import { useTranslation } from "react-i18next"
+import { CountdownTimer } from "../components/CountdownTimer"
 
 export default function Task({ type }: { type: "task" | "example" }) {
   const { i18n, t } = useTranslation()
@@ -82,6 +89,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const [editorReload, setEditorReload] = useState(1) // counts up every time Editor should re-render
   const [openFiles, setOpenFiles] = useState<TaskFileProps[]>([])
   const [userId, setUserId] = useState(user.email)
+  const { timeFrameFromEvent } = useTimeframeFromSSE()
   const {
     data: task,
     submit,
@@ -91,6 +99,22 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const getUpdate = (file: TaskFileProps, submission?: WorkspaceProps) =>
     submission?.files?.find((s) => s.taskFileId === file.id)?.content ||
     file.template
+
+  const [derivedStartDate, derivedEndDate] = useMemo(() => {
+    if (!task) {
+      return [null, null]
+    }
+
+    if (timeFrameFromEvent) {
+      return timeFrameFromEvent
+    }
+
+    if (!task.start || !task.end) {
+      return [null, null]
+    }
+
+    return [Date.parse(task.start), Date.parse(task.end)]
+  }, [task, timeFrameFromEvent])
 
   const showRunCommand = useMemo(() => {
     if (!task) return false
@@ -596,34 +620,139 @@ export default function Task({ type }: { type: "task" | "example" }) {
               </Tag>
             </VStack>
           </SimpleGrid>
-          <Accordion
-            allowMultiple
-            defaultIndex={[0]}
-            overflow="hidden"
-            flexGrow={1}
-          >
-            <AccordionItem boxSize="full">
-              <AccordionButton>
-                <AccordionIcon />
-                <FcTimeline />
-                <Text title={t("pruning_help")}>{t("History")}</Text>
-              </AccordionButton>
-              <AccordionPanel
-                motionProps={{ style: { display: "flex", maxHeight: "100%" } }}
-                p={0}
-                flexGrow={1}
-                overflow="scroll"
-              >
-                {task.submissions.map((submission) => (
-                  <SimpleGrid
-                    templateColumns="1rem 1fr auto"
-                    templateRows="auto auto"
-                    key={submission.id}
-                    fontSize="sm"
-                    justifyItems="stretch"
-                    justifyContent="space-between"
-                  >
-                    <VStack gridRow="span 2">
+          <VStack p={2}>
+            <CountdownTimer
+              startTime={derivedStartDate}
+              endTime={derivedEndDate}
+              size="large"
+            ></CountdownTimer>
+          </VStack>
+          {task.start == null ||
+          task.end == null ||
+          Date.parse(task.end) < Date.now() ? (
+            <Accordion
+              allowMultiple
+              defaultIndex={[0]}
+              overflow="hidden"
+              flexGrow={1}
+            >
+              <AccordionItem boxSize="full">
+                <AccordionButton>
+                  <AccordionIcon />
+                  <FcTimeline />
+                  <Text title={t("pruning_help")}>{t("History")}</Text>
+                </AccordionButton>
+                <AccordionPanel
+                  motionProps={{
+                    style: { display: "flex", maxHeight: "100%" },
+                  }}
+                  p={0}
+                  flexGrow={1}
+                  overflow="scroll"
+                >
+                  {task.submissions.map((submission) => (
+                    <SimpleGrid
+                      templateColumns="1rem 1fr auto"
+                      templateRows="auto auto"
+                      key={submission.id}
+                      fontSize="sm"
+                      justifyItems="stretch"
+                      justifyContent="space-between"
+                    >
+                      <VStack gridRow="span 2">
+                        <Icon
+                          as={BsCircleFill}
+                          mx={2}
+                          mt={1}
+                          boxSize={2}
+                          color="purple.500"
+                        />
+                        <Divider
+                          orientation="vertical"
+                          borderColor="gray.500"
+                        />
+                      </VStack>
+                      <Box>
+                        <Text lineHeight={1.2} fontWeight={500}>
+                          {submissionName(
+                            submission.command,
+                            submission.ordinalNum,
+                          )}
+                        </Text>
+                        <Text fontSize="2xs">
+                          {format(
+                            parseISO(submission.createdAt),
+                            "dd.MM.yyyy HH:mm",
+                          )}
+                        </Text>
+                        {!submission.valid && (
+                          <Badge colorScheme="red" mr={1}>
+                            Invalid
+                          </Badge>
+                        )}
+                        {task.deadline &&
+                          submission.createdAt > task.deadline && (
+                            <Badge colorScheme="purple" mr={1}>
+                              Late
+                            </Badge>
+                          )}
+                      </Box>
+                      <ButtonGroup size="sm" variant="ghost" spacing={1}>
+                        <Popover placement="left">
+                          <PopoverTrigger>
+                            <IconButton
+                              isDisabled={!submission.output}
+                              bg="gray.10"
+                              color="contra"
+                              rounded="md"
+                              aria-label={submission.graded ? "Hint" : "Output"}
+                              fontSize="120%"
+                              icon={
+                                submission.graded ? (
+                                  <AiOutlineBulb />
+                                ) : (
+                                  <AiOutlineCode />
+                                )
+                              }
+                            />
+                          </PopoverTrigger>
+                          <PopoverContent
+                            w="fit-content"
+                            maxW="xl"
+                            bg="yellow.50"
+                          >
+                            <PopoverArrow />
+                            <PopoverBody
+                              overflow="auto"
+                              fontSize="sm"
+                              whiteSpace="pre-wrap"
+                              maxH="2xs"
+                            >
+                              {submission.output}
+                            </PopoverBody>
+                          </PopoverContent>
+                        </Popover>
+                        <TooltipIconButton
+                          onClick={() => reload(submission)}
+                          aria-label="Reload"
+                          bg="gray.10"
+                          color="contra"
+                          icon={<AiOutlineReload />}
+                        />
+                      </ButtonGroup>
+                      <Stack gridColumn="span 2" py={2} mb={4}>
+                        {submission.graded && submission.valid && (
+                          <ScoreBar
+                            value={submission.points}
+                            max={submission.maxPoints}
+                            h={6}
+                          />
+                        )}
+                      </Stack>
+                    </SimpleGrid>
+                  ))}
+                  <Flex gap={2} fontSize="sm">
+                    <VStack w={4}>
                       <Icon
                         as={BsCircleFill}
                         mx={2}
@@ -633,112 +762,23 @@ export default function Task({ type }: { type: "task" | "example" }) {
                       />
                       <Divider orientation="vertical" borderColor="gray.500" />
                     </VStack>
-                    <Box>
+                    <Stack mb={8}>
                       <Text lineHeight={1.2} fontWeight={500}>
-                        {submissionName(
-                          submission.command,
-                          submission.ordinalNum,
-                        )}
+                        {t("Started task")}.
                       </Text>
-                      <Text fontSize="2xs">
-                        {format(
-                          parseISO(submission.createdAt),
-                          "dd.MM.yyyy HH:mm",
-                        )}
-                      </Text>
-                      {!submission.valid && (
-                        <Badge colorScheme="red" mr={1}>
-                          Invalid
-                        </Badge>
-                      )}
-                      {task.deadline &&
-                        submission.createdAt > task.deadline && (
-                        <Badge colorScheme="purple" mr={1}>
-                          Late
-                        </Badge>
-                      )}
-                    </Box>
-                    <ButtonGroup size="sm" variant="ghost" spacing={1}>
-                      <Popover placement="left">
-                        <PopoverTrigger>
-                          <IconButton
-                            isDisabled={!submission.output}
-                            bg="gray.10"
-                            color="contra"
-                            rounded="md"
-                            aria-label={submission.graded ? "Hint" : "Output"}
-                            fontSize="120%"
-                            icon={
-                              submission.graded ? (
-                                <AiOutlineBulb />
-                              ) : (
-                                <AiOutlineCode />
-                              )
-                            }
-                          />
-                        </PopoverTrigger>
-                        <PopoverContent
-                          w="fit-content"
-                          maxW="xl"
-                          bg="yellow.50"
-                        >
-                          <PopoverArrow />
-                          <PopoverBody
-                            overflow="auto"
-                            fontSize="sm"
-                            whiteSpace="pre-wrap"
-                            maxH="2xs"
-                          >
-                            {submission.output}
-                          </PopoverBody>
-                        </PopoverContent>
-                      </Popover>
-                      <TooltipIconButton
-                        onClick={() => reload(submission)}
-                        aria-label="Reload"
-                        bg="gray.10"
-                        color="contra"
-                        icon={<AiOutlineReload />}
-                      />
-                    </ButtonGroup>
-                    <Stack gridColumn="span 2" py={2} mb={4}>
-                      {submission.graded && submission.valid && (
-                        <ScoreBar
-                          value={submission.points}
-                          max={submission.maxPoints}
-                          h={6}
-                        />
-                      )}
+                      <Button
+                        size="xs"
+                        leftIcon={<AiOutlineReload />}
+                        onClick={reset}
+                      >
+                        {t("Reset")}
+                      </Button>
                     </Stack>
-                  </SimpleGrid>
-                ))}
-                <Flex gap={2} fontSize="sm">
-                  <VStack w={4}>
-                    <Icon
-                      as={BsCircleFill}
-                      mx={2}
-                      mt={1}
-                      boxSize={2}
-                      color="purple.500"
-                    />
-                    <Divider orientation="vertical" borderColor="gray.500" />
-                  </VStack>
-                  <Stack mb={8}>
-                    <Text lineHeight={1.2} fontWeight={500}>
-                      {t("Started task")}.
-                    </Text>
-                    <Button
-                      size="xs"
-                      leftIcon={<AiOutlineReload />}
-                      onClick={reset}
-                    >
-                      {t("Reset")}
-                    </Button>
-                  </Stack>
-                </Flex>
-              </AccordionPanel>
-            </AccordionItem>
-          </Accordion>
+                  </Flex>
+                </AccordionPanel>
+              </AccordionItem>
+            </Accordion>
+          ) : null}
         </Stack>
       </TaskView>
     </Flex>
