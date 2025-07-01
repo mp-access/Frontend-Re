@@ -28,10 +28,10 @@ export const CountdownTimer: React.FC<{
   }, [timeLeftInSeconds, totalTimeInSeconds])
 
   const dynamicColor = useMemo(() => {
-    if (timeLeftInSeconds > totalTimeInSeconds / 3) {
+    if (timeLeftInSeconds > Math.min(totalTimeInSeconds / 3, 30)) {
       return "green.500"
     }
-    if (timeLeftInSeconds > totalTimeInSeconds / 10) {
+    if (timeLeftInSeconds > 10) {
       return "orange.200"
     }
 
