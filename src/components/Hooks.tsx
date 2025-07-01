@@ -202,19 +202,25 @@ export const useTask = (userId: string) => {
   return { ...query, submit, timer }
 }
 
-export const useCountdown = (startUnix: number, endUnix: number) => {
-  const [timeLeftInSeconds, setTimeLeftInSeconds] = useState<number>(
-    endUnix - startUnix,
-  )
+export const useCountdown = (
+  startUnix: number | null,
+  endUnix: number | null,
+) => {
+  const [timeLeftInSeconds, setTimeLeftInSeconds] = useState<number>(0)
 
   useEffect(() => {
     const interval = setInterval(() => {
+      if (endUnix === null || startUnix === null) {
+        setTimeLeftInSeconds(0)
+        return
+      }
+
       const now = Date.now()
       const timeLeft = endUnix - now
       setTimeLeftInSeconds(Math.max(0, Math.floor(timeLeft / 1000)))
     }, 100)
     return () => clearInterval(interval)
-  }, [endUnix])
+  }, [endUnix, startUnix])
 
   return { timeLeftInSeconds }
 }
