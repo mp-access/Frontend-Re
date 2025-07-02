@@ -116,6 +116,16 @@ export default function Task({ type }: { type: "task" | "example" }) {
     return [Date.parse(task.start), Date.parse(task.end)]
   }, [task, timeFrameFromEvent])
 
+  const showTestCommand = useMemo(() => {
+    if (!task) return false
+
+    if (isAssistant && task.testCommandAvailable) {
+      return true
+    }
+
+    return false
+  }, [])
+
   const showRunCommand = useMemo(() => {
     if (!task) return false
 
@@ -262,7 +272,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
         isAttached
         zIndex={2}
       >
-        {task.testable && (
+        {task.testable && showTestCommand && (
           <ActionButton
             name="Test"
             color="gray.600"
