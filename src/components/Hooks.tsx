@@ -3,7 +3,7 @@ import { useMutation, useQuery, UseQueryOptions } from "@tanstack/react-query"
 import axios, { AxiosError } from "axios"
 import { compact, concat, flatten } from "lodash"
 import { Uri } from "monaco-editor"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useParams } from "react-router-dom"
 import { EventSource } from "extended-eventsource"
 import { useKeycloak } from "@react-keycloak/web"
@@ -202,27 +202,45 @@ export const useTask = (userId: string) => {
   return { ...query, submit, timer }
 }
 
-export const useCountdown = (
-  startUnix: number | null,
-  endUnix: number | null,
-) => {
+export const useCountdown = (start: number | null, end: number | null) => {
   const [timeLeftInSeconds, setTimeLeftInSeconds] = useState<number>(0)
+  const [circleValue, setCircleValue] = useState(100)
+  const requestRef = useRef<number | null>(null)
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (endUnix === null || startUnix === null) {
-        setTimeLeftInSeconds(0)
-        return
-      }
+    if (start === null || end === null) {
+      setTimeLeftInSeconds(0)
+      setCircleValue(0)
+      return
+    }
 
+    const update = () => {
+      const total = end - start
       const now = Date.now()
-      const timeLeft = endUnix - now
-      setTimeLeftInSeconds(Math.max(0, Math.floor(timeLeft / 1000)))
-    }, 100)
-    return () => clearInterval(interval)
-  }, [endUnix, startUnix])
+      const timeLeft = Math.max(0, end - now)
 
-  return { timeLeftInSeconds }
+      setTimeLeftInSeconds(Math.floor(timeLeft / 1000))
+
+      const progress = Math.max(0, (timeLeft / total) * 100)
+      setCircleValue(progress)
+      if (timeLeft > 0) {
+        requestRef.current = requestAnimationFrame(update)
+      } else {
+        requestRef.current = null
+      }
+    }
+
+    update() // only called initially or when startUnix or endUnix changes
+
+    return () => {
+      if (requestRef.current) {
+        cancelAnimationFrame(requestRef.current)
+        requestRef.current = null
+      }
+    }
+  }, [start, end])
+
+  return { timeLeftInSeconds, circleValue }
 }
 
 export const useTimeframeFromSSE = () => {
