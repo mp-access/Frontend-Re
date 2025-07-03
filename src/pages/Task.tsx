@@ -483,7 +483,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
             onChange={setCurrentTab}
           >
             <TabList overflow="hidden">
-              {task.testable && (
+              {task.testCommandAvailable && (
                 <Tab>
                   <ActionTab name="Test Output" />
                 </Tab>
