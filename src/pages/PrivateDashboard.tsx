@@ -25,6 +25,7 @@ import { BsFillCircleFill } from "react-icons/bs"
 import {
   useExample,
   useExtendExample,
+  useGeneralExampleInformation,
   usePublish,
   useTerminate,
   useTimeframeFromSSE,
@@ -195,9 +196,25 @@ const TaskDescription: React.FC<{
   )
 }
 
-const GenearlInformation: React.FC<{ exampleState: ExampleState }> = ({
-  exampleState,
-}) => {
+const GenearlInformation: React.FC<{
+  exampleState: ExampleState
+  generalInformation: ExampleInformation
+}> = ({ exampleState, generalInformation }) => {
+  const {
+    participantsOnline,
+    totalParticipants,
+    numberOfStudentsWhoSubmitted,
+    passRatePerTestCase,
+  } = generalInformation
+
+  const avgTestPassRate = useMemo(() => {
+    const passRates = Object.values(passRatePerTestCase)
+
+    return (
+      (passRates.reduce((sum, rate) => sum + rate, 0) / passRates.length) * 100
+    )
+  }, [passRatePerTestCase])
+
   return (
     <Flex layerStyle={"card"} direction={"column"} flex={1} p={3}>
       <Heading fontSize="xl">{t("General Information")}</Heading>
@@ -214,7 +231,9 @@ const GenearlInformation: React.FC<{ exampleState: ExampleState }> = ({
                 borderRadius={"full"}
                 backgroundColor={"grey.200"}
                 colorScheme="purple"
-                value={55}
+                value={
+                  (numberOfStudentsWhoSubmitted / participantsOnline) * 100
+                }
                 flex={1}
               ></Progress>
               <Text
@@ -223,7 +242,7 @@ const GenearlInformation: React.FC<{ exampleState: ExampleState }> = ({
                 display={"flex"}
                 justifyContent={"end"}
               >
-                80/144
+                {numberOfStudentsWhoSubmitted}/{participantsOnline}
               </Text>
             </>
           ) : (
@@ -250,7 +269,7 @@ const GenearlInformation: React.FC<{ exampleState: ExampleState }> = ({
                 display={"flex"}
                 justifyContent={"end"}
               >
-                240/960
+                {avgTestPassRate.toFixed()}%
               </Text>
             </>
           ) : (
@@ -259,11 +278,15 @@ const GenearlInformation: React.FC<{ exampleState: ExampleState }> = ({
         </HStack>
         <Flex grow={1} justify={"space-around"} align={"center"}>
           <Tag colorScheme="purple">
-            <TagLabel> 12 Grading Tests</TagLabel>
+            <TagLabel>
+              Grading Tests {Object.keys(passRatePerTestCase).length}
+            </TagLabel>
           </Tag>
           <Tag color="green.600" bg="green.50">
             <TagLeftIcon as={BsFillCircleFill} boxSize={2} />
-            <TagLabel> Online 144/219</TagLabel>
+            <TagLabel>
+              Online {participantsOnline}/{totalParticipants}
+            </TagLabel>
           </Tag>
         </Flex>
       </Flex>
@@ -439,7 +462,9 @@ export function PrivateDashboard() {
   const currentLanguage = i18n.language
   const { user } = useOutletContext<UserContext>()
   const { data: example } = useExample(user.email)
+  const { data: generalInformation } = useGeneralExampleInformation()
 
+  console.log(generalInformation)
   const { timeFrameFromEvent } = useTimeframeFromSSE()
 
   const durationAsString = useMemo(() => {
@@ -501,7 +526,7 @@ export function PrivateDashboard() {
     }
   }, [derivedEndDate, derivedStartDate, example])
 
-  if (!example || !exampleState) {
+  if (!example || !exampleState || !generalInformation) {
     return <Placeholder />
   }
 
@@ -557,7 +582,10 @@ export function PrivateDashboard() {
         flexDirection={"row"}
         gap={3}
       >
-        <GenearlInformation exampleState={exampleState}></GenearlInformation>
+        <GenearlInformation
+          exampleState={exampleState}
+          generalInformation={generalInformation}
+        ></GenearlInformation>
 
         <ExampleTimeControler
           handleTimeAdjustment={handleTimeAdjustment}

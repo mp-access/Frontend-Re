@@ -74,7 +74,6 @@ export const usePublish = () => {
       ["courses", courseSlug, "examples", exampleSlug, "publish"],
       { duration },
     ])
-  console.log("publishing")
 
   return { publish }
 }
@@ -113,6 +112,17 @@ export const useTerminate = () => {
 export const useExamples = () => {
   const { courseSlug } = useParams()
   return useQuery<TaskOverview[]>(["courses", courseSlug, "examples"])
+}
+
+export const useGeneralExampleInformation = () => {
+  const { courseSlug, exampleSlug } = useParams()
+  return useQuery<ExampleInformation>([
+    "courses",
+    courseSlug,
+    "examples",
+    exampleSlug,
+    "information",
+  ])
 }
 
 export const useParticipants = () => {
