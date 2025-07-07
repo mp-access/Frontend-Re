@@ -116,13 +116,21 @@ export default function Task({ type }: { type: "task" | "example" }) {
     return [Date.parse(task.start), Date.parse(task.end)]
   }, [task, timeFrameFromEvent])
 
+  const showTestCommand = useMemo(() => {
+    if (!task) return false
+
+    if (!isAssistant && type === "example") {
+      return false
+    }
+
+    return task.testCommandAvailable
+  }, [task, isAssistant, type])
+
   const showRunCommand = useMemo(() => {
     if (!task) return false
 
-    if (isAssistant) return true
-
     return task.runCommandAvailable
-  }, [isAssistant, task])
+  }, [task])
 
   useEffect(() => {
     if (task) {
@@ -187,7 +195,11 @@ export default function Task({ type }: { type: "task" | "example" }) {
 
   if (!task || !currentFile) return <Placeholder />
 
-  const commands: string[] = compact([task.testable && "test", "run", "grade"])
+  const commands: string[] = compact([
+    task.testCommandAvailable && "test",
+    "run",
+    "grade",
+  ])
   const isPrivileged = isAssistant && userId === user.email
   const getPath = (id: number) => `${id}/${user.email}/${submissionId}`
   const getTemplate = (name: string) => {
@@ -262,7 +274,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
         isAttached
         zIndex={2}
       >
-        {task.testable && (
+        {showTestCommand && (
           <ActionButton
             name="Test"
             color="gray.600"
@@ -471,7 +483,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
             onChange={setCurrentTab}
           >
             <TabList overflow="hidden">
-              {task.testable && (
+              {task.testCommandAvailable && (
                 <Tab>
                   <ActionTab name="Test Output" />
                 </Tab>
