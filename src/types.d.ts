@@ -232,5 +232,5 @@ declare interface ExampleInformation {
   participantsOnline: number
   totalParticipants: number
   numberOfStudentsWhoSubmitted: number
-  testCasePassRates: Record<string, number>
+  passRatePerTestCase: Record<string, number>
 }
