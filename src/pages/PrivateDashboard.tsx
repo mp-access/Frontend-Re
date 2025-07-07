@@ -41,6 +41,7 @@ import { useTranslation } from "react-i18next"
 import { useOutletContext } from "react-router-dom"
 import { formatSeconds } from "../components/Util"
 import { CountdownTimer } from "../components/CountdownTimer"
+import { Carousel } from "../components/Carousel"
 
 const CIRCLE_BUTTON_DIAMETER = 12
 
@@ -167,6 +168,8 @@ const SubmissionInspector: React.FC = () => {
       <Flex layerStyle={"segment"} direction={"column"} grow={1}>
         <Heading fontSize="lg">{"{Student Username}"}</Heading>
         <Divider />
+        <Carousel></Carousel>
+        {/* <Markdown children={exampleSubmission}></Markdown> */}
       </Flex>
       <Flex gap={2}>
         <Button variant={"outline"} borderRadius={"lg"} flex={1}>
