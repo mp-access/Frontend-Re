@@ -146,7 +146,7 @@ const ResetDialog: React.FC<{ handleReset: () => void }> = ({
 const SubmissionInspector: React.FC = () => {
   return (
     <Flex direction={"column"} h={"full"} gap={2}>
-      <Flex layerStyle={"card"} direction={"column"}>
+      <Flex layerStyle={"segment"} direction={"column"}>
         <Heading fontSize="xl">Implementation Type #2</Heading>
         <Divider />
         <Flex justify={"space-around"} pt={2}>
@@ -164,7 +164,7 @@ const SubmissionInspector: React.FC = () => {
           </Text>
         </Flex>
       </Flex>
-      <Flex layerStyle={"card"} direction={"column"} grow={1}>
+      <Flex layerStyle={"segment"} direction={"column"} grow={1}>
         <Heading fontSize="lg">{"{Student Username}"}</Heading>
         <Divider />
       </Flex>
@@ -188,7 +188,7 @@ const TaskDescription: React.FC<{
   title: string
 }> = ({ instructionContent, title }) => {
   return (
-    <Flex layerStyle={"card"} direction={"column"} grow={1} p={3}>
+    <Flex layerStyle={"segment"} direction={"column"} grow={1} p={3}>
       <Heading fontSize="xl">{title}</Heading>
       <Divider />
       <Markdown children={instructionContent}></Markdown>
@@ -216,7 +216,7 @@ const GenearlInformation: React.FC<{
   }, [passRatePerTestCase])
 
   return (
-    <Flex layerStyle={"card"} direction={"column"} flex={1} p={3}>
+    <Flex layerStyle={"segment"} direction={"column"} flex={1} p={3}>
       <Heading fontSize="xl">{t("General Information")}</Heading>
       <Divider />
       <Flex flexDirection={"column"} justify={"space-between"} flex={1}>
@@ -334,7 +334,7 @@ const ExampleTimeControler: React.FC<{
         direction={"column"}
         align={"space-around"}
         flex={1}
-        layerStyle={"card"}
+        layerStyle={"segment"}
         p={3}
       >
         <Heading fontSize="xl">{t("Duration")}</Heading>
@@ -549,7 +549,7 @@ export function PrivateDashboard() {
       height={"full"}
     >
       <GridItem
-        layerStyle={"card"}
+        layerStyle={"segment"}
         gap={4}
         rowStart={1}
         rowEnd={-1}
