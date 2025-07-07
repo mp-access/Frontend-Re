@@ -16,35 +16,38 @@ export const CountdownTimer: React.FC<{
   endTime: number | null
   size: SizeKey
 }> = ({ startTime, endTime, size }) => {
-  const { timeLeftInSeconds } = useCountdown(startTime ?? 0, endTime ?? 0)
+  const { timeLeftInSeconds, circleValue } = useCountdown(
+    startTime ?? 0,
+    endTime ?? 0,
+  )
   const totalTimeInSeconds = ((endTime ?? 0) - (startTime ?? 0)) / 1000
   const remainingTimeString = formatSeconds(timeLeftInSeconds)
 
-  const circleValue = useMemo(() => {
-    if (totalTimeInSeconds <= 0) {
-      return 0
-    }
-    return (timeLeftInSeconds / totalTimeInSeconds) * 100
-  }, [timeLeftInSeconds, totalTimeInSeconds])
-
   const dynamicColor = useMemo(() => {
-    if (timeLeftInSeconds > totalTimeInSeconds / 3) {
+    if (timeLeftInSeconds > Math.min(totalTimeInSeconds / 3, 30)) {
       return "green.500"
     }
-    if (timeLeftInSeconds > totalTimeInSeconds / 10) {
-      return "yellow.500"
+    if (timeLeftInSeconds > 10) {
+      return "orange.200"
     }
 
-    return "red.500"
+    return "red.600"
   }, [timeLeftInSeconds, totalTimeInSeconds])
-
   return (
     <CircularProgress
       size={sizeMap[size]}
       value={circleValue}
       color={dynamicColor}
     >
-      <CircularProgressLabel>{remainingTimeString}</CircularProgressLabel>
+      <CircularProgressLabel
+        style={{
+          fontVariantNumeric: "tabular-nums",
+          fontFamily: "monospace",
+        }}
+        fontSize={size === "large" ? "3xl" : size === "medium" ? "2xl" : "md"}
+      >
+        {remainingTimeString}
+      </CircularProgressLabel>
     </CircularProgress>
   )
 }

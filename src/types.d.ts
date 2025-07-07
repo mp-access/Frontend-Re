@@ -103,7 +103,6 @@ declare interface TaskInformation {
 }
 
 declare interface TaskProps extends TaskOverview {
-  testable: boolean
   instructions: string
   files: Array<TaskFileProps>
   submissions: Array<SubmissionProps>
