@@ -13,6 +13,7 @@ import {
   Code,
   Divider,
   Flex,
+  Heading,
   HStack,
   Icon,
   IconButton,
@@ -56,7 +57,13 @@ import { FileTabs } from "../components/FileTab"
 import { FileTree } from "../components/FileTree"
 import { Markdown, Placeholder, TaskIO, TaskView } from "../components/Panels"
 import { ScoreBar, ScorePie } from "../components/Statistics"
-import { FcFile, FcInspection, FcTimeline, FcTodoList } from "react-icons/fc"
+import {
+  FcAlarmClock,
+  FcFile,
+  FcInspection,
+  FcTimeline,
+  FcTodoList,
+} from "react-icons/fc"
 import {
   ActionButton,
   ActionTab,
@@ -262,7 +269,6 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const instructionsContent = task.files.filter(
     (file) => file.path === `/${instructionFile}`,
   )[0]?.template
-
   return (
     <Flex boxSize="full">
       <ButtonGroup
@@ -579,69 +585,77 @@ export default function Task({ type }: { type: "task" | "example" }) {
           </Tabs>
         </TaskIO>
         <Stack pos="sticky" minW="3xs" h="full" spacing={0}>
+          {task.status === "Interactive" ? (
+            <VStack p={4} w="full">
+              <HStack>
+                <Heading fontSize="xl">{t("Remaining Time")}</Heading>
+              </HStack>
+              <Divider />
+              <CountdownTimer
+                startTime={derivedStartDate}
+                endTime={derivedEndDate}
+                size="large"
+              ></CountdownTimer>
+            </VStack>
+          ) : null}
           {!isPrivileged &&
             task.remainingAttempts <= 0 &&
             task.nextAttemptAt && (
               <NextAttemptAt date={task.nextAttemptAt} onComplete={refill} />
             )}
-          <SimpleGrid columns={2} w="full" fontSize="sm">
-            <VStack borderRightWidth={1} spacing={0} h={32} pb={2}>
-              <ScorePie value={task.points} max={task.maxPoints} />
-              <Tag
-                size="sm"
-                colorScheme="purple"
-                fontWeight={400}
-                bg="purple.50"
-              >
-                {t("Score")}
-              </Tag>
-            </VStack>
-            <VStack h={32} p={2}>
-              <SimpleGrid
-                columns={Math.min(task.maxAttempts, 5)}
-                gap={1}
-                flexGrow={1}
-                alignItems="center"
-              >
-                {range(Math.min(task.maxAttempts, 10)).map((i) => (
-                  <Center
-                    key={i}
-                    rounded="full"
-                    boxSize={4}
-                    borderWidth={2}
-                    borderColor="purple.400"
-                    bg={
-                      isPrivileged || i < task.remainingAttempts
-                        ? "gradients.500"
-                        : "transparent"
-                    }
-                  />
-                ))}
-              </SimpleGrid>
-              <Text fontSize="lg">
-                <b>{isPrivileged ? "∞" : task.remainingAttempts}</b> /{" "}
-                {task.maxAttempts}
-              </Text>
-              <Tag
-                size="sm"
-                colorScheme="purple"
-                fontWeight={400}
-                bg="purple.50"
-              >
-                {t("Submissions")}
-              </Tag>
-            </VStack>
-          </SimpleGrid>
-          <VStack p={2}>
-            <CountdownTimer
-              startTime={derivedStartDate}
-              endTime={derivedEndDate}
-              size="large"
-            ></CountdownTimer>
-          </VStack>
-          {task.start == null ||
-          task.end == null ||
-          Date.parse(task.end) < Date.now() ? (
+          {task.status !== "Interactive" ? (
+            <SimpleGrid columns={2} w="full" fontSize="sm">
+              <VStack borderRightWidth={1} spacing={0} h={32} pb={2}>
+                <ScorePie value={task.points} max={task.maxPoints} />
+                <Tag
+                  size="sm"
+                  colorScheme="purple"
+                  fontWeight={400}
+                  bg="purple.50"
+                >
+                  {t("Score")}
+                </Tag>
+              </VStack>
+              <VStack h={32} p={2}>
+                <SimpleGrid
+                  columns={Math.min(task.maxAttempts, 5)}
+                  gap={1}
+                  flexGrow={1}
+                  alignItems="center"
+                >
+                  {range(Math.min(task.maxAttempts, 10)).map((i) => (
+                    <Center
+                      key={i}
+                      rounded="full"
+                      boxSize={4}
+                      borderWidth={2}
+                      borderColor="purple.400"
+                      bg={
+                        isPrivileged || i < task.remainingAttempts
+                          ? "gradients.500"
+                          : "transparent"
+                      }
+                    />
+                  ))}
+                </SimpleGrid>
+                <Text fontSize="lg">
+                  <b>{isPrivileged ? "∞" : task.remainingAttempts}</b> /{" "}
+                  {task.maxAttempts}
+                </Text>
+                <Tag
+                  size="sm"
+                  colorScheme="purple"
+                  fontWeight={400}
+                  bg="purple.50"
+                >
+                  {t("Submissions")}
+                </Tag>
+              </VStack>
+            </SimpleGrid>
+          ) : null}
+          {derivedStartDate == null ||
+          derivedEndDate == null ||
+          derivedEndDate < Date.now() ? (
             <Accordion
               allowMultiple
               defaultIndex={[0]}
