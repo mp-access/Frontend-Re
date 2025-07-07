@@ -1,6 +1,5 @@
 .slider {
   width: 100%;
-  text-align: center;
   overflow: hidden;
   height: 100%;
 }
@@ -13,6 +12,7 @@
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   height: 100%;
+  width: 100%;
 }
 
 .slides::-webkit-scrollbar {
@@ -23,13 +23,11 @@
   scroll-snap-align: start;
   flex-shrink: 0;
   width: 100%;
-  height: 350px;
+  height: 100%;
   margin-right: 50px;
   border-radius: 10px;
-  background: #eee;
+  background: #ffffff;
   display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 html,
@@ -40,6 +38,4 @@ body {
 
 body {
   display: flex;
-  align-items: center;
-  justify-content: center;
 }

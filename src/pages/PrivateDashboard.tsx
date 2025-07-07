@@ -165,12 +165,8 @@ const SubmissionInspector: React.FC = () => {
           </Text>
         </Flex>
       </Flex>
-      <Flex layerStyle={"segment"} direction={"column"} grow={1}>
-        <Heading fontSize="lg">{"{Student Username}"}</Heading>
-        <Divider />
-        <Carousel></Carousel>
-        {/* <Markdown children={exampleSubmission}></Markdown> */}
-      </Flex>
+
+      <Carousel></Carousel>
       <Flex gap={2}>
         <Button variant={"outline"} borderRadius={"lg"} flex={1}>
           Previous Type

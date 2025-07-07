@@ -1,16 +1,25 @@
-import { Button, Flex } from "@chakra-ui/react"
+import { Button, Divider, Flex, Heading } from "@chakra-ui/react"
 import "./Carousel.css"
 
 import React, { useEffect, useRef, useState } from "react"
+import { Markdown } from "./Panels"
+
+const Slide = () => {
+  return (
+    <Flex direction={"column"} p={4}>
+      <Heading fontSize="lg">{"{Student Username}"}</Heading>
+      <Divider />
+      <Markdown children={"Hello World"}></Markdown>
+    </Flex>
+  )
+}
 
 export const Carousel = () => {
   const sliderRef = useRef<HTMLDivElement | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
 
   const slideCount = 3 // Or dynamically set this from children.length
-  const slideWidth = sliderRef.current?.offsetWidth || 0
 
-  // Scroll event listener to update current index
   useEffect(() => {
     const slider = sliderRef.current
     if (!slider) return
@@ -38,15 +47,21 @@ export const Carousel = () => {
   }
 
   return (
-    <Flex position={"relative"} display={"flex"}>
-      <div className="slider">
-        <div className="slides" ref={sliderRef}>
-          <div>Slide 1</div>
-          <div>Slide 2</div>
-          <div>Slide 3</div>
-          {/* Add more slides as needed */}
-        </div>
-      </div>
+    // Animations in Carosel.css
+    <Flex
+      position={"relative"}
+      display={"flex"}
+      p={0}
+      background={"transparent"}
+      height={"full"}
+    >
+      <Flex className="slider" width={"full"} borderRadius={"2xl"}>
+        <Flex className="slides" ref={sliderRef}>
+          <Slide />
+          <Slide />
+          <Slide />
+        </Flex>
+      </Flex>
       <Button
         style={{
           position: "absolute",
