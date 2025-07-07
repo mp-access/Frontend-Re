@@ -145,7 +145,7 @@ const ResetDialog: React.FC<{ handleReset: () => void }> = ({
 
 const SubmissionInspector: React.FC = () => {
   return (
-    <>
+    <Flex direction={"column"} h={"full"} gap={2}>
       <Flex layerStyle={"card"} direction={"column"}>
         <Heading fontSize="xl">Implementation Type #2</Heading>
         <Divider />
@@ -179,7 +179,7 @@ const SubmissionInspector: React.FC = () => {
           Next Type
         </Button>
       </Flex>
-    </>
+    </Flex>
   )
 }
 
