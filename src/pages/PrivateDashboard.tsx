@@ -152,10 +152,7 @@ const SubmissionInspector: React.FC = () => {
         <Divider />
         <Flex justify={"space-around"} pt={2}>
           <Text display={"flex"} flexDirection={"row"} gap={2}>
-            Commonality: <Text fontWeight={"bold"}>21%</Text>
-          </Text>
-          <Text display={"flex"} flexDirection={"row"} gap={2}>
-            Number of variations: <Text fontWeight={"bold"}>115</Text>
+            Number of implementations: <Text fontWeight={"bold"}>115</Text>
           </Text>
           <Text display={"flex"} flexDirection={"row"} gap={2}>
             Avg. Score: <Text fontWeight={"bold"}>3.2</Text>
