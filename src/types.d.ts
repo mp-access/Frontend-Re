@@ -226,3 +226,10 @@ declare interface CurrentUser {
   given_name: string
   email: string
 }
+
+declare interface ExampleInformation {
+  participantsOnline: number
+  totalParticipants: number
+  numberOfStudentsWhoSubmitted: number
+  passRatePerTestCase: Record<string, number>
+}
