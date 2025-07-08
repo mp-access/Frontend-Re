@@ -42,6 +42,7 @@ import { useOutletContext } from "react-router-dom"
 import { formatSeconds } from "../components/Util"
 import { CountdownTimer } from "../components/CountdownTimer"
 import { Carousel } from "../components/Carousel"
+import { BarChart1, HorizontalBarChart } from "../components/BarChart"
 
 const CIRCLE_BUTTON_DIAMETER = 12
 
@@ -553,9 +554,11 @@ export function PrivateDashboard() {
         colEnd={2}
         p={3}
       >
-        <Heading fontSize="xl">Testcases</Heading>
+        <Heading fontSize="xl">Testcase Pass Rate</Heading>
         <Divider />
-        <div>...</div>
+        <HorizontalBarChart
+          passRatePerTestCase={generalInformation.passRatePerTestCase}
+        ></HorizontalBarChart>
       </GridItem>
       <GridItem gap={4} colStart={2} colEnd={4}>
         <Flex direction={"column"} h={"full"}>
