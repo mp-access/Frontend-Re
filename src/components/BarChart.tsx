@@ -1,13 +1,5 @@
-import {
-  Box,
-  chakra,
-  Flex,
-  Select,
-  Text,
-  useToken,
-  VStack,
-} from "@chakra-ui/react"
-import { useCallback, useMemo, useState } from "react"
+import { Flex, Select, Text, useToken, VStack } from "@chakra-ui/react"
+import { useMemo, useState } from "react"
 import {
   Bar,
   BarChart,
@@ -42,6 +34,33 @@ const CustomNameLabel = (props: LabelProps) => {
   )
 }
 
+const CustomValueLabel = ({ x, y, width, value }: LabelProps) => {
+  const estimateTextWidth = (text: string) => text.length * 20
+
+  const label = `${Math.round(Number(value))}%`
+  const padding = 16
+  const estimatedTextWidth = estimateTextWidth(label)
+  const shouldRender =
+    typeof width === "number" && width > estimatedTextWidth + padding
+
+  if (!shouldRender || typeof x !== "number" || typeof y !== "number")
+    return null
+
+  return (
+    <text
+      x={x + width - 8}
+      y={y + BAR_HEIGHT / 2}
+      dominantBaseline="middle"
+      textAnchor="end"
+      fill="white"
+      fontWeight="bold"
+      style={{ pointerEvents: "none", whiteSpace: "nowrap" }}
+    >
+      {label}
+    </text>
+  )
+}
+
 export const HorizontalBarChart: React.FC<{
   passRatePerTestCase: Record<string, number>
 }> = ({ passRatePerTestCase }) => {
@@ -57,7 +76,6 @@ export const HorizontalBarChart: React.FC<{
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     // TODO: type this properly
     setSorting(event.target.value as "default" | "ascending" | "descending")
-    console.log("Selected:", event.target.value)
   }
 
   const sortedData = useMemo(() => {
@@ -102,6 +120,7 @@ export const HorizontalBarChart: React.FC<{
               <Cell key={`cell-${index}`} fill={chakraColor} />
             ))}
             <LabelList dataKey="name" content={CustomNameLabel} />
+            <LabelList dataKey="value" content={CustomValueLabel} />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
