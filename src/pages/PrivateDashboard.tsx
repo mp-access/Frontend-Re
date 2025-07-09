@@ -295,14 +295,16 @@ const ExampleTimeControler: React.FC<{
   handleStart: () => void
   handleTermination: () => void
   durationAsString: string
-  exampleState: ExampleState
   setDurationInSeconds: React.Dispatch<React.SetStateAction<number>>
+  exampleState: ExampleState
+  setExampleState: React.Dispatch<React.SetStateAction<ExampleState | null>>
   startTime: number | null
   endTime: number | null
 }> = ({
   handleTimeAdjustment,
   durationAsString,
   exampleState,
+  setExampleState,
   handleStart,
   handleTermination,
   setDurationInSeconds,
@@ -323,6 +325,12 @@ const ExampleTimeControler: React.FC<{
     },
     [extendExampleDuration, setDurationInSeconds],
   )
+
+  const handleTimeIsUp = useCallback(() => {
+    if (exampleState == "ongoing") {
+      setExampleState("finished")
+    }
+  }, [exampleState, setExampleState])
 
   if (exampleState === "unpublished" || exampleState === "publishing") {
     return (
@@ -399,6 +407,7 @@ const ExampleTimeControler: React.FC<{
             startTime={startTime}
             endTime={endTime}
             size={"medium"}
+            onTimeIsUp={handleTimeIsUp}
           ></CountdownTimer>
           <Flex direction={"column"} justify={"center"} h={"100%"} gap={1}>
             <Button variant={"outline"} onClick={() => handleExtendTime(30)}>
@@ -460,7 +469,6 @@ export function PrivateDashboard() {
   const { data: example } = useExample(user.email)
   const { data: generalInformation } = useGeneralExampleInformation()
 
-  console.log(generalInformation)
   const { timeFrameFromEvent } = useTimeframeFromSSE()
 
   const durationAsString = useMemo(() => {
@@ -592,6 +600,7 @@ export function PrivateDashboard() {
           setDurationInSeconds={setDurationInSeconds}
           startTime={derivedStartDate}
           endTime={derivedEndDate}
+          setExampleState={setExampleState}
         ></ExampleTimeControler>
       </GridItem>
     </Grid>

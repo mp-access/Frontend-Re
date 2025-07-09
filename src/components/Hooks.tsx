@@ -213,14 +213,14 @@ export const useTask = (userId: string) => {
 }
 
 export const useCountdown = (start: number | null, end: number | null) => {
-  const [timeLeftInSeconds, setTimeLeftInSeconds] = useState<number>(0)
-  const [circleValue, setCircleValue] = useState(100)
+  const [timeLeftInSeconds, setTimeLeftInSeconds] = useState<number | null>(
+    null,
+  )
+  const [circleValue, setCircleValue] = useState<number | null>(null)
   const requestRef = useRef<number | null>(null)
 
   useEffect(() => {
     if (start === null || end === null) {
-      setTimeLeftInSeconds(0)
-      setCircleValue(0)
       return
     }
 

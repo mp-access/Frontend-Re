@@ -1,7 +1,7 @@
 import { CircularProgress, CircularProgressLabel } from "@chakra-ui/react"
 import { useCountdown } from "./Hooks"
 import { formatSeconds } from "./Util"
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
 
 const sizeMap = {
   small: 100,
@@ -15,15 +15,28 @@ export const CountdownTimer: React.FC<{
   startTime: number | null
   endTime: number | null
   size: SizeKey
-}> = ({ startTime, endTime, size }) => {
-  const { timeLeftInSeconds, circleValue } = useCountdown(
-    startTime ?? 0,
-    endTime ?? 0,
-  )
+  onTimeIsUp?: () => void
+}> = ({ startTime, endTime, size, onTimeIsUp }) => {
+  const { timeLeftInSeconds, circleValue } = useCountdown(startTime, endTime)
+
+  useEffect(() => {
+    if (
+      onTimeIsUp &&
+      startTime !== null &&
+      endTime !== null &&
+      timeLeftInSeconds == 0
+    ) {
+      onTimeIsUp()
+    }
+  }, [endTime, onTimeIsUp, startTime, timeLeftInSeconds])
+
   const totalTimeInSeconds = ((endTime ?? 0) - (startTime ?? 0)) / 1000
-  const remainingTimeString = formatSeconds(timeLeftInSeconds)
+  const remainingTimeString = formatSeconds(timeLeftInSeconds ?? 0)
 
   const dynamicColor = useMemo(() => {
+    if (timeLeftInSeconds === null) {
+      return
+    }
     if (timeLeftInSeconds > Math.min(totalTimeInSeconds / 3, 30)) {
       return "green.500"
     }
@@ -36,7 +49,7 @@ export const CountdownTimer: React.FC<{
   return (
     <CircularProgress
       size={sizeMap[size]}
-      value={circleValue}
+      value={circleValue ?? 0}
       color={dynamicColor}
     >
       <CircularProgressLabel
