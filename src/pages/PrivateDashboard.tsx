@@ -42,7 +42,7 @@ import { useOutletContext } from "react-router-dom"
 import { formatSeconds } from "../components/Util"
 import { CountdownTimer } from "../components/CountdownTimer"
 import { Carousel } from "../components/Carousel"
-import { BarChart1, HorizontalBarChart } from "../components/BarChart"
+import { HorizontalBarChart } from "../components/HorizontalBarChart"
 
 const CIRCLE_BUTTON_DIAMETER = 12
 
