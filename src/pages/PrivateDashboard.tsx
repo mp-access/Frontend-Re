@@ -38,7 +38,7 @@ import {
   UprightFromSquareIcon,
 } from "../components/CustomIcons"
 import { useTranslation } from "react-i18next"
-import { useOutletContext } from "react-router-dom"
+import { useNavigate, useOutletContext, useParams } from "react-router-dom"
 import { formatSeconds } from "../components/Util"
 import { CountdownTimer } from "../components/CountdownTimer"
 import { Carousel } from "../components/Carousel"
@@ -313,7 +313,8 @@ const ExampleTimeControler: React.FC<{
   endTime,
 }) => {
   const { extendExampleDuration } = useExtendExample()
-
+  const { courseSlug, exampleSlug } = useParams()
+  const navigate = useNavigate()
   const handleExtendTime = useCallback(
     async (duration: number) => {
       try {
@@ -332,6 +333,14 @@ const ExampleTimeControler: React.FC<{
       setExampleState("finished")
     }
   }, [exampleState, setExampleState])
+
+  const onBackToList = useCallback(() => {
+    navigate(`/courses/${courseSlug}/examples`)
+  }, [courseSlug, navigate])
+
+  const onGoToPublickDashboard = useCallback(() => {
+    navigate(`/courses/${courseSlug}/examples/${exampleSlug}/public-dashboard`)
+  }, [courseSlug, exampleSlug, navigate])
 
   if (exampleState === "unpublished" || exampleState === "publishing") {
     return (
@@ -441,6 +450,7 @@ const ExampleTimeControler: React.FC<{
                 size={4}
               ></UprightFromSquareIcon>
             }
+            onClick={onGoToPublickDashboard}
           >
             Public Dashboard
           </Button>
@@ -448,6 +458,7 @@ const ExampleTimeControler: React.FC<{
             variant={"outline"}
             borderRadius={"lg"}
             leftIcon={<ListIcon color="purple.600" size={4}></ListIcon>}
+            onClick={onBackToList}
           >
             Back to List
           </Button>
