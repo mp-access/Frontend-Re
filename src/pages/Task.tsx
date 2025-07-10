@@ -57,13 +57,7 @@ import { FileTabs } from "../components/FileTab"
 import { FileTree } from "../components/FileTree"
 import { Markdown, Placeholder, TaskIO, TaskView } from "../components/Panels"
 import { ScoreBar, ScorePie } from "../components/Statistics"
-import {
-  FcAlarmClock,
-  FcFile,
-  FcInspection,
-  FcTimeline,
-  FcTodoList,
-} from "react-icons/fc"
+import { FcFile, FcInspection, FcTimeline, FcTodoList } from "react-icons/fc"
 import {
   ActionButton,
   ActionTab,
