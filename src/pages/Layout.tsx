@@ -26,12 +26,16 @@ import {
   useParams,
 } from "react-router-dom"
 import { LogoButton } from "../components/Buttons"
-import { useAssignment, useCourse, useExamples } from "../components/Hooks"
+import {
+  useAssignment,
+  useCourse,
+  useExamples,
+  useSSE,
+} from "../components/Hooks"
 import { compact, join } from "lodash"
 import { Placeholder } from "../components/Panels"
 import { LanguageSwitcher } from "../components/LanguageSwitcher"
 import { useTranslation } from "react-i18next"
-import { EventSource } from "extended-eventsource"
 
 export default function Layout() {
   const { t } = useTranslation()
@@ -70,42 +74,9 @@ export default function Layout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [examples, courseSlug, navigate, isSupervisor, location.pathname])
 
-  useEffect(() => {
-    if (!keycloak.token || !courseSlug) return
-
-    // course slug will only be defined once within a course route.
-    if (courseSlug != undefined) {
-      const eventSource = new EventSource(
-        `/api/courses/${courseSlug}/subscribe`,
-        {
-          headers: {
-            Authorization: `Bearer ${keycloak.token}`,
-          },
-          retry: 3000,
-        },
-      )
-      eventSource.onopen = () => {}
-      if (!isSupervisor) {
-        eventSource.addEventListener("redirect", (event) => {
-          console.log("redirect...")
-          setOngoingExamplePath(event.data)
-        })
-      }
-
-      eventSource.onerror = (error) => {
-        console.error("SSE error occurred:", error)
-      }
-      const handleBeforeUnload = () => {
-        console.log("Closing EventSource (before unload)")
-        eventSource.close()
-      }
-      window.addEventListener("beforeunload", handleBeforeUnload)
-      return () => {
-        console.log("Closing EventSource (component unmount)")
-        eventSource.close()
-      }
-    }
-  }, [courseSlug, keycloak.token, isSupervisor])
+  useSSE<string>("redirect", (data) => {
+    setOngoingExamplePath(data)
+  })
 
   useEffect(() => {
     const timeout = setTimeout(() => !keycloak.token && navigate("/"), 2000)
