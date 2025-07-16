@@ -325,3 +325,23 @@ export const useSSE = <T,>(eventType: string, handler: (data: T) => void) => {
     }
   }, [eventSource, eventType, handler])
 }
+
+export const useInspect = () => {
+  const { courseSlug, exampleSlug } = useParams()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { mutateAsync } = useMutation<any, AxiosError, any[]>({})
+  const inspect = (userId: string) =>
+    mutateAsync([
+      [
+        "courses",
+        courseSlug,
+        "examples",
+        exampleSlug,
+        "user",
+        userId,
+        "inspect",
+      ],
+    ])
+
+  return { inspect }
+}

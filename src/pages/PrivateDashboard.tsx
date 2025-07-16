@@ -26,6 +26,7 @@ import {
   useExample,
   useExtendExample,
   useGeneralExampleInformation,
+  useInspect,
   usePublish,
   useTerminate,
   useTimeframeFromSSE,
@@ -38,7 +39,7 @@ import {
   UprightFromSquareIcon,
 } from "../components/CustomIcons"
 import { useTranslation } from "react-i18next"
-import { useOutletContext } from "react-router-dom"
+import { useNavigate, useOutletContext } from "react-router-dom"
 import { formatSeconds } from "../components/Util"
 import { CountdownTimer } from "../components/CountdownTimer"
 import { Carousel } from "../components/Carousel"
@@ -145,6 +146,17 @@ const ResetDialog: React.FC<{ handleReset: () => void }> = ({
 }
 
 const SubmissionInspector: React.FC = () => {
+  const { inspect } = useInspect()
+  const navigate = useNavigate()
+
+  const onOpenInEditor = useCallback(async () => {
+    // TODO: Once we display real submissions, pass correct student ID
+    const url = await inspect("student@uzh.ch")
+    console.log("url")
+
+    navigate(url)
+  }, [inspect, navigate])
+
   return (
     <Flex direction={"column"} h={"full"} gap={2}>
       <Flex layerStyle={"segment"} direction={"column"}>
@@ -168,7 +180,7 @@ const SubmissionInspector: React.FC = () => {
         <Button variant={"outline"} borderRadius={"lg"} flex={1}>
           Previous Type
         </Button>
-        <Button borderRadius={"lg"} flex={1}>
+        <Button borderRadius={"lg"} flex={1} onClick={onOpenInEditor}>
           Open in Editor
         </Button>
         <Button variant={"outline"} borderRadius={"lg"} flex={1}>

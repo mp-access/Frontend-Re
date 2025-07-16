@@ -63,12 +63,14 @@ interface TaskControllerProps {
   value: string
   defaultValue: string
   onChange: (value: string) => void
+  hideStudentName: boolean
 }
 
 export function TaskController({
   value,
   defaultValue,
   onChange,
+  hideStudentName,
 }: TaskControllerProps) {
   const { data: participants } = usePoints()
   return (
@@ -78,7 +80,9 @@ export function TaskController({
           placeholder="View as participant..."
           value={{ email: value }}
           getOptionValue={(data) => data?.email}
-          getOptionLabel={(data) => data?.email}
+          getOptionLabel={(data) =>
+            hideStudentName ? "Anonymous Student" : data?.email
+          }
           options={participants}
           size="sm"
           controlShouldRenderValue={value !== defaultValue}

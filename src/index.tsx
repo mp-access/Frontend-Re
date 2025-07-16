@@ -148,7 +148,14 @@ function App() {
                         {
                           path: "public-dashboard",
                           handle: t("Public Dashboard"), // add this in translation.json
-                          element: <PublicDashboard />,
+                          children: [
+                            { index: true, element: <PublicDashboard /> },
+                            {
+                              path: "inspect/users/:base64EncodedUserId",
+                              handle: "Inspect",
+                              element: <Task type="example" />,
+                            },
+                          ],
                         },
                       ],
                     },
