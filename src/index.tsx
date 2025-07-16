@@ -31,6 +31,7 @@ import HttpBackend from "i18next-http-backend"
 import Examples from "./pages/Examples"
 import { PublicDashboard } from "./pages/PublicDashboard"
 import { PrivateDashboard } from "./pages/PrivateDashboard"
+import { EventSourceProvider } from "./context/EventSourceContext"
 
 const authClient = new Keycloak({
   url: import.meta.env.VITE_AUTH_SERVER_URL || window.location.origin + ":8443",
@@ -100,7 +101,11 @@ function App() {
         { path: "create", element: <CourseCreator /> },
         {
           path: "courses",
-          element: <Layout />,
+          element: (
+            <EventSourceProvider>
+              <Layout />
+            </EventSourceProvider>
+          ),
           children: [
             { index: true, element: <Courses /> },
             {

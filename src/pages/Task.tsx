@@ -256,7 +256,6 @@ export default function Task({ type }: { type: "task" | "example" }) {
     toast({ title: "Reset files to template", isClosable: true })
     setSubmissionId(-1)
   }
-
   const instructionFile =
     task.information[currentLanguage]?.instructionsFile ||
     task.information["en"].instructionsFile

@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react"
 import { useParams } from "react-router-dom"
 import { EventSource } from "extended-eventsource"
 import { useKeycloak } from "@react-keycloak/web"
+import { useEventSource } from "../context/EventSourceContext"
 
 export const useCodeEditor = () => {
   const monaco = useMonaco()
@@ -299,4 +300,28 @@ export const useTimeframeFromSSE = () => {
   }, [courseSlug, token])
 
   return { timeFrameFromEvent, error }
+}
+
+// properly define eventType
+export const useSSE = <T,>(eventType: string, handler: (data: T) => void) => {
+  const { eventSource } = useEventSource()
+
+  useEffect(() => {
+    if (!eventSource) return
+
+    const listener = (event: MessageEvent) => {
+      try {
+        const parsed = JSON.parse(event.data)
+        handler(parsed as T)
+      } catch {
+        handler(event.data as unknown as T)
+      }
+    }
+
+    eventSource.addEventListener(eventType, listener)
+
+    return () => {
+      eventSource.removeEventListener(eventType, listener)
+    }
+  }, [eventSource, eventType, handler])
 }
