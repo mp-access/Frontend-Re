@@ -171,6 +171,8 @@ declare interface SubmissionProps {
   output: string
   files: Array<SubmissionFileProps>
   persistentResultFiles: Array<PersistenResultFileProps>
+  embedding: Array<number>
+  testsPassed: Array<number>
 }
 
 declare interface NewSubmissionProps {
