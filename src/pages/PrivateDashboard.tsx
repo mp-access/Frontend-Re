@@ -5,7 +5,6 @@ import {
   Grid,
   GridItem,
   Divider,
-  Progress,
   Text,
   TagLabel,
   Tag,
@@ -19,7 +18,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogOverlay,
+  Tabs,
+  Icon,
 } from "@chakra-ui/react"
+import { GoChecklist } from "react-icons/go"
 import { Markdown, Placeholder } from "../components/Panels"
 import { BsFillCircleFill } from "react-icons/bs"
 import {
@@ -32,21 +34,19 @@ import {
 } from "../components/Hooks"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { t } from "i18next"
-import {
-  ListIcon,
-  RotateFromRightIcon,
-  UprightFromSquareIcon,
-} from "../components/CustomIcons"
+import { RotateFromRightIcon } from "../components/CustomIcons"
 import { useTranslation } from "react-i18next"
-import { useNavigate, useOutletContext, useParams } from "react-router-dom"
+import { useOutletContext } from "react-router-dom"
 import { formatSeconds } from "../components/Util"
 import { CountdownTimer } from "../components/CountdownTimer"
 import { Carousel } from "../components/Carousel"
-import { HorizontalBarChart } from "../components/HorizontalBarChart"
-
-const CIRCLE_BUTTON_DIAMETER = 12
+import { TestCaseBarChart } from "../components/TestCaseBarChart"
 
 type ExampleState = "unpublished" | "publishing" | "ongoing" | "finished"
+
+// const Bookmarks: React.FC = () => {
+//   return <Flex>Some Bookmarks</Flex>
+// }
 
 const TerminationDialog: React.FC<{ handleTermination: () => void }> = ({
   handleTermination,
@@ -60,9 +60,7 @@ const TerminationDialog: React.FC<{ handleTermination: () => void }> = ({
         colorScheme="red"
         backgroundColor={"red.600"}
         borderRadius={"lg"}
-      >
-        Terminate
-      </Button>
+      ></Button>
       <AlertDialog
         motionPreset="slideInBottom"
         leastDestructiveRef={cancelRef}
@@ -164,18 +162,7 @@ const SubmissionInspector: React.FC = () => {
         </Flex>
       </Flex>
 
-      <Carousel></Carousel>
-      <Flex gap={2}>
-        <Button variant={"outline"} borderRadius={"lg"} flex={1}>
-          Previous Type
-        </Button>
-        <Button borderRadius={"lg"} flex={1}>
-          Open in Editor
-        </Button>
-        <Button variant={"outline"} borderRadius={"lg"} flex={1}>
-          Next Type
-        </Button>
-      </Flex>
+      <Carousel />
     </Flex>
   )
 }
@@ -213,81 +200,35 @@ const GenearlInformation: React.FC<{
   }, [passRatePerTestCase])
 
   return (
-    <Flex layerStyle={"segment"} direction={"column"} flex={1} p={3}>
-      <Heading fontSize="xl">{t("General Information")}</Heading>
-      <Divider />
-      <Flex flexDirection={"column"} justify={"space-between"} flex={1}>
-        <HStack w={"full"} p={2}>
-          <Text color={"gray.500"} w={105}>
-            {t("Submissions")}
-          </Text>
-          {exampleState === "ongoing" || exampleState === "finished" ? (
-            <>
-              <Progress
-                display={"flex"}
-                borderRadius={"full"}
-                backgroundColor={"grey.200"}
-                colorScheme="purple"
-                value={
-                  (numberOfStudentsWhoSubmitted / participantsOnline) * 100
-                }
-                flex={1}
-              ></Progress>
-              <Text
-                w={70}
-                color={"gray.500"}
-                display={"flex"}
-                justifyContent={"end"}
-              >
-                {numberOfStudentsWhoSubmitted}/{participantsOnline}
-              </Text>
-            </>
-          ) : (
-            <Text color={"gray.500"}> - </Text>
-          )}
-        </HStack>
+    <HStack p={2} minW={200} gap={5}>
+      <Tag color="green.600" bg="green.50">
+        <TagLeftIcon as={BsFillCircleFill} boxSize={2} />
+        <TagLabel>
+          Online {participantsOnline}/{totalParticipants}
+        </TagLabel>
+      </Tag>
+      {exampleState === "ongoing" || exampleState === "finished" ? (
+        <>
+          <HStack>
+            <Icon as={GoChecklist}></Icon>
+            {/* <Progress
+              display={"flex"}
+              borderRadius={"full"}
+              backgroundColor={"grey.200"}
+              colorScheme="purple"
+              value={(numberOfStudentsWhoSubmitted / participantsOnline) * 100}
+            ></Progress> */}
+            <Text color={"gray.500"} display={"flex"}>
+              {numberOfStudentsWhoSubmitted}/{participantsOnline}
+            </Text>
+          </HStack>
 
-        <HStack w={"full"} p={2}>
-          <Text color={"gray.500"} w={105}>
-            Test pass rate
+          <Text color={"gray.500"} display={"flex"}>
+            Test Pass Rate {avgTestPassRate}%
           </Text>
-          {exampleState === "ongoing" || exampleState === "finished" ? (
-            <>
-              <Progress
-                display={"flex"}
-                borderRadius={"full"}
-                colorScheme="purple"
-                value={30}
-                flex={1}
-              ></Progress>
-              <Text
-                w={70}
-                color={"gray.500"}
-                display={"flex"}
-                justifyContent={"end"}
-              >
-                {avgTestPassRate.toFixed()}%
-              </Text>
-            </>
-          ) : (
-            <Text color={"gray.500"}> - </Text>
-          )}
-        </HStack>
-        <Flex grow={1} justify={"space-around"} align={"center"}>
-          <Tag colorScheme="purple">
-            <TagLabel>
-              Grading Tests {Object.keys(passRatePerTestCase).length}
-            </TagLabel>
-          </Tag>
-          <Tag color="green.600" bg="green.50">
-            <TagLeftIcon as={BsFillCircleFill} boxSize={2} />
-            <TagLabel>
-              Online {participantsOnline}/{totalParticipants}
-            </TagLabel>
-          </Tag>
-        </Flex>
-      </Flex>
-    </Flex>
+        </>
+      ) : null}
+    </HStack>
   )
 }
 
@@ -313,8 +254,7 @@ const ExampleTimeControler: React.FC<{
   endTime,
 }) => {
   const { extendExampleDuration } = useExtendExample()
-  const { courseSlug, exampleSlug } = useParams()
-  const navigate = useNavigate()
+
   const handleExtendTime = useCallback(
     async (duration: number) => {
       try {
@@ -334,67 +274,39 @@ const ExampleTimeControler: React.FC<{
     }
   }, [exampleState, setExampleState])
 
-  const onBackToList = useCallback(() => {
-    navigate(`/courses/${courseSlug}/examples`)
-  }, [courseSlug, navigate])
-
-  const onGoToPublickDashboard = useCallback(() => {
-    navigate(`/courses/${courseSlug}/examples/${exampleSlug}/public-dashboard`)
-  }, [courseSlug, exampleSlug, navigate])
-
   if (exampleState === "unpublished" || exampleState === "publishing") {
     return (
-      <Flex
-        direction={"column"}
-        align={"space-around"}
-        flex={1}
-        layerStyle={"segment"}
-        p={3}
-      >
-        <Heading fontSize="xl">{t("Duration")}</Heading>
-        <Divider />
-        <Flex flexDirection={"column"} flex={1} justify={"center"}>
-          <Flex justify={"space-around"} align={"center"}>
-            <Button
-              w={CIRCLE_BUTTON_DIAMETER}
-              h={CIRCLE_BUTTON_DIAMETER}
-              variant={"outline"}
-              onClick={() => handleTimeAdjustment(-30)}
-            >
-              -30
-            </Button>
-            <Button
-              w={CIRCLE_BUTTON_DIAMETER}
-              h={CIRCLE_BUTTON_DIAMETER}
-              variant={"outline"}
-              borderRadius={"full"}
-              onClick={() => handleTimeAdjustment(-15)}
-            >
-              -15
-            </Button>
-            <Text width={"110px"} fontSize={"4xl"}>
-              {durationAsString}
-            </Text>
-            <Button
-              w={CIRCLE_BUTTON_DIAMETER}
-              h={CIRCLE_BUTTON_DIAMETER}
-              variant={"outline"}
-              borderRadius={"full"}
-              onClick={() => handleTimeAdjustment(15)}
-            >
-              +15
-            </Button>
-            <Button
-              w={CIRCLE_BUTTON_DIAMETER}
-              h={CIRCLE_BUTTON_DIAMETER}
-              variant={"outline"}
-              borderRadius={"full"}
-              onClick={() => handleTimeAdjustment(30)}
-            >
-              +30
-            </Button>
-          </Flex>
-        </Flex>
+      <HStack w={"full"} justify={"space-between"}>
+        <HStack gap={3}>
+          <Button variant={"outline"} onClick={() => handleTimeAdjustment(-30)}>
+            -30
+          </Button>
+          <Button
+            variant={"outline"}
+            borderRadius={"full"}
+            onClick={() => handleTimeAdjustment(-15)}
+          >
+            -15
+          </Button>
+          <Text fontSize={"3xl"} fontFamily={"monospace"} align={"center"}>
+            {durationAsString}
+          </Text>
+          <Button
+            variant={"outline"}
+            borderRadius={"full"}
+            onClick={() => handleTimeAdjustment(15)}
+          >
+            +15
+          </Button>
+          <Button
+            variant={"outline"}
+            borderRadius={"full"}
+            onClick={() => handleTimeAdjustment(30)}
+          >
+            +30
+          </Button>
+        </HStack>
+
         <Button
           colorScheme="green"
           borderRadius={"lg"}
@@ -403,86 +315,52 @@ const ExampleTimeControler: React.FC<{
         >
           Start
         </Button>
-      </Flex>
+      </HStack>
     )
   }
 
   if (exampleState === "ongoing" && startTime !== null && endTime !== null) {
     return (
-      <Flex layerStyle={"card"} direction={"column"} p={2}>
-        <Heading fontSize="xl">{t("Remaining Time")}</Heading>
-        <Divider />
-        <Flex flex={1} justify="space-around" align={"center"} gap={2} p={2}>
-          <CountdownTimer
-            startTime={startTime}
-            endTime={endTime}
-            size={"medium"}
-            onTimeIsUp={handleTimeIsUp}
-          ></CountdownTimer>
-          <Flex direction={"column"} justify={"center"} h={"100%"} gap={1}>
-            <Button variant={"outline"} onClick={() => handleExtendTime(30)}>
-              +30
-            </Button>
-            <Button variant={"outline"} onClick={() => handleExtendTime(60)}>
-              +60
-            </Button>
-            <TerminationDialog
-              handleTermination={handleTermination}
-            ></TerminationDialog>
-          </Flex>
-        </Flex>
+      <Flex align={"center"} gap={2} flex={1} justify={"end"}>
+        <CountdownTimer
+          startTime={startTime}
+          endTime={endTime}
+          size={"large"}
+          onTimeIsUp={handleTimeIsUp}
+          variant="number-only"
+        ></CountdownTimer>
+        <Button variant={"outline"} onClick={() => handleExtendTime(30)}>
+          +30
+        </Button>
+        <Button variant={"outline"} onClick={() => handleExtendTime(60)}>
+          +60
+        </Button>
+        <TerminationDialog
+          handleTermination={handleTermination}
+        ></TerminationDialog>
       </Flex>
     )
   }
 
   return (
-    <Flex layerStyle={"card"} direction={"column"} p={2}>
-      <Heading fontSize="xl">{t("Controls")}</Heading>
-      <Divider />
-      <Flex flex={1} align={"center"} p={2}>
-        <Flex direction={"column"} justify={"center"} h={"100%"} gap={2}>
-          <Button
-            variant={"outline"}
-            borderRadius={"lg"}
-            leftIcon={
-              <UprightFromSquareIcon
-                color="purple.600"
-                size={4}
-              ></UprightFromSquareIcon>
-            }
-            onClick={onGoToPublickDashboard}
-          >
-            Public Dashboard
-          </Button>
-          <Button
-            variant={"outline"}
-            borderRadius={"lg"}
-            leftIcon={<ListIcon color="purple.600" size={4}></ListIcon>}
-            onClick={onBackToList}
-          >
-            Back to List
-          </Button>
-          <ResetDialog handleReset={handleTermination}></ResetDialog>
-        </Flex>
-      </Flex>
+    <Flex flex={1} justify={"end"}>
+      <ResetDialog handleReset={handleTermination}></ResetDialog>
     </Flex>
   )
 }
 
 export function PrivateDashboard() {
-  // replace with non-hardcoded values once object available
   const { publish } = usePublish()
   const { terminate } = useTerminate()
   const [durationInSeconds, setDurationInSeconds] = useState<number>(150)
   const [exampleState, setExampleState] = useState<ExampleState | null>(null)
+  const [exactMatch, setExactMatch] = useState<boolean>(false)
   const { i18n } = useTranslation()
   const currentLanguage = i18n.language
   const { user } = useOutletContext<UserContext>()
   const { data: example } = useExample(user.email)
   const { data: generalInformation } = useGeneralExampleInformation()
-
   const { timeFrameFromEvent } = useTimeframeFromSSE()
-
   const durationAsString = useMemo(() => {
     return formatSeconds(durationInSeconds || 0)
   }, [durationInSeconds])
@@ -555,12 +433,11 @@ export function PrivateDashboard() {
   const title =
     example?.information[currentLanguage]?.title ||
     example?.information["en"]?.title
-
   return (
     <Grid
       layerStyle={"container"}
       templateColumns="1fr 1fr 1fr"
-      templateRows={"3fr 1fr"}
+      templateRows={"5fr 1fr"}
       gap={2}
       height={"full"}
     >
@@ -568,18 +445,19 @@ export function PrivateDashboard() {
         layerStyle={"segment"}
         gap={4}
         rowStart={1}
-        rowEnd={-1}
+        rowEnd={5}
         colStart={1}
         colEnd={2}
         p={3}
       >
-        <Heading fontSize="xl">Testcase Pass Rate</Heading>
-        <Divider />
-        <HorizontalBarChart
+        <TestCaseBarChart
           passRatePerTestCase={generalInformation.passRatePerTestCase}
-        ></HorizontalBarChart>
+          exactMatch={exactMatch}
+          setExactMatch={setExactMatch}
+        ></TestCaseBarChart>
+        {/* <Bookmarks></Bookmarks> */}
       </GridItem>
-      <GridItem gap={4} colStart={2} colEnd={4}>
+      <GridItem gap={4} colStart={2} colEnd={4} rowStart={1} rowEnd={4}>
         <Flex direction={"column"} h={"full"}>
           {exampleState === "unpublished" || exampleState == "publishing" ? (
             <TaskDescription
@@ -592,13 +470,16 @@ export function PrivateDashboard() {
         </Flex>
       </GridItem>
       <GridItem
-        rowStart={2}
-        rowEnd={-1}
+        rowStart={4}
+        rowEnd={5}
         colStart={2}
         colEnd={-1}
         display={"flex"}
         flexDirection={"row"}
         gap={3}
+        layerStyle={"segment"}
+        alignContent={"space-between"}
+        p={2}
       >
         <GenearlInformation
           exampleState={exampleState}

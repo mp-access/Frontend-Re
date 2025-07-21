@@ -1,6 +1,13 @@
-import { Flex, Select, Text, useToken, VStack } from "@chakra-ui/react"
-import { indexOf } from "lodash"
-import { useCallback, useMemo, useState } from "react"
+import {
+  Flex,
+  HStack,
+  Select,
+  Switch,
+  Text,
+  useToken,
+  VStack,
+} from "@chakra-ui/react"
+import React, { SetStateAction, useCallback, useMemo, useState } from "react"
 import {
   Bar,
   BarChart,
@@ -10,7 +17,6 @@ import {
   LabelProps,
   ResponsiveContainer,
   XAxis,
-  XAxisProps,
   YAxis,
 } from "recharts"
 
@@ -63,16 +69,18 @@ const CustomValueLabel = ({ x, y, width, value }: LabelProps) => {
   )
 }
 
-export const HorizontalBarChart: React.FC<{
+export const TestCaseBarChart: React.FC<{
   passRatePerTestCase: Record<string, number>
-}> = ({ passRatePerTestCase }) => {
+  exactMatch: boolean
+  setExactMatch: React.Dispatch<SetStateAction<boolean>>
+}> = ({ passRatePerTestCase, exactMatch, setExactMatch }) => {
   const [sorting, setSorting] = useState<
     "default" | "ascending" | "descending"
   >("default")
 
   const data = Object.entries(passRatePerTestCase).map(([name, value]) => ({
     name,
-    value: value * 100,
+    value: Math.max(value * 100, 1),
   }))
 
   const [selectedTests, setSelectedTests] = useState<string[]>([])
@@ -89,6 +97,10 @@ export const HorizontalBarChart: React.FC<{
       return [...oldSelectedTest, name]
     })
   }, [])
+
+  const handleToggle = () => {
+    setExactMatch((prev) => !prev)
+  }
 
   const sortedData = useMemo(() => {
     if (sorting === "ascending") {
@@ -129,12 +141,20 @@ export const HorizontalBarChart: React.FC<{
         pt={2}
         height={"5%"}
       >
-        <Text> Sorted by: </Text>
         <Select maxW={150} onChange={handleChange} value={sorting} size={"md"}>
           <option value={"default"}>Default</option>
           <option value={"ascending"}>Ascending</option>
           <option value={"descending"}>Descending</option>
         </Select>
+        <HStack>
+          <Text> Exact Match</Text>
+          <Switch
+            size={"md"}
+            colorScheme="purple"
+            isChecked={exactMatch}
+            onChange={handleToggle}
+          />
+        </HStack>
       </Flex>
       <ResponsiveContainer width="100%" height="95%">
         <BarChart
