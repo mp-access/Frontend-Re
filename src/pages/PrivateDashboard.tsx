@@ -20,6 +20,7 @@ import {
   AlertDialogOverlay,
   Tabs,
   Icon,
+  useToken,
 } from "@chakra-ui/react"
 import { GoChecklist } from "react-icons/go"
 import { Markdown, Placeholder } from "../components/Panels"
@@ -41,6 +42,7 @@ import { formatSeconds } from "../components/Util"
 import { CountdownTimer } from "../components/CountdownTimer"
 import { Carousel } from "../components/Carousel"
 import { TestCaseBarChart } from "../components/TestCaseBarChart"
+import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts"
 
 type ExampleState = "unpublished" | "publishing" | "ongoing" | "finished"
 
@@ -179,7 +181,39 @@ const TaskDescription: React.FC<{
     </Flex>
   )
 }
+const CustomPieChart: React.FC<{ value: number }> = ({ value }) => {
+  const rest = Math.max(0, 100 - value)
 
+  const data = [
+    { name: "Pass", value: value },
+    { name: "Remaining", value: rest },
+  ]
+
+  const COLORS = [
+    useToken("colors", "purple.600"),
+    useToken("colors", "gray.300"),
+  ]
+
+  const RADIUS = 16
+  return (
+    <PieChart width={2 * RADIUS} height={2 * RADIUS}>
+      <Pie
+        data={data}
+        dataKey="value"
+        cx="50%"
+        cy="50%"
+        outerRadius={RADIUS}
+        startAngle={90}
+        endAngle={-450}
+        stroke="none"
+      >
+        {data.map((_entry, index) => (
+          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+        ))}
+      </Pie>
+    </PieChart>
+  )
+}
 const GenearlInformation: React.FC<{
   exampleState: ExampleState
   generalInformation: ExampleInformation
@@ -198,9 +232,9 @@ const GenearlInformation: React.FC<{
       (passRates.reduce((sum, rate) => sum + rate, 0) / passRates.length) * 100
     )
   }, [passRatePerTestCase])
-
+  console.log(avgTestPassRate)
   return (
-    <HStack p={2} minW={200} gap={5}>
+    <HStack p={0} minW={200} gap={5}>
       <Tag color="green.600" bg="green.50">
         <TagLeftIcon as={BsFillCircleFill} boxSize={2} />
         <TagLabel>
@@ -210,22 +244,25 @@ const GenearlInformation: React.FC<{
       {exampleState === "ongoing" || exampleState === "finished" ? (
         <>
           <HStack>
-            <Icon as={GoChecklist}></Icon>
-            {/* <Progress
-              display={"flex"}
-              borderRadius={"full"}
-              backgroundColor={"grey.200"}
-              colorScheme="purple"
-              value={(numberOfStudentsWhoSubmitted / participantsOnline) * 100}
-            ></Progress> */}
+            <Icon as={GoChecklist} />
             <Text color={"gray.500"} display={"flex"}>
               {numberOfStudentsWhoSubmitted}/{participantsOnline}
             </Text>
+            <CustomPieChart
+              value={
+                totalParticipants > 0
+                  ? participantsOnline / totalParticipants
+                  : 0
+              }
+            ></CustomPieChart>
           </HStack>
 
-          <Text color={"gray.500"} display={"flex"}>
-            Test Pass Rate {avgTestPassRate}%
-          </Text>
+          <HStack>
+            <Text color={"gray.500"} display={"flex"}>
+              Test Pass Rate {avgTestPassRate}%
+            </Text>
+            <CustomPieChart value={avgTestPassRate} />
+          </HStack>
         </>
       ) : null}
     </HStack>
