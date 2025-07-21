@@ -29,6 +29,7 @@ import {
   useExample,
   useExtendExample,
   useGeneralExampleInformation,
+  useInspect,
   usePublish,
   useTerminate,
   useTimeframeFromSSE,
@@ -37,7 +38,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { t } from "i18next"
 import { RotateFromRightIcon } from "../components/CustomIcons"
 import { useTranslation } from "react-i18next"
-import { useOutletContext } from "react-router-dom"
+import { useNavigate, useOutletContext } from "react-router-dom"
 import { formatSeconds } from "../components/Util"
 import { CountdownTimer } from "../components/CountdownTimer"
 import { Carousel } from "../components/Carousel"
@@ -146,6 +147,17 @@ const ResetDialog: React.FC<{ handleReset: () => void }> = ({
 }
 
 const SubmissionInspector: React.FC = () => {
+  const { inspect } = useInspect()
+  const navigate = useNavigate()
+
+  const onOpenInEditor = useCallback(async () => {
+    // TODO: Once we display real submissions, pass correct student ID
+    const url = await inspect("student@uzh.ch")
+    console.log("url")
+
+    navigate(url)
+  }, [inspect, navigate])
+
   return (
     <Flex direction={"column"} h={"full"} gap={2}>
       <Flex layerStyle={"segment"} direction={"column"}>

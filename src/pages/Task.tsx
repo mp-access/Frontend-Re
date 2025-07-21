@@ -52,7 +52,7 @@ import Countdown from "react-countdown"
 import { AiOutlineBulb, AiOutlineCode, AiOutlineReload } from "react-icons/ai"
 import { BsCircleFill } from "react-icons/bs"
 import { HiDownload } from "react-icons/hi"
-import { useOutletContext } from "react-router-dom"
+import { useOutletContext, useParams } from "react-router-dom"
 import { FileTabs } from "../components/FileTab"
 import { FileTree } from "../components/FileTree"
 import { Markdown, Placeholder, TaskIO, TaskView } from "../components/Panels"
@@ -89,7 +89,11 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const [editableFiles, setEditableFiles] = useState<TaskFileProps[]>([])
   const [editorReload, setEditorReload] = useState(1) // counts up every time Editor should re-render
   const [openFiles, setOpenFiles] = useState<TaskFileProps[]>([])
-  const [userId, setUserId] = useState(user.email)
+  const { base64EncodedUserId } = useParams()
+  const inspectionUserId = base64EncodedUserId
+    ? atob(base64EncodedUserId)
+    : null
+  const [userId, setUserId] = useState(inspectionUserId ?? user.email)
   const { timeFrameFromEvent } = useTimeframeFromSSE()
   const {
     data: task,
@@ -97,6 +101,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
     refetch,
     timer,
   } = type == "task" ? useTask(userId) : useExample(userId)
+
   const getUpdate = (file: TaskFileProps, submission?: WorkspaceProps) =>
     submission?.files?.find((s) => s.taskFileId === file.id)?.content ||
     file.template
@@ -256,7 +261,6 @@ export default function Task({ type }: { type: "task" | "example" }) {
     toast({ title: "Reset files to template", isClosable: true })
     setSubmissionId(-1)
   }
-
   const instructionFile =
     task.information[currentLanguage]?.instructionsFile ||
     task.information["en"].instructionsFile
@@ -359,6 +363,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
               value={userId}
               defaultValue={user.email}
               onChange={setUserId}
+              hideStudentName={!!inspectionUserId}
             />
           )}
           <Accordion

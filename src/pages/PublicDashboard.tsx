@@ -13,8 +13,8 @@ import {
 import { Markdown, Placeholder } from "../components/Panels"
 import { FcAlarmClock, FcDocument } from "react-icons/fc"
 import { t } from "i18next"
-import { useOutletContext } from "react-router-dom"
-import { useExample, useTimeframeFromSSE } from "../components/Hooks"
+import { useNavigate, useOutletContext } from "react-router-dom"
+import { useExample, useSSE, useTimeframeFromSSE } from "../components/Hooks"
 import { useTranslation } from "react-i18next"
 import { CountdownTimer } from "../components/CountdownTimer"
 import { useMemo } from "react"
@@ -23,9 +23,9 @@ export function PublicDashboard() {
   const { user } = useOutletContext<UserContext>()
   const { data: example } = useExample(user.email)
   const { i18n } = useTranslation()
+  const navigate = useNavigate()
   const currentLanguage = i18n.language
   const { timeFrameFromEvent } = useTimeframeFromSSE()
-
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
     if (!example) {
       return [null, null]
@@ -41,6 +41,14 @@ export function PublicDashboard() {
 
     return [Date.parse(example.start), Date.parse(example.end)]
   }, [example, timeFrameFromEvent])
+
+  useSSE<string>("inspect", (editorURL) => {
+    if (!editorURL) {
+      return
+    }
+
+    navigate(editorURL)
+  })
 
   if (!example) {
     return <Placeholder />
