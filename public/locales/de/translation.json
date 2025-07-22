@@ -4,6 +4,8 @@
   "Active Assignments": "Offene Übungen",
   "Closed Assignments": "Geschlossene Übungen",
   "Upcoming Assignments": "Bevorstehende Übungen",
+  "No active assignments found": "Keine aktiven Übungen gefunden",
+  "No closed assignmets found": "Keine geschlossenen Übungen gefunden",
   "Task": "Aufgabe",
   "Tasks": "Aufgaben",
   "Example": "Beispiel",
@@ -52,5 +54,11 @@
   "General Information": "Allgemeine Informationen",
   "Duration": "Dauer",
   "Published Examples": "Veröffentlichte Beispiele",
-  "Planned Examples": "Geplante Beispiele"
+  "Planned Examples": "Geplante Beispiele",
+  "Terminate Example": "Beispiel beenden",
+  "termination_alert": "Sind Sie sicher, dass Sie die Beispielsaufgabe beenden wollen?",
+  "Terminate": "Beenden",
+  "No": "Nein",
+  "Reset Example": "Beispiel Zurücksetzen",
+  "reset_alert": "Sind Sie sicher, dass sie die Beispielsaufgabe zurücksetzen wollen?"
 }

@@ -3,6 +3,8 @@
   "Assignment": "Assignment",
   "Active Assignments": "Active Assignments",
   "Closed Assignments": "Closed Assignments",
+  "No active assignments found": "No active assignments found",
+  "No closed assignmets found": "No closed assignments found",
   "Task": "Task",
   "Tasks": "Tasks",
   "Example": "Example",
@@ -44,5 +46,11 @@
   "Participants_one": "{{count}} Participants",
   "Participants_other": "{{count}} Participants",
   "Notice Board": "Notice Board",
-  "Import new course": "Import new Course"
+  "Import new course": "Import new Course",
+  "Terminate Example": "Terminate Example",
+  "termination_alert": "Are you sure you already want to Terminate this example?",
+  "Terminate": "Terminate",
+  "No": "No",
+  "Reset Example": "Reset Example",
+  "reset_alert": "Are you sure you want to reset this example?"
 }

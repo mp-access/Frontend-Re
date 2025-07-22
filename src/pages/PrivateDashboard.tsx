@@ -18,7 +18,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogOverlay,
-  Tabs,
   Icon,
   useToken,
 } from "@chakra-ui/react"
@@ -43,7 +42,7 @@ import { formatSeconds } from "../components/Util"
 import { CountdownTimer } from "../components/CountdownTimer"
 import { Carousel } from "../components/Carousel"
 import { TestCaseBarChart } from "../components/TestCaseBarChart"
-import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts"
+import { Cell, Pie, PieChart } from "recharts"
 
 type ExampleState = "unpublished" | "publishing" | "ongoing" | "finished"
 
@@ -74,21 +73,19 @@ const TerminationDialog: React.FC<{ handleTermination: () => void }> = ({
         <AlertDialogOverlay />
 
         <AlertDialogContent>
-          <AlertDialogHeader>Terminate Example?</AlertDialogHeader>
+          <AlertDialogHeader>{t("Terminate Example")}?</AlertDialogHeader>
           <AlertDialogCloseButton />
-          <AlertDialogBody>
-            Are you sure you already want to Terminate this example?
-          </AlertDialogBody>
+          <AlertDialogBody>{t("termination_alert")}</AlertDialogBody>
           <AlertDialogFooter gap={2}>
             <Button variant={"outline"} ref={cancelRef} onClick={onClose}>
-              No
+              {t("No")}
             </Button>
             <Button
               onClick={handleTermination}
               colorScheme="red"
               backgroundColor={"red.600"}
             >
-              Terminate
+              {t("Terminate")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -111,7 +108,7 @@ const ResetDialog: React.FC<{ handleReset: () => void }> = ({
         borderRadius={"lg"}
         leftIcon={<RotateFromRightIcon color="white" size={4} />}
       >
-        Reset Example
+        {t("Reset Example")}?
       </Button>
       <AlertDialog
         motionPreset="slideInBottom"
@@ -123,21 +120,19 @@ const ResetDialog: React.FC<{ handleReset: () => void }> = ({
         <AlertDialogOverlay />
 
         <AlertDialogContent>
-          <AlertDialogHeader>Terminate Example?</AlertDialogHeader>
+          <AlertDialogHeader>{t("Reset Example")}</AlertDialogHeader>
           <AlertDialogCloseButton />
-          <AlertDialogBody>
-            Are you sure you want to reset this example?
-          </AlertDialogBody>
+          <AlertDialogBody>{t("reset_alert")}</AlertDialogBody>
           <AlertDialogFooter gap={2}>
             <Button variant={"outline"} ref={cancelRef} onClick={onClose}>
-              No
+              {t("No")}
             </Button>
             <Button
               onClick={handleReset}
               colorScheme="red"
               backgroundColor={"red.600"}
             >
-              Reset
+              {t("Reset")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -153,7 +148,6 @@ const SubmissionInspector: React.FC = () => {
   const onOpenInEditor = useCallback(async () => {
     // TODO: Once we display real submissions, pass correct student ID
     const url = await inspect("student@uzh.ch")
-    console.log("url")
 
     navigate(url)
   }, [inspect, navigate])
@@ -244,7 +238,6 @@ const GenearlInformation: React.FC<{
       (passRates.reduce((sum, rate) => sum + rate, 0) / passRates.length) * 100
     )
   }, [passRatePerTestCase])
-  console.log(avgTestPassRate)
   return (
     <HStack p={0} minW={200} gap={5}>
       <Tag color="green.600" bg="green.50">
