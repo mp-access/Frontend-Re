@@ -60,5 +60,8 @@
   "Terminate": "Beenden",
   "No": "Nein",
   "Reset Example": "Beispiel Zurücksetzen",
-  "reset_alert": "Sind Sie sicher, dass sie die Beispielsaufgabe zurücksetzen wollen?"
+  "reset_alert": "Sind Sie sicher, dass Sie die Beispielsaufgabe zurücksetzen wollen?",
+  "Ascending": "Aufsteigend",
+  "Descending": "Absteigend",
+  "Default": "Standard"
 }

@@ -7,6 +7,7 @@ import {
   useToken,
   VStack,
 } from "@chakra-ui/react"
+import { t } from "i18next"
 import React, { SetStateAction, useCallback, useMemo, useState } from "react"
 import {
   Bar,
@@ -69,14 +70,14 @@ const CustomValueLabel = ({ x, y, width, value }: LabelProps) => {
   )
 }
 
+type Sortings = "default" | "ascending" | "descending"
+
 export const TestCaseBarChart: React.FC<{
   passRatePerTestCase: Record<string, number>
   exactMatch: boolean
   setExactMatch: React.Dispatch<SetStateAction<boolean>>
 }> = ({ passRatePerTestCase, exactMatch, setExactMatch }) => {
-  const [sorting, setSorting] = useState<
-    "default" | "ascending" | "descending"
-  >("default")
+  const [sorting, setSorting] = useState<Sortings>("default")
 
   const data = Object.entries(passRatePerTestCase).map(([name, value]) => ({
     name,
@@ -142,9 +143,9 @@ export const TestCaseBarChart: React.FC<{
         height={"5%"}
       >
         <Select maxW={150} onChange={handleChange} value={sorting} size={"md"}>
-          <option value={"default"}>Default</option>
-          <option value={"ascending"}>Ascending</option>
-          <option value={"descending"}>Descending</option>
+          <option value={"default"}>{t("Default")}</option>
+          <option value={"ascending"}>{t("Ascending")}</option>
+          <option value={"descending"}>{t("Descending")}</option>
         </Select>
         <HStack>
           <Text> Exact Match</Text>
