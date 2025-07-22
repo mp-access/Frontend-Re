@@ -15,7 +15,7 @@ import {
   MenuList,
 } from "@chakra-ui/react"
 import { useKeycloak } from "@react-keycloak/web"
-import React, { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { AiOutlineLogout } from "react-icons/ai"
 import {
   Link,

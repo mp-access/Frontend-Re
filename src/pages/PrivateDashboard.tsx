@@ -143,17 +143,19 @@ const ResetDialog: React.FC<{ handleReset: () => void }> = ({
 }
 
 const SubmissionInspector: React.FC<{
-  submissions: SubmissionSsePayload[] | null
+  submissions: SubmissionSsePayload[]
 }> = ({ submissions }) => {
   const { inspect } = useInspect()
   const navigate = useNavigate()
 
-  const onOpenInEditor = useCallback(async () => {
-    // TODO: Once we display real submissions, pass correct student ID
-    const url = await inspect("student@uzh.ch")
+  const openInEditor = useCallback(
+    async (studentId: string) => {
+      const url = await inspect(studentId)
 
-    navigate(url)
-  }, [inspect, navigate])
+      navigate(url)
+    },
+    [inspect, navigate],
+  )
 
   return (
     <Flex direction={"column"} h={"full"} gap={2}>
@@ -173,7 +175,10 @@ const SubmissionInspector: React.FC<{
         </Flex>
       </Flex>
 
-      <SubmissionsCarousel submissions={submissions} />
+      <SubmissionsCarousel
+        submissions={submissions}
+        openInEditor={openInEditor}
+      />
     </Flex>
   )
 }
