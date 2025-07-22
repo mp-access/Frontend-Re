@@ -340,7 +340,7 @@ export default function Course() {
             <TableCaption>
               {!activeAssignments.length && (
                 <Center minH={28} color="gray.400">
-                  No active assignments found.
+                  {t("No active assignments found.")}
                 </Center>
               )}
             </TableCaption>
@@ -405,7 +405,7 @@ export default function Course() {
             <TableCaption>
               {!pastAssignments.length && (
                 <Center minH={28} color="gray.400">
-                  No closed assignments found.
+                  {t("No closed assignments found")}.
                 </Center>
               )}
             </TableCaption>

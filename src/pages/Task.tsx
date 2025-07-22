@@ -329,7 +329,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
                       daysInHours
                       renderer={({ formatted }) => (
                         <Text>
-                          Time Remaining:{" "}
+                          {t("Remaining Time")}:{" "}
                           <b>
                             {formatted.minutes}:{formatted.seconds}
                           </b>
@@ -594,6 +594,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
                 startTime={derivedStartDate}
                 endTime={derivedEndDate}
                 size="large"
+                variant="circular"
               ></CountdownTimer>
             </VStack>
           ) : null}

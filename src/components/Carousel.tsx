@@ -118,7 +118,6 @@ export const Carousel = () => {
       p={0}
       background={"transparent"}
       height={"full"}
-      maxH={390}
     >
       <Flex className="slider" width={"full"} borderRadius={"2xl"}>
         <Flex className="slides" ref={sliderRef}>

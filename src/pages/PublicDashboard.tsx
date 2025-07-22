@@ -98,6 +98,7 @@ export function PublicDashboard() {
             startTime={derivedStartDate}
             endTime={derivedEndDate}
             size="large"
+            variant="circular"
           />
         </Flex>
       </GridItem>
