@@ -3,70 +3,16 @@ import "./Carousel.css"
 
 import React, { useEffect, useRef, useState } from "react"
 import { Editor } from "@monaco-editor/react"
-const code = `
-import math
 
-class Circle:
-    def __init__(self, radius):
-        self.radius = radius
-
-    def area(self):
-        return math.pi * self.radius ** 2
-
-    def scale(self, factor):
-        self.radius *= factor
-
-
-    def __repr__(self):
-        return f"Circle({self.radius})"`
-
-const codeLong = `
-import math
-
-class Circle:
-    def __init__(self, radius):
-        self.radius = radius
-
-    def area(self):
-        return math.pi * self.radius ** 2
-
-    def scale(self, factor):
-        self.radius *= factor
-
-    def __str__(self):
-        return f"A circle with radius {self.radius}"
-
-    def __repr__(self):
-        return f"Circle({self.radius})"
-
-class Square:
-    pass
-
-class Rect:
-    pass
-
-# when you've implemented all three, this function should work:
-def do():
-    shapes = [Square(10), Square(5), Rect(5, 100), Circle(25)]
-    print([shape.area() for shape in shapes])
-    print([type(shape) for shape in shapes])
-    for shape in shapes:
-        shape.scale(3)
-    print(shapes)            # uses __repr__
-    for shape in shapes:
-        print(shape)         # uses __str__
-
-# uncomment to try the function:
-#do()
-`
-
-const Slide = () => {
+const Slide: React.FC<{ submission: SubmissionSsePayload }> = ({
+  submission,
+}) => {
   return (
     <Flex direction={"column"} p={4}>
-      <Heading fontSize="lg">{"{Student Username}"}</Heading>
+      <Heading fontSize="lg">{submission.studentId}</Heading>
       <Divider />
       <Editor
-        defaultValue={code}
+        defaultValue={submission.content}
         options={{
           readOnly: true,
           minimap: { enabled: false },
@@ -78,11 +24,13 @@ const Slide = () => {
   )
 }
 
-export const Carousel = () => {
+export const SubmissionsCarousel: React.FC<{
+  submissions: SubmissionSsePayload[] | null
+}> = ({ submissions }) => {
   const sliderRef = useRef<HTMLDivElement | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
 
-  const slideCount = 3 // Or dynamically set this from children.length
+  const slideCount = submissions ? submissions?.length : 0
 
   useEffect(() => {
     const slider = sliderRef.current
@@ -121,9 +69,9 @@ export const Carousel = () => {
     >
       <Flex className="slider" width={"full"} borderRadius={"2xl"}>
         <Flex className="slides" ref={sliderRef}>
-          <Slide />
-          <Slide />
-          <Slide />
+          {submissions?.map((submission) => (
+            <Slide submission={submission}></Slide>
+          ))}
         </Flex>
       </Flex>
       <Button

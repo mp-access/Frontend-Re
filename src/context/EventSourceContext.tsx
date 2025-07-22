@@ -21,7 +21,7 @@ export const EventSourceProvider: React.FC<{ children: React.ReactNode }> = ({
   const [, setTick] = useState(0)
 
   useEffect(() => {
-    if (!token || !courseSlug) return
+    if (!token || !courseSlug || eventSourceRef.current !== null) return
 
     const eventSource = new EventSource(
       `/api/courses/${courseSlug}/subscribe`,

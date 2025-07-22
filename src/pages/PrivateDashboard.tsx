@@ -30,6 +30,7 @@ import {
   useGeneralExampleInformation,
   useInspect,
   usePublish,
+  useSSE,
   useTerminate,
   useTimeframeFromSSE,
 } from "../components/Hooks"
@@ -40,7 +41,7 @@ import { useTranslation } from "react-i18next"
 import { useNavigate, useOutletContext } from "react-router-dom"
 import { formatSeconds } from "../components/Util"
 import { CountdownTimer } from "../components/CountdownTimer"
-import { Carousel } from "../components/Carousel"
+import { SubmissionsCarousel } from "../components/SubmissionsCarousel"
 import { TestCaseBarChart } from "../components/TestCaseBarChart"
 import { Cell, Pie, PieChart } from "recharts"
 
@@ -141,7 +142,9 @@ const ResetDialog: React.FC<{ handleReset: () => void }> = ({
   )
 }
 
-const SubmissionInspector: React.FC = () => {
+const SubmissionInspector: React.FC<{
+  submissions: SubmissionSsePayload[] | null
+}> = ({ submissions }) => {
   const { inspect } = useInspect()
   const navigate = useNavigate()
 
@@ -170,7 +173,7 @@ const SubmissionInspector: React.FC = () => {
         </Flex>
       </Flex>
 
-      <Carousel />
+      <SubmissionsCarousel submissions={submissions} />
     </Flex>
   )
 }
@@ -407,6 +410,21 @@ export function PrivateDashboard() {
     return formatSeconds(durationInSeconds || 0)
   }, [durationInSeconds])
 
+  const [submissions, setSubmissions] = useState<SubmissionSsePayload[] | null>(
+    null,
+  )
+
+  useSSE<SubmissionSsePayload>("student-submission", (data) => {
+    console.log("inside useSSe callback")
+    setSubmissions((prev) => {
+      console.log("setting submission")
+      if (prev == null) {
+        return [data]
+      }
+      return [...prev, data]
+    })
+  })
+
   const handleTimeAdjustment = useCallback(
     (value: number) => {
       setDurationInSeconds((oldVal) => Math.max(0, oldVal + value))
@@ -501,13 +519,15 @@ export function PrivateDashboard() {
       </GridItem>
       <GridItem gap={4} colStart={2} colEnd={4} rowStart={1} rowEnd={4}>
         <Flex direction={"column"} h={"full"}>
-          {exampleState === "unpublished" || exampleState == "publishing" ? (
+          {exampleState === "unpublished" ||
+          exampleState == "publishing" ||
+          !submissions ? (
             <TaskDescription
               instructionContent={instructionsContent}
               title={title}
             />
           ) : (
-            <SubmissionInspector />
+            <SubmissionInspector submissions={submissions} />
           )}
         </Flex>
       </GridItem>
