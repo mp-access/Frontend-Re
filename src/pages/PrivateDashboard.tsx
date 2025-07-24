@@ -242,12 +242,11 @@ const GenearlInformation: React.FC<{
     numberOfStudentsWhoSubmitted,
     passRatePerTestCase,
   } = generalInformation
-
   const avgTestPassRate = useMemo(() => {
     const passRates = Object.values(passRatePerTestCase)
 
-    return (
-      (passRates.reduce((sum, rate) => sum + rate, 0) / passRates.length) * 100
+    return Math.round(
+      (passRates.reduce((sum, rate) => sum + rate, 0) / passRates.length) * 100,
     )
   }, [passRatePerTestCase])
   return (
@@ -267,8 +266,8 @@ const GenearlInformation: React.FC<{
             </Text>
             <CustomPieChart
               value={
-                totalParticipants > 0
-                  ? participantsOnline / totalParticipants
+                participantsOnline > 0
+                  ? (numberOfStudentsWhoSubmitted / participantsOnline) * 100
                   : 0
               }
             ></CustomPieChart>
@@ -410,7 +409,7 @@ export function PrivateDashboard() {
   const [durationInSeconds, setDurationInSeconds] = useState<number>(150)
   const [exampleState, setExampleState] = useState<ExampleState | null>(null)
   const [exactMatch, setExactMatch] = useState<boolean>(false)
-  const [generalInformation, setGeneralInformation] =
+  const [exampleInformation, setExampleInformation] =
     useState<ExampleInformation | null>(null)
   const { i18n } = useTranslation()
   const currentLanguage = i18n.language
@@ -435,7 +434,7 @@ export function PrivateDashboard() {
   })
 
   useSSE<ExampleInformation>("example-information", (data) => {
-    setGeneralInformation(data)
+    setExampleInformation(data)
   })
 
   const handleTimeAdjustment = useCallback(
@@ -480,7 +479,7 @@ export function PrivateDashboard() {
 
   useEffect(() => {
     if (initialExampleInformation) {
-      setGeneralInformation(initialExampleInformation)
+      setExampleInformation(initialExampleInformation)
     }
   }, [initialExampleInformation])
 
@@ -505,7 +504,7 @@ export function PrivateDashboard() {
     }
   }, [derivedEndDate, derivedStartDate, example])
 
-  if (!example || !exampleState || !generalInformation) {
+  if (!example || !exampleState || !exampleInformation) {
     return <Placeholder />
   }
 
@@ -536,7 +535,7 @@ export function PrivateDashboard() {
         p={3}
       >
         <TestCaseBarChart
-          passRatePerTestCase={generalInformation.passRatePerTestCase}
+          passRatePerTestCase={exampleInformation.passRatePerTestCase}
           exactMatch={exactMatch}
           setExactMatch={setExactMatch}
         ></TestCaseBarChart>
@@ -570,7 +569,7 @@ export function PrivateDashboard() {
       >
         <GenearlInformation
           exampleState={exampleState}
-          generalInformation={generalInformation}
+          generalInformation={exampleInformation}
         ></GenearlInformation>
 
         <ExampleTimeControler
