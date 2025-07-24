@@ -410,11 +410,13 @@ export function PrivateDashboard() {
   const [durationInSeconds, setDurationInSeconds] = useState<number>(150)
   const [exampleState, setExampleState] = useState<ExampleState | null>(null)
   const [exactMatch, setExactMatch] = useState<boolean>(false)
+  const [generalInformation, setGeneralInformation] =
+    useState<ExampleInformation | null>(null)
   const { i18n } = useTranslation()
   const currentLanguage = i18n.language
   const { user } = useOutletContext<UserContext>()
   const { data: example } = useExample(user.email)
-  const { data: generalInformation } = useGeneralExampleInformation()
+  const { data: initialExampleInformation } = useGeneralExampleInformation()
   const { timeFrameFromEvent } = useTimeframeFromSSE()
   const durationAsString = useMemo(() => {
     return formatSeconds(durationInSeconds || 0)
@@ -430,6 +432,10 @@ export function PrivateDashboard() {
       }
       return [...prev, data]
     })
+  })
+
+  useSSE<ExampleInformation>("example-information", (data) => {
+    setGeneralInformation(data)
   })
 
   const handleTimeAdjustment = useCallback(
@@ -471,6 +477,12 @@ export function PrivateDashboard() {
 
     return [Date.parse(example.start), Date.parse(example.end)]
   }, [example, timeFrameFromEvent])
+
+  useEffect(() => {
+    if (initialExampleInformation) {
+      setGeneralInformation(initialExampleInformation)
+    }
+  }, [initialExampleInformation])
 
   useEffect(() => {
     if (fetchedSubmissions) {
