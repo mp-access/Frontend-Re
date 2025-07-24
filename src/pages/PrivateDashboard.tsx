@@ -20,6 +20,7 @@ import {
   AlertDialogOverlay,
   Icon,
   useToken,
+  useToast,
 } from "@chakra-ui/react"
 import { GoChecklist } from "react-icons/go"
 import { Markdown, Placeholder } from "../components/Panels"
@@ -31,6 +32,7 @@ import {
   useInspect,
   usePublish,
   useSSE,
+  useStudentSubmissions,
   useTerminate,
   useTimeframeFromSSE,
 } from "../components/Hooks"
@@ -38,7 +40,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { t } from "i18next"
 import { RotateFromRightIcon } from "../components/CustomIcons"
 import { useTranslation } from "react-i18next"
-import { useNavigate, useOutletContext } from "react-router-dom"
+import { useOutletContext } from "react-router-dom"
 import { formatSeconds } from "../components/Util"
 import { CountdownTimer } from "../components/CountdownTimer"
 import { SubmissionsCarousel } from "../components/SubmissionsCarousel"
@@ -146,15 +148,17 @@ const SubmissionInspector: React.FC<{
   submissions: SubmissionSsePayload[]
 }> = ({ submissions }) => {
   const { inspect } = useInspect()
-  const navigate = useNavigate()
-
+  const toast = useToast()
   const openInEditor = useCallback(
     async (studentId: string) => {
-      const url = await inspect(studentId)
-
-      navigate(url)
+      inspect(studentId).then(() =>
+        toast({
+          title: "Submission opened on second device",
+          duration: 3000,
+        }),
+      )
     },
-    [inspect, navigate],
+    [inspect, toast],
   )
 
   return (
@@ -402,6 +406,7 @@ const ExampleTimeControler: React.FC<{
 export function PrivateDashboard() {
   const { publish } = usePublish()
   const { terminate } = useTerminate()
+  const { data: fetchedSubmissions } = useStudentSubmissions()
   const [durationInSeconds, setDurationInSeconds] = useState<number>(150)
   const [exampleState, setExampleState] = useState<ExampleState | null>(null)
   const [exactMatch, setExactMatch] = useState<boolean>(false)
@@ -414,15 +419,12 @@ export function PrivateDashboard() {
   const durationAsString = useMemo(() => {
     return formatSeconds(durationInSeconds || 0)
   }, [durationInSeconds])
-
   const [submissions, setSubmissions] = useState<SubmissionSsePayload[] | null>(
     null,
   )
 
   useSSE<SubmissionSsePayload>("student-submission", (data) => {
-    console.log("inside useSSe callback")
     setSubmissions((prev) => {
-      console.log("setting submission")
       if (prev == null) {
         return [data]
       }
@@ -469,6 +471,12 @@ export function PrivateDashboard() {
 
     return [Date.parse(example.start), Date.parse(example.end)]
   }, [example, timeFrameFromEvent])
+
+  useEffect(() => {
+    if (fetchedSubmissions) {
+      setSubmissions(fetchedSubmissions)
+    }
+  }, [fetchedSubmissions])
 
   useEffect(() => {
     if (!derivedEndDate || !derivedEndDate) {
