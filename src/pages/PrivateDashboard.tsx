@@ -557,9 +557,7 @@ export function PrivateDashboard() {
       </GridItem>
       <GridItem gap={4} colStart={2} colEnd={4} rowStart={1} rowEnd={4}>
         <Flex direction={"column"} h={"full"}>
-          {exampleState === "unpublished" ||
-          exampleState == "publishing" ||
-          !submissions ? (
+          {!submissions || submissions.length < 1 ? (
             <TaskDescription
               instructionContent={instructionsContent}
               title={title}
