@@ -52,7 +52,7 @@ import Countdown from "react-countdown"
 import { AiOutlineBulb, AiOutlineCode, AiOutlineReload } from "react-icons/ai"
 import { BsCircleFill } from "react-icons/bs"
 import { HiDownload } from "react-icons/hi"
-import { useOutletContext, useParams } from "react-router-dom"
+import { useNavigate, useOutletContext, useParams } from "react-router-dom"
 import { FileTabs } from "../components/FileTab"
 import { FileTree } from "../components/FileTree"
 import { Markdown, Placeholder, TaskIO, TaskView } from "../components/Panels"
@@ -67,6 +67,7 @@ import {
 import {
   useCodeEditor,
   useExample,
+  useSSE,
   useTask,
   useTimeframeFromSSE,
 } from "../components/Hooks"
@@ -79,7 +80,9 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const { i18n, t } = useTranslation()
   const currentLanguage = i18n.language
   const editor = useCodeEditor()
+  const navigate = useNavigate()
   const toast = useToast()
+  const { courseSlug } = useParams()
   const { isOpen, onOpen, onClose } = useDisclosure()
   const { isAssistant, user } = useOutletContext<UserContext>()
   const [taskId, setTaskId] = useState(-1)
@@ -95,12 +98,18 @@ export default function Task({ type }: { type: "task" | "example" }) {
     : null
   const [userId, setUserId] = useState(inspectionUserId ?? user.email)
   const { timeFrameFromEvent } = useTimeframeFromSSE()
+
   const {
     data: task,
     submit,
     refetch,
     timer,
   } = type == "task" ? useTask(userId) : useExample(userId)
+
+  useSSE<string>("example-reset", (data) => {
+    toast({ title: data, duration: 3000 })
+    navigate(`/courses/${courseSlug}/examples`)
+  })
 
   const getUpdate = (file: TaskFileProps, submission?: WorkspaceProps) =>
     submission?.files?.find((s) => s.taskFileId === file.id)?.content ||
