@@ -1,12 +1,12 @@
 import { useMonaco } from "@monaco-editor/react"
+import { useKeycloak } from "@react-keycloak/web"
 import { useMutation, useQuery, UseQueryOptions } from "@tanstack/react-query"
 import axios, { AxiosError } from "axios"
+import { EventSource } from "extended-eventsource"
 import { compact, concat, flatten } from "lodash"
 import { Uri } from "monaco-editor"
 import { useEffect, useRef, useState } from "react"
 import { useParams } from "react-router-dom"
-import { EventSource } from "extended-eventsource"
-import { useKeycloak } from "@react-keycloak/web"
 import { useEventSource } from "../context/EventSourceContext"
 
 export const useCodeEditor = () => {
@@ -108,6 +108,22 @@ export const useTerminate = () => {
     mutateAsync([["courses", courseSlug, "examples", exampleSlug, "terminate"]])
 
   return { terminate }
+}
+
+export const useResetExample = () => {
+  const { courseSlug, exampleSlug } = useParams()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { mutateAsync } = useMutation<any, AxiosError, any[]>({
+    mutationFn: () => {
+      const url = `/courses/${courseSlug}/examples/${exampleSlug}/reset`
+      return axios.delete<void>(url)
+    },
+  })
+
+  const resetExample = () =>
+    mutateAsync([["courses", courseSlug, "examples", exampleSlug, "reset"]])
+
+  return { resetExample }
 }
 
 export const useExamples = () => {
