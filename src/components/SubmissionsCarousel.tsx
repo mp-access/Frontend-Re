@@ -2,8 +2,37 @@ import { Button, Text, Divider, Flex, Heading, HStack } from "@chakra-ui/react"
 import "./Carousel.css"
 import { MdOutlineScreenShare } from "react-icons/md"
 
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import { Editor } from "@monaco-editor/react"
+
+const getFilteredSubmissions = (
+  testCaseSelection: Record<string, boolean> | null,
+  submissions: SubmissionSsePayload[],
+  exactMatch: boolean,
+) => {
+  if (!testCaseSelection) {
+    return submissions
+  }
+
+  const selectionArray: boolean[] = Object.values(testCaseSelection)
+
+  return submissions.filter((submission) => {
+    const testsFailedBoolean = submission.testsPassed.map((v) => !v) // as we want to match the failed tests
+    if (selectionArray.length !== testsFailedBoolean.length) {
+      throw new Error(
+        "Missmatching array length between testsPassed and testCaseSelectionArray",
+      )
+    }
+    if (exactMatch) {
+      return selectionArray.every((val, idx) => val === testsFailedBoolean[idx])
+    }
+
+    return selectionArray.every((selected, idx) => {
+      if (!selected) return true // ignore tests not selected
+      return testsFailedBoolean[idx] // must have failed if selected
+    })
+  })
+}
 
 const Slide: React.FC<{
   submission: SubmissionSsePayload
@@ -45,8 +74,10 @@ const Slide: React.FC<{
 
 export const SubmissionsCarousel: React.FC<{
   submissions: SubmissionSsePayload[]
+  testCaseSelection: Record<string, boolean> | null
+  exactMatch: boolean
   openInEditor: (studentId: string) => Promise<void>
-}> = ({ submissions, openInEditor }) => {
+}> = ({ submissions, testCaseSelection, exactMatch, openInEditor }) => {
   const sliderRef = useRef<HTMLDivElement | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
 
@@ -82,8 +113,11 @@ export const SubmissionsCarousel: React.FC<{
     }
   }
 
+  const filteredSubmissions = useMemo(() => {
+    return getFilteredSubmissions(testCaseSelection, submissions, exactMatch)
+  }, [exactMatch, testCaseSelection, submissions])
+
   return (
-    // Animations in Carosel.css
     <Flex
       position={"relative"}
       display={"flex"}
@@ -93,7 +127,7 @@ export const SubmissionsCarousel: React.FC<{
     >
       <Flex className="slider" width={"full"} borderRadius={"2xl"}>
         <Flex className="slides" ref={sliderRef}>
-          {submissions?.map((submission) => (
+          {filteredSubmissions?.map((submission) => (
             <Slide submission={submission} openInEditor={openInEditor}></Slide>
           ))}
         </Flex>

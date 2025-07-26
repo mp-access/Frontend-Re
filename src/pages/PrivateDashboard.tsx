@@ -78,7 +78,7 @@ const TerminationDialog: React.FC<{ handleTermination: () => void }> = ({
         <AlertDialogOverlay />
 
         <AlertDialogContent>
-          <AlertDialogHeader>{t("Terminate Example")}?</AlertDialogHeader>
+          <AlertDialogHeader>{t("Terminate Example")}</AlertDialogHeader>
           <AlertDialogCloseButton />
           <AlertDialogBody>{t("termination_alert")}</AlertDialogBody>
           <AlertDialogFooter gap={2}>
@@ -148,7 +148,9 @@ const ResetDialog: React.FC<{ handleReset: () => void }> = ({
 
 const SubmissionInspector: React.FC<{
   submissions: SubmissionSsePayload[]
-}> = ({ submissions }) => {
+  selectedTests: Record<string, boolean> | null
+  exactMatch: boolean
+}> = ({ submissions, selectedTests, exactMatch }) => {
   const { inspect } = useInspect()
   const toast = useToast()
   const openInEditor = useCallback(
@@ -184,6 +186,8 @@ const SubmissionInspector: React.FC<{
       <SubmissionsCarousel
         submissions={submissions}
         openInEditor={openInEditor}
+        testCaseSelection={selectedTests}
+        exactMatch={exactMatch}
       />
     </Flex>
   )
@@ -416,6 +420,12 @@ export function PrivateDashboard() {
   const [exactMatch, setExactMatch] = useState<boolean>(false)
   const [exampleInformation, setExampleInformation] =
     useState<ExampleInformation | null>(null)
+
+  const [testCaseSelection, setTestCaseSelection] = useState<Record<
+    string,
+    boolean
+  > | null>(null)
+
   const { i18n } = useTranslation()
   const currentLanguage = i18n.language
   const { user } = useOutletContext<UserContext>()
@@ -494,6 +504,12 @@ export function PrivateDashboard() {
   useEffect(() => {
     if (initialExampleInformation) {
       setExampleInformation(initialExampleInformation)
+      const initialSelectedTests = Object.fromEntries(
+        Object.keys(initialExampleInformation.passRatePerTestCase).map(
+          (testName) => [testName, false],
+        ),
+      )
+      setTestCaseSelection(initialSelectedTests)
     }
   }, [initialExampleInformation])
 
@@ -552,6 +568,8 @@ export function PrivateDashboard() {
           passRatePerTestCase={exampleInformation.passRatePerTestCase}
           exactMatch={exactMatch}
           setExactMatch={setExactMatch}
+          testCaseSelection={testCaseSelection}
+          setTestCaseSelection={setTestCaseSelection}
         ></TestCaseBarChart>
         {/* <Bookmarks></Bookmarks> */}
       </GridItem>
@@ -563,7 +581,11 @@ export function PrivateDashboard() {
               title={title}
             />
           ) : (
-            <SubmissionInspector submissions={submissions} />
+            <SubmissionInspector
+              submissions={submissions}
+              selectedTests={testCaseSelection}
+              exactMatch={exactMatch}
+            />
           )}
         </Flex>
       </GridItem>

@@ -75,8 +75,18 @@ type Sortings = "default" | "ascending" | "descending"
 export const TestCaseBarChart: React.FC<{
   passRatePerTestCase: Record<string, number>
   exactMatch: boolean
+  testCaseSelection: Record<string, boolean> | null
+  setTestCaseSelection: React.Dispatch<
+    SetStateAction<Record<string, boolean> | null>
+  >
   setExactMatch: React.Dispatch<SetStateAction<boolean>>
-}> = ({ passRatePerTestCase, exactMatch, setExactMatch }) => {
+}> = ({
+  passRatePerTestCase,
+  exactMatch,
+  testCaseSelection,
+  setTestCaseSelection,
+  setExactMatch,
+}) => {
   const [sorting, setSorting] = useState<Sortings>("default")
 
   const data = Object.entries(passRatePerTestCase).map(([name, value]) => ({
@@ -84,20 +94,23 @@ export const TestCaseBarChart: React.FC<{
     value: Math.max(value * 100, 1),
   }))
 
-  const [selectedTests, setSelectedTests] = useState<string[]>([])
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     // TODO: type this properly
     setSorting(event.target.value as "default" | "ascending" | "descending")
   }
 
-  const handleOnBarClick = useCallback((name: string) => {
-    setSelectedTests((oldSelectedTest) => {
-      if (oldSelectedTest.includes(name)) {
-        return oldSelectedTest.filter((testName) => testName !== name)
-      }
-      return [...oldSelectedTest, name]
-    })
-  }, [])
+  const handleOnBarClick = useCallback(
+    (name: string) => {
+      setTestCaseSelection((prev) => {
+        if (!prev) return null
+        return {
+          ...prev,
+          [name]: !prev[name],
+        }
+      })
+    },
+    [setTestCaseSelection],
+  )
 
   const handleToggle = () => {
     setExactMatch((prev) => !prev)
@@ -116,18 +129,17 @@ export const TestCaseBarChart: React.FC<{
   const [unselectedColor] = useToken("colors", ["purple.200"])
 
   const barCells = useMemo(() => {
+    if (!testCaseSelection) return
     return sortedData.map((entry) => (
       <Cell
         key={`cell-${entry.name}`}
-        fill={
-          selectedTests.includes(entry.name) ? selectedColor : unselectedColor
-        }
+        fill={testCaseSelection[entry.name] ? selectedColor : unselectedColor}
         onClick={() => handleOnBarClick(entry.name)}
       />
     ))
   }, [
+    testCaseSelection,
     sortedData,
-    selectedTests,
     selectedColor,
     unselectedColor,
     handleOnBarClick,
