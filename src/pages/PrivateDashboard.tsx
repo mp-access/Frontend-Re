@@ -480,8 +480,9 @@ export function PrivateDashboard() {
     try {
       await resetExample()
       setExampleState("unpublished")
+      setSubmissions(null)
     } catch (e) {
-      console.log("Error resetting example: ", e)
+      console.log("An error occured when resetting the example: ", e)
     }
   }, [resetExample])
 

@@ -83,10 +83,6 @@ export const SubmissionsCarousel: React.FC<{
 
   const slideCount = submissions ? submissions?.length : 0
 
-  const showPrevButton = currentIndex !== 0
-  const showNextButton =
-    submissions.length > 0 && currentIndex < submissions.length - 1
-
   useEffect(() => {
     const slider = sliderRef.current
     if (!slider) return
@@ -116,6 +112,11 @@ export const SubmissionsCarousel: React.FC<{
   const filteredSubmissions = useMemo(() => {
     return getFilteredSubmissions(testCaseSelection, submissions, exactMatch)
   }, [exactMatch, testCaseSelection, submissions])
+
+  const showPrevButton = currentIndex !== 0
+  const showNextButton =
+    filteredSubmissions.length > 0 &&
+    currentIndex < filteredSubmissions.length - 1
 
   return (
     <Flex
