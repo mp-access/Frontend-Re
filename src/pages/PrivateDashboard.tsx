@@ -19,17 +19,16 @@ import {
   TagLeftIcon,
   Text,
   useDisclosure,
-  useToken,
   useToast,
+  useToken,
 } from "@chakra-ui/react"
-import { t } from "i18next"
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { BsFillCircleFill } from "react-icons/bs"
 import { GoChecklist } from "react-icons/go"
-import { useOutletContext } from "react-router-dom"
 import { Cell, Pie, PieChart } from "recharts"
 
+import { t } from "i18next"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { CountdownTimer } from "../components/CountdownTimer"
 import { RotateFromRightIcon } from "../components/CustomIcons"
 import {
@@ -45,10 +44,12 @@ import {
   useTimeframeFromSSE,
 } from "../components/Hooks"
 
+import { useOutletContext } from "react-router-dom"
 import { Markdown, Placeholder } from "../components/Panels"
-import { TestCaseBarChart } from "../components/TestCaseBarChart"
-import { formatSeconds } from "../components/Util"
 import { SubmissionsCarousel } from "../components/SubmissionsCarousel"
+import { TestCaseBarChart } from "../components/TestCaseBarChart"
+
+import { formatSeconds } from "../components/Util"
 
 type ExampleState = "unpublished" | "publishing" | "ongoing" | "finished"
 
@@ -558,9 +559,7 @@ export function PrivateDashboard() {
       </GridItem>
       <GridItem gap={4} colStart={2} colEnd={4} rowStart={1} rowEnd={4}>
         <Flex direction={"column"} h={"full"}>
-          {exampleState === "unpublished" ||
-          exampleState == "publishing" ||
-          !submissions ? (
+          {!submissions || submissions.length < 1 ? (
             <TaskDescription
               instructionContent={instructionsContent}
               title={title}

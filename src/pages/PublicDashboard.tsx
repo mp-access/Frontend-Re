@@ -14,10 +14,15 @@ import { Markdown, Placeholder } from "../components/Panels"
 import { FcAlarmClock, FcDocument } from "react-icons/fc"
 import { t } from "i18next"
 import { useNavigate, useOutletContext } from "react-router-dom"
-import { useExample, useSSE, useTimeframeFromSSE } from "../components/Hooks"
+import {
+  useExample,
+  useGeneralExampleInformation,
+  useSSE,
+  useTimeframeFromSSE,
+} from "../components/Hooks"
 import { useTranslation } from "react-i18next"
 import { CountdownTimer } from "../components/CountdownTimer"
-import { useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 export function PublicDashboard() {
   const { user } = useOutletContext<UserContext>()
@@ -26,6 +31,9 @@ export function PublicDashboard() {
   const navigate = useNavigate()
   const currentLanguage = i18n.language
   const { timeFrameFromEvent } = useTimeframeFromSSE()
+  const { data: initialExampleInformation } = useGeneralExampleInformation()
+  const [exampleInformation, setExampleInformation] =
+    useState<ExampleInformation | null>(null)
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
     if (!example) {
       return [null, null]
@@ -50,7 +58,17 @@ export function PublicDashboard() {
     navigate(editorURL)
   })
 
-  if (!example) {
+  useSSE<ExampleInformation>("example-information", (data) => {
+    setExampleInformation(data)
+  })
+
+  useEffect(() => {
+    if (initialExampleInformation) {
+      setExampleInformation(initialExampleInformation)
+    }
+  }, [initialExampleInformation])
+
+  if (!example || !exampleInformation) {
     return <Placeholder />
   }
   const instructionFile =
@@ -110,11 +128,24 @@ export function PublicDashboard() {
         <Divider />
         <Spacer height={1} />
         <Flex justify={"center"} align={"center"} flex={1} h={"100%"}>
-          <CircularProgress size={175} value={75} color={"green.500"}>
+          <CircularProgress
+            size={175}
+            value={
+              (exampleInformation.numberOfStudentsWhoSubmitted /
+                exampleInformation.participantsOnline) *
+              100
+            }
+            color={"green.500"}
+          >
             <CircularProgressLabel>
-              75%
-              <CircularProgressLabel insetY={12} fontSize={12}>
-                150/200
+              {Math.round(
+                exampleInformation.numberOfStudentsWhoSubmitted /
+                  exampleInformation.participantsOnline,
+              ) * 100}
+              %
+              <CircularProgressLabel insetY={12} fontSize={16}>
+                {exampleInformation.numberOfStudentsWhoSubmitted}/
+                {exampleInformation.participantsOnline}
               </CircularProgressLabel>
             </CircularProgressLabel>
           </CircularProgress>
