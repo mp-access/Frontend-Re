@@ -1,16 +1,4 @@
 import {
-  Flex,
-  Heading,
-  HStack,
-  Grid,
-  GridItem,
-  Divider,
-  Text,
-  TagLabel,
-  Tag,
-  TagLeftIcon,
-  Button,
-  useDisclosure,
   AlertDialog,
   AlertDialogBody,
   AlertDialogCloseButton,
@@ -18,34 +6,49 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogOverlay,
+  Button,
+  Divider,
+  Flex,
+  Grid,
+  GridItem,
+  Heading,
+  HStack,
   Icon,
+  Tag,
+  TagLabel,
+  TagLeftIcon,
+  Text,
+  useDisclosure,
   useToken,
   useToast,
 } from "@chakra-ui/react"
-import { GoChecklist } from "react-icons/go"
-import { Markdown, Placeholder } from "../components/Panels"
+import { t } from "i18next"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { BsFillCircleFill } from "react-icons/bs"
+import { GoChecklist } from "react-icons/go"
+import { useOutletContext } from "react-router-dom"
+import { Cell, Pie, PieChart } from "recharts"
+
+import { CountdownTimer } from "../components/CountdownTimer"
+import { RotateFromRightIcon } from "../components/CustomIcons"
 import {
   useExample,
   useExtendExample,
   useGeneralExampleInformation,
   useInspect,
   usePublish,
+  useResetExample,
   useSSE,
   useStudentSubmissions,
   useTerminate,
   useTimeframeFromSSE,
 } from "../components/Hooks"
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { t } from "i18next"
-import { RotateFromRightIcon } from "../components/CustomIcons"
-import { useTranslation } from "react-i18next"
-import { useOutletContext } from "react-router-dom"
-import { formatSeconds } from "../components/Util"
-import { CountdownTimer } from "../components/CountdownTimer"
-import { SubmissionsCarousel } from "../components/SubmissionsCarousel"
+
+import { Markdown, Placeholder } from "../components/Panels"
 import { TestCaseBarChart } from "../components/TestCaseBarChart"
-import { Cell, Pie, PieChart } from "recharts"
+import { formatSeconds } from "../components/Util"
+import { SubmissionsCarousel } from "../components/SubmissionsCarousel"
 
 type ExampleState = "unpublished" | "publishing" | "ongoing" | "finished"
 
@@ -289,6 +292,7 @@ const ExampleTimeControler: React.FC<{
   handleTimeAdjustment: (value: number) => void
   handleStart: () => void
   handleTermination: () => void
+  handleReset: () => void
   durationAsString: string
   setDurationInSeconds: React.Dispatch<React.SetStateAction<number>>
   exampleState: ExampleState
@@ -302,6 +306,7 @@ const ExampleTimeControler: React.FC<{
   setExampleState,
   handleStart,
   handleTermination,
+  handleReset,
   setDurationInSeconds,
   startTime,
   endTime,
@@ -397,7 +402,7 @@ const ExampleTimeControler: React.FC<{
 
   return (
     <Flex flex={1} justify={"end"}>
-      <ResetDialog handleReset={handleTermination}></ResetDialog>
+      <ResetDialog handleReset={handleReset}></ResetDialog>
     </Flex>
   )
 }
@@ -406,6 +411,7 @@ export function PrivateDashboard() {
   const { publish } = usePublish()
   const { terminate } = useTerminate()
   const { data: fetchedSubmissions } = useStudentSubmissions()
+  const { resetExample } = useResetExample()
   const [durationInSeconds, setDurationInSeconds] = useState<number>(150)
   const [exampleState, setExampleState] = useState<ExampleState | null>(null)
   const [exactMatch, setExactMatch] = useState<boolean>(false)
@@ -460,6 +466,15 @@ export function PrivateDashboard() {
       console.log("Error terminating example: ", e)
     }
   }, [terminate])
+
+  const handleReset = useCallback(async () => {
+    try {
+      await resetExample()
+      setExampleState("unpublished")
+    } catch (e) {
+      console.log("Error resetting example: ", e)
+    }
+  }, [resetExample])
 
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
     if (!example) {
@@ -578,6 +593,7 @@ export function PrivateDashboard() {
           exampleState={exampleState}
           handleStart={handleStart}
           handleTermination={handleTermination}
+          handleReset={handleReset}
           setDurationInSeconds={setDurationInSeconds}
           startTime={derivedStartDate}
           endTime={derivedEndDate}
