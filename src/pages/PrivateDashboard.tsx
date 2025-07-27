@@ -19,13 +19,18 @@ import {
   TagLeftIcon,
   Text,
   useDisclosure,
-  useToken,
   useToast,
+  useToken,
 } from "@chakra-ui/react"
 import { useTranslation } from "react-i18next"
 import { BsFillCircleFill } from "react-icons/bs"
 import { GoChecklist } from "react-icons/go"
 import { Cell, Pie, PieChart } from "recharts"
+
+import { t } from "i18next"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { CountdownTimer } from "../components/CountdownTimer"
+import { RotateFromRightIcon } from "../components/CustomIcons"
 import {
   useExample,
   useExtendExample,
@@ -38,16 +43,13 @@ import {
   useTerminate,
   useTimeframeFromSSE,
 } from "../components/Hooks"
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { t } from "i18next"
-import { RotateFromRightIcon } from "../components/CustomIcons"
-import { formatSeconds } from "../components/Util"
-import { CountdownTimer } from "../components/CountdownTimer"
 
-import { Markdown, Placeholder } from "../components/Panels"
-import { TestCaseBarChart } from "../components/TestCaseBarChart"
-import { SubmissionsCarousel } from "../components/SubmissionsCarousel"
 import { useOutletContext } from "react-router-dom"
+import { Markdown, Placeholder } from "../components/Panels"
+import { SubmissionsCarousel } from "../components/SubmissionsCarousel"
+import { TestCaseBarChart } from "../components/TestCaseBarChart"
+
+import { formatSeconds } from "../components/Util"
 
 type ExampleState = "unpublished" | "publishing" | "ongoing" | "finished"
 
