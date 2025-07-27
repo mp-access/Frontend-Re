@@ -20,15 +20,16 @@ import {
   Text,
   useDisclosure,
   useToken,
+  useToast,
 } from "@chakra-ui/react"
 import { t } from "i18next"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { BsFillCircleFill } from "react-icons/bs"
 import { GoChecklist } from "react-icons/go"
-import { useNavigate, useOutletContext } from "react-router-dom"
+import { useOutletContext } from "react-router-dom"
 import { Cell, Pie, PieChart } from "recharts"
-import { Carousel } from "../components/Carousel"
+
 import { CountdownTimer } from "../components/CountdownTimer"
 import { RotateFromRightIcon } from "../components/CustomIcons"
 import {
@@ -38,12 +39,16 @@ import {
   useInspect,
   usePublish,
   useResetExample,
+  useSSE,
+  useStudentSubmissions,
   useTerminate,
   useTimeframeFromSSE,
 } from "../components/Hooks"
+
 import { Markdown, Placeholder } from "../components/Panels"
 import { TestCaseBarChart } from "../components/TestCaseBarChart"
 import { formatSeconds } from "../components/Util"
+import { SubmissionsCarousel } from "../components/SubmissionsCarousel"
 
 type ExampleState = "unpublished" | "publishing" | "ongoing" | "finished"
 
@@ -142,16 +147,22 @@ const ResetDialog: React.FC<{ handleReset: () => void }> = ({
   )
 }
 
-const SubmissionInspector: React.FC = () => {
+const SubmissionInspector: React.FC<{
+  submissions: SubmissionSsePayload[]
+}> = ({ submissions }) => {
   const { inspect } = useInspect()
-  const navigate = useNavigate()
-
-  const onOpenInEditor = useCallback(async () => {
-    // TODO: Once we display real submissions, pass correct student ID
-    const url = await inspect("student@uzh.ch")
-
-    navigate(url)
-  }, [inspect, navigate])
+  const toast = useToast()
+  const openInEditor = useCallback(
+    async (studentId: string) => {
+      inspect(studentId).then(() =>
+        toast({
+          title: "Submission opened on second device",
+          duration: 3000,
+        }),
+      )
+    },
+    [inspect, toast],
+  )
 
   return (
     <Flex direction={"column"} h={"full"} gap={2}>
@@ -171,7 +182,10 @@ const SubmissionInspector: React.FC = () => {
         </Flex>
       </Flex>
 
-      <Carousel />
+      <SubmissionsCarousel
+        submissions={submissions}
+        openInEditor={openInEditor}
+      />
     </Flex>
   )
 }
@@ -231,12 +245,11 @@ const GenearlInformation: React.FC<{
     numberOfStudentsWhoSubmitted,
     passRatePerTestCase,
   } = generalInformation
-
   const avgTestPassRate = useMemo(() => {
     const passRates = Object.values(passRatePerTestCase)
 
-    return (
-      (passRates.reduce((sum, rate) => sum + rate, 0) / passRates.length) * 100
+    return Math.round(
+      (passRates.reduce((sum, rate) => sum + rate, 0) / passRates.length) * 100,
     )
   }, [passRatePerTestCase])
   return (
@@ -256,8 +269,8 @@ const GenearlInformation: React.FC<{
             </Text>
             <CustomPieChart
               value={
-                totalParticipants > 0
-                  ? participantsOnline / totalParticipants
+                participantsOnline > 0
+                  ? (numberOfStudentsWhoSubmitted / participantsOnline) * 100
                   : 0
               }
             ></CustomPieChart>
@@ -397,19 +410,38 @@ const ExampleTimeControler: React.FC<{
 export function PrivateDashboard() {
   const { publish } = usePublish()
   const { terminate } = useTerminate()
+  const { data: fetchedSubmissions } = useStudentSubmissions()
   const { resetExample } = useResetExample()
   const [durationInSeconds, setDurationInSeconds] = useState<number>(150)
   const [exampleState, setExampleState] = useState<ExampleState | null>(null)
   const [exactMatch, setExactMatch] = useState<boolean>(false)
+  const [exampleInformation, setExampleInformation] =
+    useState<ExampleInformation | null>(null)
   const { i18n } = useTranslation()
   const currentLanguage = i18n.language
   const { user } = useOutletContext<UserContext>()
   const { data: example } = useExample(user.email)
-  const { data: generalInformation } = useGeneralExampleInformation()
+  const { data: initialExampleInformation } = useGeneralExampleInformation()
   const { timeFrameFromEvent } = useTimeframeFromSSE()
   const durationAsString = useMemo(() => {
     return formatSeconds(durationInSeconds || 0)
   }, [durationInSeconds])
+  const [submissions, setSubmissions] = useState<SubmissionSsePayload[] | null>(
+    null,
+  )
+
+  useSSE<SubmissionSsePayload>("student-submission", (data) => {
+    setSubmissions((prev) => {
+      if (prev == null) {
+        return [data]
+      }
+      return [...prev, data]
+    })
+  })
+
+  useSSE<ExampleInformation>("example-information", (data) => {
+    setExampleInformation(data)
+  })
 
   const handleTimeAdjustment = useCallback(
     (value: number) => {
@@ -461,6 +493,18 @@ export function PrivateDashboard() {
   }, [example, timeFrameFromEvent])
 
   useEffect(() => {
+    if (initialExampleInformation) {
+      setExampleInformation(initialExampleInformation)
+    }
+  }, [initialExampleInformation])
+
+  useEffect(() => {
+    if (fetchedSubmissions) {
+      setSubmissions(fetchedSubmissions)
+    }
+  }, [fetchedSubmissions])
+
+  useEffect(() => {
     if (!derivedEndDate || !derivedEndDate) {
       setExampleState("unpublished")
       return
@@ -475,7 +519,7 @@ export function PrivateDashboard() {
     }
   }, [derivedEndDate, derivedStartDate, example])
 
-  if (!example || !exampleState || !generalInformation) {
+  if (!example || !exampleState || !exampleInformation) {
     return <Placeholder />
   }
 
@@ -506,7 +550,7 @@ export function PrivateDashboard() {
         p={3}
       >
         <TestCaseBarChart
-          passRatePerTestCase={generalInformation.passRatePerTestCase}
+          passRatePerTestCase={exampleInformation.passRatePerTestCase}
           exactMatch={exactMatch}
           setExactMatch={setExactMatch}
         ></TestCaseBarChart>
@@ -514,13 +558,15 @@ export function PrivateDashboard() {
       </GridItem>
       <GridItem gap={4} colStart={2} colEnd={4} rowStart={1} rowEnd={4}>
         <Flex direction={"column"} h={"full"}>
-          {exampleState === "unpublished" || exampleState == "publishing" ? (
+          {exampleState === "unpublished" ||
+          exampleState == "publishing" ||
+          !submissions ? (
             <TaskDescription
               instructionContent={instructionsContent}
               title={title}
             />
           ) : (
-            <SubmissionInspector />
+            <SubmissionInspector submissions={submissions} />
           )}
         </Flex>
       </GridItem>
@@ -538,7 +584,7 @@ export function PrivateDashboard() {
       >
         <GenearlInformation
           exampleState={exampleState}
-          generalInformation={generalInformation}
+          generalInformation={exampleInformation}
         ></GenearlInformation>
 
         <ExampleTimeControler

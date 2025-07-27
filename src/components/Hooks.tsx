@@ -344,8 +344,14 @@ export const useSSE = <T,>(eventType: string, handler: (data: T) => void) => {
 
 export const useInspect = () => {
   const { courseSlug, exampleSlug } = useParams()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { mutateAsync } = useMutation<any, AxiosError, any[]>({})
+
+  if (!courseSlug || !exampleSlug) {
+    throw new Error(
+      `Course Slug ${courseSlug} or example slug ${exampleSlug} undefined`,
+    )
+  }
+
+  const { mutateAsync } = useMutation<void, AxiosError, [string[]]>({})
   const inspect = (userId: string) =>
     mutateAsync([
       [
@@ -360,4 +366,16 @@ export const useInspect = () => {
     ])
 
   return { inspect }
+}
+
+export const useStudentSubmissions = () => {
+  const { courseSlug, exampleSlug } = useParams()
+
+  return useQuery<SubmissionSsePayload[]>([
+    "courses",
+    courseSlug,
+    "examples",
+    exampleSlug,
+    "submissions",
+  ])
 }

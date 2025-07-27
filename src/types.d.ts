@@ -235,3 +235,12 @@ declare interface ExampleInformation {
   numberOfStudentsWhoSubmitted: number
   passRatePerTestCase: Record<string, number>
 }
+
+declare interface SubmissionSsePayload {
+  submissionId: number
+  studentId: string
+  date: string
+  points: number
+  testsPassed: number[]
+  content: string
+}
