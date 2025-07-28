@@ -115,6 +115,12 @@ export default function Task({ type }: { type: "task" | "example" }) {
     submission?.files?.find((s) => s.taskFileId === file.id)?.content ||
     file.template
 
+  useEffect(() => {
+    if (!isAssistant && task && task.status === "Planned") {
+      navigate("../")
+    }
+  }, [task, isAssistant, navigate])
+
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
     if (!task) {
       return [null, null]
