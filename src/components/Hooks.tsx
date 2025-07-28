@@ -379,3 +379,22 @@ export const useStudentSubmissions = () => {
     "submissions",
   ])
 }
+
+export const useHeartbeat = () => {
+  const { courseSlug } = useParams()
+
+  if (!courseSlug) {
+    throw new Error(`Course slug undefined`)
+  }
+
+  const { mutateAsync } = useMutation<unknown, AxiosError, string>({
+    mutationFn: (emitterId: string) => {
+      const url = `/courses/${courseSlug}/heartbeat/${emitterId}`
+      return axios.put<void>(url)
+    },
+  })
+
+  const sendHeartbeat = (emitterId: string) => mutateAsync(emitterId)
+
+  return { sendHeartbeat }
+}
