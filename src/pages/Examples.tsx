@@ -22,12 +22,9 @@ import { TFunction } from "i18next"
 import { fork } from "radash"
 import React, { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import {
-  AiOutlineAreaChart,
-  AiOutlineGlobal,
-  AiOutlineInfoCircle,
-} from "react-icons/ai"
+import { AiOutlineGlobal, AiOutlineInfoCircle } from "react-icons/ai"
 import { FcPlanner, FcTodoList } from "react-icons/fc"
+import { GoChecklist } from "react-icons/go"
 import { IconType } from "react-icons/lib"
 import { Link, useOutletContext, useParams } from "react-router-dom"
 import { useExamples } from "../components/Hooks"
@@ -46,10 +43,16 @@ export const ExamplesCard: React.FC<{
   const { courseSlug } = useParams()
   const title = published ? t("Published Examples") : t("Planned Examples")
   const queryClient = useQueryClient()
+  const { isSupervisor } = useOutletContext<UserContext>()
   const [examplesWithSubmissionCount, setExamplesWithSubmissionCount] =
-    useState<(TaskOverview & { submissionCount: number })[]>([])
+    useState<(TaskOverview & { submissionCount: number })[] | null>(null)
 
   useEffect(() => {
+    if (!isSupervisor) {
+      // nr of submissions fetchable by supervisor only
+      return
+    }
+
     const fetchNrOfSubmissions = async (exampleSlug: string) => {
       const queryKey = [
         "courses",
@@ -77,7 +80,13 @@ export const ExamplesCard: React.FC<{
     }
 
     fetchAllSubmissionCounts()
-  }, [courseSlug, examples, queryClient])
+  }, [courseSlug, examples, isSupervisor, queryClient])
+
+  const derivedExamples =
+    examplesWithSubmissionCount ??
+    (examples as (TaskOverview & {
+      submissionCount: number
+    })[])
 
   if (!examples || examples.length === 0)
     return (
@@ -102,7 +111,7 @@ export const ExamplesCard: React.FC<{
       <Divider borderColor="gray.300" my={4} />
       <Table>
         <Tbody>
-          {examplesWithSubmissionCount
+          {derivedExamples
             .sort((a, b) => {
               if (a.start === null || b.start === null) {
                 return a.ordinalNum - b.ordinalNum
@@ -144,9 +153,8 @@ export const ExamplesCard: React.FC<{
                 ) : published ? (
                   <Td w="17em" maxW="17em">
                     <Tag bg="transparent">
-                      <TagLeftIcon as={AiOutlineAreaChart} marginBottom={1} />
-                      {/* TODO: Replace with actual values */}
-                      <TagLabel> {example.submissionCount}</TagLabel>
+                      <TagLeftIcon as={GoChecklist} />
+                      <TagLabel> {example?.submissionCount}</TagLabel>
                     </Tag>
                   </Td>
                 ) : null}
