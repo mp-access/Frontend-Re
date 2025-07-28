@@ -87,7 +87,7 @@ export function PublicDashboard() {
     ) {
       return 100
     } else {
-      return numberOfStudentsWhoSubmitted / participantsOnline
+      return (numberOfStudentsWhoSubmitted / participantsOnline) * 100
     }
   }, [example, exampleInformation])
 
