@@ -67,7 +67,6 @@ export default function Course() {
     course.examples,
     (e) => e.status === "Active" || e.status === "Interactive",
   )
-  console.log(activeExamples)
   const nrOfSolvedExampels = activeExamples.reduce(
     (total, example) => total + example.points,
     0,
