@@ -20,7 +20,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query"
 import { TFunction } from "i18next"
 import { fork } from "radash"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AiOutlineGlobal, AiOutlineInfoCircle } from "react-icons/ai"
 import { FcPlanner, FcTodoList } from "react-icons/fc"
@@ -82,11 +82,14 @@ export const ExamplesCard: React.FC<{
     fetchAllSubmissionCounts()
   }, [courseSlug, examples, isSupervisor, queryClient])
 
-  const derivedExamples =
-    examplesWithSubmissionCount ??
-    (examples as (TaskOverview & {
-      submissionCount: number
-    })[])
+  const derivedExamples = useMemo(() => {
+    return (
+      examplesWithSubmissionCount ??
+      (examples as (TaskOverview & {
+        submissionCount: number
+      })[])
+    )
+  }, [examples, examplesWithSubmissionCount])
 
   if (!examples || examples.length === 0)
     return (
