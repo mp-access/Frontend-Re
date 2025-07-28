@@ -13,24 +13,25 @@ import {
   TagLeftIcon,
   Tbody,
   Td,
+  Text,
   Tr,
   VStack,
-  Text,
 } from "@chakra-ui/react"
-import React from "react"
-import { FcPlanner, FcTodoList } from "react-icons/fc"
-import { Link, useOutletContext } from "react-router-dom"
-import { HScores } from "../components/Statistics"
-import { useTranslation } from "react-i18next"
-import { useExamples } from "../components/Hooks"
+import { useQueryClient } from "@tanstack/react-query"
+import { TFunction } from "i18next"
 import { fork } from "radash"
+import React, { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   AiOutlineAreaChart,
   AiOutlineGlobal,
   AiOutlineInfoCircle,
 } from "react-icons/ai"
-import { TFunction } from "i18next"
+import { FcPlanner, FcTodoList } from "react-icons/fc"
 import { IconType } from "react-icons/lib"
+import { Link, useOutletContext, useParams } from "react-router-dom"
+import { useExamples } from "../components/Hooks"
+import { HScores } from "../components/Statistics"
 import { formatDate } from "../components/Util"
 
 export const ExamplesCard: React.FC<{
@@ -42,7 +43,41 @@ export const ExamplesCard: React.FC<{
   title: string
   published: boolean
 }> = ({ examples, currentLanguage, isAssistant, t, icon, published }) => {
+  const { courseSlug } = useParams()
   const title = published ? t("Published Examples") : t("Planned Examples")
+  const queryClient = useQueryClient()
+  const [examplesWithSubmissionCount, setExamplesWithSubmissionCount] =
+    useState<(TaskOverview & { submissionCount: number })[]>([])
+
+  useEffect(() => {
+    const fetchNrOfSubmissions = async (exampleSlug: string) => {
+      const queryKey = [
+        "courses",
+        courseSlug,
+        "examples",
+        exampleSlug,
+        "information",
+      ]
+
+      const data = await queryClient.fetchQuery<ExampleInformation>({
+        queryKey,
+      })
+
+      return data.numberOfStudentsWhoSubmitted
+    }
+
+    const fetchAllSubmissionCounts = async () => {
+      const extendedExamples = await Promise.all(
+        examples.map(async (example) => {
+          const submissionCount = await fetchNrOfSubmissions(example.slug)
+          return { ...example, submissionCount }
+        }),
+      )
+      setExamplesWithSubmissionCount(extendedExamples)
+    }
+
+    fetchAllSubmissionCounts()
+  }, [courseSlug, examples, queryClient])
 
   if (!examples || examples.length === 0)
     return (
@@ -67,7 +102,7 @@ export const ExamplesCard: React.FC<{
       <Divider borderColor="gray.300" my={4} />
       <Table>
         <Tbody>
-          {examples
+          {examplesWithSubmissionCount
             .sort((a, b) => {
               if (a.start === null || b.start === null) {
                 return a.ordinalNum - b.ordinalNum
@@ -111,7 +146,7 @@ export const ExamplesCard: React.FC<{
                     <Tag bg="transparent">
                       <TagLeftIcon as={AiOutlineAreaChart} marginBottom={1} />
                       {/* TODO: Replace with actual values */}
-                      <TagLabel> 137</TagLabel>
+                      <TagLabel> {example.submissionCount}</TagLabel>
                     </Tag>
                   </Td>
                 ) : null}
