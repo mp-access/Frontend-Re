@@ -246,6 +246,22 @@ const GenearlInformation: React.FC<{
     numberOfStudentsWhoSubmitted,
     passRatePerTestCase,
   } = generalInformation
+
+  const submissionsProgress = useMemo(() => {
+    if (participantsOnline <= 0 && numberOfStudentsWhoSubmitted <= 0) {
+      return 0
+    }
+
+    if (
+      (participantsOnline <= 0 && numberOfStudentsWhoSubmitted > 0) ||
+      numberOfStudentsWhoSubmitted >= participantsOnline
+    ) {
+      return 100
+    } else {
+      return numberOfStudentsWhoSubmitted / participantsOnline
+    }
+  }, [numberOfStudentsWhoSubmitted, participantsOnline])
+
   const avgTestPassRate = useMemo(() => {
     const passRates = Object.values(passRatePerTestCase)
 
@@ -266,15 +282,11 @@ const GenearlInformation: React.FC<{
           <HStack>
             <Icon as={GoChecklist} />
             <Text color={"gray.500"} display={"flex"}>
-              {numberOfStudentsWhoSubmitted}/{participantsOnline}
+              {exampleState === "ongoing"
+                ? `${numberOfStudentsWhoSubmitted}/${Math.max(numberOfStudentsWhoSubmitted, participantsOnline)}` // if participants online not correctly updated, UI should not break
+                : numberOfStudentsWhoSubmitted}
             </Text>
-            <CustomPieChart
-              value={
-                participantsOnline > 0
-                  ? (numberOfStudentsWhoSubmitted / participantsOnline) * 100
-                  : 0
-              }
-            ></CustomPieChart>
+            <CustomPieChart value={submissionsProgress}></CustomPieChart>
           </HStack>
 
           <HStack>

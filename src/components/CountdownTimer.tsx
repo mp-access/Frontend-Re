@@ -1,8 +1,7 @@
-import { CircularProgress, CircularProgressLabel } from "@chakra-ui/react"
+import { CircularProgress, CircularProgressLabel, Text } from "@chakra-ui/react"
+import { useEffect, useMemo } from "react"
 import { useCountdown } from "./Hooks"
 import { formatSeconds } from "./Util"
-import { useEffect, useMemo } from "react"
-import { Text } from "@chakra-ui/react"
 
 const sizeMap = {
   small: 100,
@@ -34,7 +33,7 @@ export const CountdownTimer: React.FC<{
 
   const totalTimeInSeconds = ((endTime ?? 0) - (startTime ?? 0)) / 1000
   const remainingTimeString = formatSeconds(timeLeftInSeconds ?? 0)
-  const fontSize = size === "large" ? "3xl" : size === "medium" ? "2xl" : "md"
+  const fontSize = size === "large" ? "4xl" : size === "medium" ? "3xl" : "md"
   const dynamicColor = useMemo(() => {
     if (timeLeftInSeconds === null) {
       return
@@ -62,13 +61,7 @@ export const CountdownTimer: React.FC<{
       value={circleValue ?? 0}
       color={dynamicColor}
     >
-      <CircularProgressLabel
-        style={{
-          fontVariantNumeric: "tabular-nums",
-          fontFamily: "monospace",
-        }}
-        fontSize={fontSize}
-      >
+      <CircularProgressLabel fontFamily={"monospace"} fontSize={fontSize}>
         {remainingTimeString}
       </CircularProgressLabel>
     </CircularProgress>
