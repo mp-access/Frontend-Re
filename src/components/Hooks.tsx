@@ -128,7 +128,10 @@ export const useResetExample = () => {
 
 export const useExamples = () => {
   const { courseSlug } = useParams()
-  return useQuery<TaskOverview[]>(["courses", courseSlug, "examples"])
+
+  return useQuery<TaskOverview[]>(["courses", courseSlug, "examples"], {
+    enabled: !!courseSlug,
+  })
 }
 
 export const useGeneralExampleInformation = () => {
