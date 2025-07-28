@@ -63,5 +63,6 @@
   "reset_alert": "Sind Sie sicher, dass Sie die Beispielsaufgabe zurücksetzen wollen?",
   "Ascending": "Aufsteigend",
   "Descending": "Absteigend",
-  "Default": "Standard"
+  "Default": "Standard",
+  "redirect_toast": "Weitergeleitet zum veröffentlichten Beispiel"
 }

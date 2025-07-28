@@ -55,5 +55,6 @@
   "reset_alert": "Are you sure you want to reset this example?",
   "Ascending": "Ascending",
   "Descending": "Descending",
-  "Default": "Default"
+  "Default": "Default",
+  "redirect_toast": "Redirected to published example"
 }

@@ -13,9 +13,12 @@ import {
   MenuGroup,
   MenuItem,
   MenuList,
+  useToast,
 } from "@chakra-ui/react"
 import { useKeycloak } from "@react-keycloak/web"
+import { compact, join } from "lodash"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { AiOutlineLogout } from "react-icons/ai"
 import {
   Link,
@@ -32,14 +35,13 @@ import {
   useExamples,
   useSSE,
 } from "../components/Hooks"
-import { compact, join } from "lodash"
-import { Placeholder } from "../components/Panels"
 import { LanguageSwitcher } from "../components/LanguageSwitcher"
-import { useTranslation } from "react-i18next"
+import { Placeholder } from "../components/Panels"
 
 export default function Layout() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const toast = useToast()
 
   const { keycloak } = useKeycloak()
   const { courseSlug } = useParams()
@@ -76,6 +78,10 @@ export default function Layout() {
 
   useSSE<string>("redirect", (data) => {
     setOngoingExamplePath(data)
+    toast({
+      title: t("redirect_toast"),
+      status: "info",
+    })
   })
 
   useEffect(() => {

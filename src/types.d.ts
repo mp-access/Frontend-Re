@@ -240,7 +240,7 @@ declare interface SubmissionSsePayload {
   submissionId: number
   studentId: string
   date: string
-  points: number
+  points: number | null
   testsPassed: number[]
   content: string
 }
