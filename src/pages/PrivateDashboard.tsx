@@ -283,7 +283,7 @@ const GenearlInformation: React.FC<{
             <Icon as={GoChecklist} />
             <Text color={"gray.500"} display={"flex"}>
               {exampleState === "ongoing"
-                ? `${numberOfStudentsWhoSubmitted}/${participantsOnline}`
+                ? `${numberOfStudentsWhoSubmitted}/${Math.max(numberOfStudentsWhoSubmitted, participantsOnline)}` // if participants online not correctly updated, UI should not break
                 : numberOfStudentsWhoSubmitted}
             </Text>
             <CustomPieChart value={submissionsProgress}></CustomPieChart>

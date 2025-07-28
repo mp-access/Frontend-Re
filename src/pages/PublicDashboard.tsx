@@ -156,11 +156,15 @@ export function PublicDashboard() {
             value={submissionsProgress}
             color={"green.500"}
           >
-            <CircularProgressLabel>
+            <CircularProgressLabel fontFamily={"monospace"}>
               {Math.round(submissionsProgress)}%
               <CircularProgressLabel insetY={12} fontSize={16}>
                 {exampleInformation.numberOfStudentsWhoSubmitted}/
-                {exampleInformation.participantsOnline}
+                {Math.max(
+                  exampleInformation.numberOfStudentsWhoSubmitted,
+                  exampleInformation.participantsOnline,
+                )}
+                {/* if participants online not correctly updated, UI should not break */}
               </CircularProgressLabel>
             </CircularProgressLabel>
           </CircularProgress>
