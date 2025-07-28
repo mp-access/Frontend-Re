@@ -10,19 +10,19 @@ import {
   Icon,
   Spacer,
 } from "@chakra-ui/react"
-import { Markdown, Placeholder } from "../components/Panels"
-import { FcAlarmClock, FcDocument } from "react-icons/fc"
 import { t } from "i18next"
+import { useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
+import { FcAlarmClock, FcDocument } from "react-icons/fc"
 import { useNavigate, useOutletContext } from "react-router-dom"
+import { CountdownTimer } from "../components/CountdownTimer"
 import {
   useExample,
   useGeneralExampleInformation,
   useSSE,
   useTimeframeFromSSE,
 } from "../components/Hooks"
-import { useTranslation } from "react-i18next"
-import { CountdownTimer } from "../components/CountdownTimer"
-import { useEffect, useMemo, useState } from "react"
+import { Markdown, Placeholder } from "../components/Panels"
 
 export function PublicDashboard() {
   const { user } = useOutletContext<UserContext>()
@@ -67,6 +67,29 @@ export function PublicDashboard() {
       setExampleInformation(initialExampleInformation)
     }
   }, [initialExampleInformation])
+
+  const submissionsProgress = useMemo(() => {
+    if (
+      !example ||
+      !exampleInformation ||
+      (exampleInformation.participantsOnline <= 0 &&
+        exampleInformation.numberOfStudentsWhoSubmitted <= 0)
+    ) {
+      return 0
+    }
+
+    const { participantsOnline, numberOfStudentsWhoSubmitted } =
+      exampleInformation
+
+    if (
+      (participantsOnline <= 0 && numberOfStudentsWhoSubmitted > 0) ||
+      numberOfStudentsWhoSubmitted >= participantsOnline
+    ) {
+      return 100
+    } else {
+      return numberOfStudentsWhoSubmitted / participantsOnline
+    }
+  }, [example, exampleInformation])
 
   if (!example || !exampleInformation) {
     return <Placeholder />
@@ -130,19 +153,11 @@ export function PublicDashboard() {
         <Flex justify={"center"} align={"center"} flex={1} h={"100%"}>
           <CircularProgress
             size={175}
-            value={
-              (exampleInformation.numberOfStudentsWhoSubmitted /
-                exampleInformation.participantsOnline) *
-              100
-            }
+            value={submissionsProgress}
             color={"green.500"}
           >
             <CircularProgressLabel>
-              {Math.round(
-                exampleInformation.numberOfStudentsWhoSubmitted /
-                  exampleInformation.participantsOnline,
-              ) * 100}
-              %
+              {Math.round(submissionsProgress)}%
               <CircularProgressLabel insetY={12} fontSize={16}>
                 {exampleInformation.numberOfStudentsWhoSubmitted}/
                 {exampleInformation.participantsOnline}
