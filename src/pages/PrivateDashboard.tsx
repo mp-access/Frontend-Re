@@ -51,7 +51,12 @@ import { TestCaseBarChart } from "../components/TestCaseBarChart"
 
 import { formatSeconds } from "../components/Util"
 
-type ExampleState = "unpublished" | "publishing" | "ongoing" | "finished"
+type ExampleState =
+  | "unpublished"
+  | "publishing"
+  | "ongoing"
+  | "finished"
+  | "resetting"
 
 // const Bookmarks: React.FC = () => {
 //   return <Flex>Some Bookmarks</Flex>
@@ -101,9 +106,10 @@ const TerminationDialog: React.FC<{ handleTermination: () => void }> = ({
   )
 }
 
-const ResetDialog: React.FC<{ handleReset: () => void }> = ({
-  handleReset,
-}) => {
+const ResetDialog: React.FC<{
+  handleReset: () => void
+  exampleState: ExampleState
+}> = ({ handleReset, exampleState }) => {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const cancelRef = useRef<HTMLButtonElement>(null)
   return (
@@ -114,6 +120,7 @@ const ResetDialog: React.FC<{ handleReset: () => void }> = ({
         backgroundColor={"red.600"}
         borderRadius={"lg"}
         leftIcon={<RotateFromRightIcon color="white" size={4} />}
+        isLoading={exampleState === "resetting"}
       >
         {t("Reset Example")}?
       </Button>
@@ -419,7 +426,10 @@ const ExampleTimeControler: React.FC<{
 
   return (
     <Flex flex={1} justify={"end"}>
-      <ResetDialog handleReset={handleReset}></ResetDialog>
+      <ResetDialog
+        handleReset={handleReset}
+        exampleState={exampleState}
+      ></ResetDialog>
     </Flex>
   )
 }
@@ -496,12 +506,14 @@ export function PrivateDashboard() {
 
   const handleReset = useCallback(async () => {
     try {
+      setExampleState("resetting")
       await resetExample()
       setExampleState("unpublished")
       refetchInitialExampleInformation()
       refetchStudentSubmissions()
     } catch (e) {
       console.log("An error occured when resetting the example: ", e)
+      setExampleState("finished")
     }
   }, [
     refetchInitialExampleInformation,
