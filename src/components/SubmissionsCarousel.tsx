@@ -86,21 +86,36 @@ export const SubmissionsCarousel: React.FC<{
     number | null
   >(null)
   const slideCount = submissions ? submissions?.length : 0
-
   const filteredSubmissions = useMemo(() => {
     return getFilteredSubmissions(testCaseSelection, submissions, exactMatch)
   }, [exactMatch, testCaseSelection, submissions])
 
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   useEffect(() => {
     const slider = sliderRef.current
     if (!slider) return
+
     const handleScroll = () => {
       const index = Math.round(slider.scrollLeft / slider.offsetWidth)
       setCurrentIndex(index)
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
+      }
+
+      // this is needed to still enable smooth scrolling via touch screen while keeping track of last selected submission
+      scrollTimeoutRef.current = setTimeout(() => {
+        setLastDisplayedSubmissionId(filteredSubmissions[index].submissionId)
+      }, 500)
     }
 
     slider.addEventListener("scroll", handleScroll)
-    return () => slider.removeEventListener("scroll", handleScroll)
+    return () => {
+      slider.removeEventListener("scroll", handleScroll)
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
+      }
+    }
   }, [currentIndex, filteredSubmissions, submissions])
 
   const goToSlide = useCallback(
