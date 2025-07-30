@@ -1,7 +1,9 @@
+import { useToast } from "@chakra-ui/react"
 import { useKeycloak } from "@react-keycloak/web"
+import { EventSource } from "extended-eventsource"
 import { createContext, useContext, useEffect, useRef, useState } from "react"
 import { useParams } from "react-router-dom"
-import { EventSource } from "extended-eventsource"
+import { useHeartbeat } from "../components/Hooks"
 
 type EventSourceContextType = {
   eventSource: EventSource | null
@@ -19,6 +21,9 @@ export const EventSourceProvider: React.FC<{ children: React.ReactNode }> = ({
   const { courseSlug } = useParams()
   const token = keycloak.token
   const [, setTick] = useState(0)
+  const [emitterId, setEmitterId] = useState<string | null>(null)
+  const { sendHeartbeat } = useHeartbeat()
+  const toast = useToast()
 
   useEffect(() => {
     if (!token || !courseSlug || eventSourceRef.current !== null) return
@@ -32,6 +37,9 @@ export const EventSourceProvider: React.FC<{ children: React.ReactNode }> = ({
         retry: 3000,
       },
     )
+    eventSource.addEventListener("emitter-id", (event: MessageEvent) => {
+      setEmitterId(event.data)
+    })
 
     eventSourceRef.current = eventSource
     setTick((t) => t + 1) // force re-render so context provider updates value
@@ -40,6 +48,26 @@ export const EventSourceProvider: React.FC<{ children: React.ReactNode }> = ({
       eventSource.close()
     }
   }, [courseSlug, keycloak.token, token])
+
+  useEffect(() => {
+    if (!emitterId || !courseSlug) return
+
+    const interval = setInterval(
+      () => {
+        try {
+          sendHeartbeat(emitterId)
+        } catch (e) {
+          toast({
+            title: "Heartbeat failed",
+            status: "error",
+          })
+        }
+      },
+      60000, // 1 minute heartbeat
+    )
+
+    return () => clearInterval(interval)
+  }, [emitterId, courseSlug, keycloak.token, sendHeartbeat, toast])
 
   return (
     <EventSourceContext.Provider

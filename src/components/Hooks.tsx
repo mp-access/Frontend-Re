@@ -128,7 +128,10 @@ export const useResetExample = () => {
 
 export const useExamples = () => {
   const { courseSlug } = useParams()
-  return useQuery<TaskOverview[]>(["courses", courseSlug, "examples"])
+
+  return useQuery<TaskOverview[]>(["courses", courseSlug, "examples"], {
+    enabled: !!courseSlug,
+  })
 }
 
 export const useGeneralExampleInformation = () => {
@@ -378,4 +381,22 @@ export const useStudentSubmissions = () => {
     exampleSlug,
     "submissions",
   ])
+}
+
+export const useHeartbeat = () => {
+  const { courseSlug } = useParams()
+
+  const { mutateAsync } = useMutation<unknown, AxiosError, string>({
+    mutationFn: (emitterId: string) => {
+      if (!courseSlug) {
+        return Promise.resolve()
+      }
+      const url = `/courses/${courseSlug}/heartbeat/${emitterId}`
+      return axios.put<void>(url)
+    },
+  })
+
+  const sendHeartbeat = (emitterId: string) => mutateAsync(emitterId)
+
+  return { sendHeartbeat }
 }

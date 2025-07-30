@@ -427,7 +427,8 @@ const ExampleTimeControler: React.FC<{
 export function PrivateDashboard() {
   const { publish } = usePublish()
   const { terminate } = useTerminate()
-  const { data: fetchedSubmissions } = useStudentSubmissions()
+  const { data: fetchedSubmissions, refetch: refetchStudentSubmissions } =
+    useStudentSubmissions()
   const { resetExample } = useResetExample()
   const [durationInSeconds, setDurationInSeconds] = useState<number>(150)
   const [exampleState, setExampleState] = useState<ExampleState | null>(null)
@@ -444,7 +445,10 @@ export function PrivateDashboard() {
   const currentLanguage = i18n.language
   const { user } = useOutletContext<UserContext>()
   const { data: example } = useExample(user.email)
-  const { data: initialExampleInformation } = useGeneralExampleInformation()
+  const {
+    data: initialExampleInformation,
+    refetch: refetchInitialExampleInformation,
+  } = useGeneralExampleInformation()
   const { timeFrameFromEvent } = useTimeframeFromSSE()
   const durationAsString = useMemo(() => {
     return formatSeconds(durationInSeconds || 0)
@@ -494,11 +498,16 @@ export function PrivateDashboard() {
     try {
       await resetExample()
       setExampleState("unpublished")
-      setSubmissions(null)
+      refetchInitialExampleInformation()
+      refetchStudentSubmissions()
     } catch (e) {
       console.log("An error occured when resetting the example: ", e)
     }
-  }, [resetExample])
+  }, [
+    refetchInitialExampleInformation,
+    refetchStudentSubmissions,
+    resetExample,
+  ])
 
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
     if (!example) {
