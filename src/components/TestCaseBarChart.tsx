@@ -1,4 +1,5 @@
 import {
+  Button,
   Flex,
   HStack,
   Select,
@@ -116,6 +117,27 @@ export const TestCaseBarChart: React.FC<{
     setExactMatch((prev) => !prev)
   }
 
+  const handleWorstSolutionClick = useCallback(() => {
+    if (!testCaseSelection) return
+
+    setTestCaseSelection(
+      Object.fromEntries(
+        Object.keys(testCaseSelection).map((key) => [key, true]),
+      ),
+    )
+  }, [setTestCaseSelection, testCaseSelection])
+
+  const handlePerfectSolutionClick = useCallback(() => {
+    if (!testCaseSelection) return
+
+    setExactMatch(true)
+    setTestCaseSelection(
+      Object.fromEntries(
+        Object.keys(testCaseSelection).map((key) => [key, false]),
+      ),
+    )
+  }, [setExactMatch, setTestCaseSelection, testCaseSelection])
+
   const sortedData = useMemo(() => {
     if (sorting === "ascending") {
       return [...data].sort((a, b) => a.value - b.value)
@@ -186,6 +208,14 @@ export const TestCaseBarChart: React.FC<{
           </Bar>
         </BarChart>
       </ResponsiveContainer>
+      <HStack justify={"space-around"} w={"full"} display={"flex"}>
+        <Button borderRadius={"lg"} onClick={handleWorstSolutionClick}>
+          Failing All Tests
+        </Button>
+        <Button borderRadius={"lg"} onClick={handlePerfectSolutionClick}>
+          Passing All Tests
+        </Button>
+      </HStack>
     </VStack>
   )
 }
