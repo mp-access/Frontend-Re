@@ -1,9 +1,9 @@
-import { Button, Text, Divider, Flex, Heading, HStack } from "@chakra-ui/react"
-import "./Carousel.css"
+import { Button, Divider, Flex, Heading, HStack, Text } from "@chakra-ui/react"
 import { MdOutlineScreenShare } from "react-icons/md"
+import "./Carousel.css"
 
-import React, { useEffect, useMemo, useRef, useState } from "react"
 import { Editor } from "@monaco-editor/react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
 
 const getFilteredSubmissions = (
   testCaseSelection: Record<string, boolean> | null,
@@ -47,7 +47,7 @@ const Slide: React.FC<{
       <Divider />
       <Flex h={"full"} marginTop={4} direction={"column"}>
         <Editor
-          defaultValue={submission.content}
+          value={submission.content}
           options={{
             readOnly: true,
             minimap: { enabled: false },
