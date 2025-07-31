@@ -168,13 +168,12 @@ export const TestCaseBarChart: React.FC<{
   ])
 
   return (
-    <VStack height={"100%"}>
+    <VStack display={"flex"}>
       <Flex
         width={"100%"}
         justifyContent={"space-between"}
         align={"center"}
         pt={2}
-        height={"5%"}
       >
         <Select maxW={150} onChange={handleChange} value={sorting} size={"md"}>
           <option value={"default"}>{t("Default")}</option>
@@ -191,23 +190,30 @@ export const TestCaseBarChart: React.FC<{
           />
         </HStack>
       </Flex>
-      <ResponsiveContainer width="100%" height="95%">
-        <BarChart
-          data={sortedData}
-          layout="vertical"
-          margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
-          barSize={BAR_HEIGHT}
-        >
-          <XAxis type="number" domain={[0, 100]} interval={0} />
-          <YAxis type="category" dataKey="name" hide={true} />
-          <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-          <Bar dataKey="value" radius={[6, 6, 6, 6]} animationDuration={0}>
-            {barCells}
-            <LabelList dataKey="name" content={CustomNameLabel} />
-            <LabelList dataKey="value" content={CustomValueLabel} />
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+
+      <Flex flex={1} width={"100%"}>
+        <ResponsiveContainer>
+          <BarChart
+            style={{
+              width: "100%",
+              height: "100%",
+            }}
+            data={sortedData}
+            layout="vertical"
+            barSize={BAR_HEIGHT}
+          >
+            <XAxis type="number" domain={[0, 100]} interval={0} />
+            <YAxis type="category" dataKey="name" hide={true} />
+            <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+            <Bar dataKey="value" radius={[6, 6, 6, 6]} animationDuration={0}>
+              {barCells}
+              <LabelList dataKey="name" content={CustomNameLabel} />
+              <LabelList dataKey="value" content={CustomValueLabel} />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </Flex>
+
       <HStack justify={"space-around"} w={"full"} display={"flex"}>
         <Button borderRadius={"lg"} onClick={handleWorstSolutionClick}>
           Failing All Tests

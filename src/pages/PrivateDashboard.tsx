@@ -14,6 +14,11 @@ import {
   Heading,
   HStack,
   Icon,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
   Tag,
   TagLabel,
   TagLeftIcon,
@@ -600,13 +605,26 @@ export function PrivateDashboard() {
         colEnd={2}
         p={3}
       >
-        <TestCaseBarChart
-          passRatePerTestCase={exampleInformation.passRatePerTestCase}
-          exactMatch={exactMatch}
-          setExactMatch={setExactMatch}
-          testCaseSelection={testCaseSelection}
-          setTestCaseSelection={setTestCaseSelection}
-        ></TestCaseBarChart>
+        <Flex height={"full"}>
+          <Tabs isFitted display={"flex"} flexDir={"column"} flex={1}>
+            <TabList>
+              <Tab>Test Cases</Tab>
+              <Tab> Bookmarks</Tab>
+            </TabList>
+            <TabPanels display={"flex"} flex={1}>
+              <TabPanel display={"flex"} flex={1}>
+                <TestCaseBarChart
+                  passRatePerTestCase={exampleInformation.passRatePerTestCase}
+                  exactMatch={exactMatch}
+                  setExactMatch={setExactMatch}
+                  testCaseSelection={testCaseSelection}
+                  setTestCaseSelection={setTestCaseSelection}
+                ></TestCaseBarChart>
+              </TabPanel>
+              <TabPanel>Placeholder</TabPanel>
+            </TabPanels>
+          </Tabs>
+        </Flex>
         {/* <Bookmarks></Bookmarks> */}
       </GridItem>
       <GridItem gap={4} colStart={2} colEnd={4} rowStart={1} rowEnd={4}>
