@@ -41,9 +41,7 @@ const Slide: React.FC<{
   return (
     <Flex direction={"column"} p={2}>
       <HStack justify={"space-between"} pl={2} pr={2}>
-        <Heading fontSize="lg">
-          {submission.studentId} SubmissionId{submission.submissionId}
-        </Heading>
+        <Heading fontSize="lg">{submission.studentId}</Heading>
         <Text>Points: {submission.points}</Text>
       </HStack>
       <Divider />
