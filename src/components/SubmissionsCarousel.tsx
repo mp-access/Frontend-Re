@@ -1,4 +1,13 @@
-import { Button, Divider, Flex, Heading, HStack, Text } from "@chakra-ui/react"
+import {
+  Box,
+  Button,
+  Divider,
+  Flex,
+  Heading,
+  HStack,
+  Text,
+  useToken,
+} from "@chakra-ui/react"
 import { MdOutlineScreenShare } from "react-icons/md"
 import "./Carousel.css"
 
@@ -34,15 +43,65 @@ const getFilteredSubmissions = (
   })
 }
 
+const BookmarkToggle: React.FC<{ onClick: () => void }> = ({ onClick }) => {
+  const [selected, setSelected] = useState(false)
+
+  const color = useToken("colors", "purple.600")
+  const bookmarkIcon = (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 640 640"
+      style={{ fill: color, height: 32, width: 32 }}
+    >
+      <path d="M128 128C128 92.7 156.7 64 192 64L448 64C483.3 64 512 92.7 512 128L512 545.1C512 570.7 483.5 585.9 462.2 571.7L320 476.8L177.8 571.7C156.5 585.9 128 570.6 128 545.1L128 128zM192 112C183.2 112 176 119.2 176 128L176 515.2L293.4 437C309.5 426.3 330.5 426.3 346.6 437L464 515.2L464 128C464 119.2 456.8 112 448 112L192 112z" />
+    </svg>
+  )
+
+  const bookmarkIconFilled = (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 640 640"
+      style={{ fill: color, height: 32, width: 32 }}
+    >
+      <path d="M192 64C156.7 64 128 92.7 128 128L128 544C128 555.5 134.2 566.2 144.2 571.8C154.2 577.4 166.5 577.3 176.4 571.4L320 485.3L463.5 571.4C473.4 577.3 485.7 577.5 495.7 571.8C505.7 566.1 512 555.5 512 544L512 128C512 92.7 483.3 64 448 64L192 64z" />
+    </svg>
+  )
+
+  const handleClick = useCallback(() => {
+    setSelected(!selected)
+    onClick()
+  }, [onClick, selected])
+
+  return (
+    <Box
+      as="button"
+      onClick={handleClick}
+      p={0}
+      m={0}
+      bg="transparent"
+      border="none"
+      cursor="pointer"
+      _focus={{ outline: "none" }}
+      _hover={{ transform: "scale(1.05)" }}
+    >
+      {selected ? bookmarkIconFilled : bookmarkIcon}
+    </Box>
+  )
+}
+
 const Slide: React.FC<{
   submission: SubmissionSsePayload
+  handleOnBookmarkClick: (submission: SubmissionSsePayload) => void
   openInEditor: (studentId: string) => Promise<void>
-}> = ({ submission, openInEditor }) => {
+}> = ({ submission, handleOnBookmarkClick, openInEditor }) => {
   return (
     <Flex direction={"column"} p={2}>
       <HStack justify={"space-between"} pl={2} pr={2}>
         <Heading fontSize="lg">{submission.studentId}</Heading>
         <Text>Points: {submission.points}</Text>
+        <BookmarkToggle
+          onClick={() => handleOnBookmarkClick(submission)}
+        ></BookmarkToggle>
       </HStack>
       <Divider />
       <Flex h={"full"} marginTop={4} direction={"column"}>
@@ -76,8 +135,15 @@ export const SubmissionsCarousel: React.FC<{
   submissions: SubmissionSsePayload[]
   testCaseSelection: Record<string, boolean> | null
   exactMatch: boolean
+  handleOnBookmarkClick: (submission: SubmissionSsePayload) => void
   openInEditor: (studentId: string) => Promise<void>
-}> = ({ submissions, testCaseSelection, exactMatch, openInEditor }) => {
+}> = ({
+  submissions,
+  testCaseSelection,
+  exactMatch,
+  handleOnBookmarkClick,
+  openInEditor,
+}) => {
   const sliderRef = useRef<HTMLDivElement | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [lastDisplayedSubmissionId, setLastDisplayedSubmissionId] = useState<
@@ -159,8 +225,13 @@ export const SubmissionsCarousel: React.FC<{
     >
       <Flex className="slider" width={"full"} borderRadius={"2xl"}>
         <Flex className="slides" ref={sliderRef}>
-          {filteredSubmissions?.map((submission) => (
-            <Slide submission={submission} openInEditor={openInEditor}></Slide>
+          {filteredSubmissions?.map((submission, key) => (
+            <Slide
+              submission={submission}
+              openInEditor={openInEditor}
+              handleOnBookmarkClick={handleOnBookmarkClick}
+              key={key}
+            ></Slide>
           ))}
         </Flex>
       </Flex>

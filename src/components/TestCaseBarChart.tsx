@@ -168,12 +168,13 @@ export const TestCaseBarChart: React.FC<{
   ])
 
   return (
-    <VStack display={"flex"}>
+    <VStack display={"flex"} width={"full"} p={0}>
       <Flex
         width={"100%"}
         justifyContent={"space-between"}
         align={"center"}
-        pt={2}
+        p={1}
+        pt={0}
       >
         <Select maxW={150} onChange={handleChange} value={sorting} size={"md"}>
           <option value={"default"}>{t("Default")}</option>
@@ -201,6 +202,7 @@ export const TestCaseBarChart: React.FC<{
             data={sortedData}
             layout="vertical"
             barSize={BAR_HEIGHT}
+            margin={{ top: 4, right: 14, left: 14, bottom: 0 }}
           >
             <XAxis type="number" domain={[0, 100]} interval={0} />
             <YAxis type="category" dataKey="name" hide={true} />
@@ -214,7 +216,7 @@ export const TestCaseBarChart: React.FC<{
         </ResponsiveContainer>
       </Flex>
 
-      <HStack justify={"space-around"} w={"full"} display={"flex"}>
+      <HStack justify={"space-between"} w={"full"} display={"flex"}>
         <Button borderRadius={"lg"} onClick={handleWorstSolutionClick}>
           Failing All Tests
         </Button>

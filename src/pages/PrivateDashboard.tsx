@@ -41,6 +41,7 @@ import {
   useExtendExample,
   useGeneralExampleInformation,
   useInspect,
+  useLocalStorage,
   usePublish,
   useResetExample,
   useSSE,
@@ -49,11 +50,12 @@ import {
   useTimeframeFromSSE,
 } from "../components/Hooks"
 
-import { useOutletContext } from "react-router-dom"
+import { useOutletContext, useParams } from "react-router-dom"
 import { Markdown, Placeholder } from "../components/Panels"
 import { SubmissionsCarousel } from "../components/SubmissionsCarousel"
 import { TestCaseBarChart } from "../components/TestCaseBarChart"
 
+import { Bookmarks } from "../components/Bookmarks"
 import { formatSeconds } from "../components/Util"
 
 type ExampleState =
@@ -62,10 +64,6 @@ type ExampleState =
   | "ongoing"
   | "finished"
   | "resetting"
-
-// const Bookmarks: React.FC = () => {
-//   return <Flex>Some Bookmarks</Flex>
-// }
 
 const TerminationDialog: React.FC<{ handleTermination: () => void }> = ({
   handleTermination,
@@ -164,7 +162,8 @@ const SubmissionInspector: React.FC<{
   submissions: SubmissionSsePayload[]
   selectedTests: Record<string, boolean> | null
   exactMatch: boolean
-}> = ({ submissions, selectedTests, exactMatch }) => {
+  handleOnBookmarkClick: (submission: SubmissionSsePayload) => void
+}> = ({ submissions, selectedTests, exactMatch, handleOnBookmarkClick }) => {
   const { inspect } = useInspect()
   const toast = useToast()
   const openInEditor = useCallback(
@@ -202,6 +201,7 @@ const SubmissionInspector: React.FC<{
         openInEditor={openInEditor}
         testCaseSelection={selectedTests}
         exactMatch={exactMatch}
+        handleOnBookmarkClick={handleOnBookmarkClick}
       />
     </Flex>
   )
@@ -450,7 +450,11 @@ export function PrivateDashboard() {
   const [exactMatch, setExactMatch] = useState<boolean>(false)
   const [exampleInformation, setExampleInformation] =
     useState<ExampleInformation | null>(null)
-
+  const { courseSlug, exampleSlug } = useParams()
+  const [bookmarks, setBookmarks] = useLocalStorage<Bookmark[] | null>(
+    `${courseSlug}-${exampleSlug}-bookmarks`,
+    null,
+  )
   const [testCaseSelection, setTestCaseSelection] = useState<Record<
     string,
     boolean
@@ -525,6 +529,41 @@ export function PrivateDashboard() {
     refetchStudentSubmissions,
     resetExample,
   ])
+
+  const handleOnBookmarkClick = useCallback(
+    (submission: SubmissionSsePayload) => {
+      const submissionBookmark: Bookmark = {
+        submissionId: submission.submissionId,
+        studentId: submission.studentId,
+        testsPassed: submission.testsPassed,
+        filters: { testCaseSelection, exactMatch },
+      }
+
+      setBookmarks((prev) => {
+        if (!prev) {
+          return [submissionBookmark]
+        }
+
+        // check if bookmark already exists
+        const shouldRemove = prev.some(
+          (bookmark) => submission.submissionId === bookmark.submissionId,
+        )
+
+        if (shouldRemove) {
+          const idx = prev.findIndex(
+            (bookmark) => bookmark.submissionId === submission.submissionId,
+          )
+
+          if (idx !== -1) {
+            return [...prev.slice(0, idx), ...prev.slice(idx + 1)]
+          }
+        }
+
+        return [...prev, submissionBookmark]
+      })
+    },
+    [exactMatch, setBookmarks, testCaseSelection],
+  )
 
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
     if (!example) {
@@ -603,16 +642,23 @@ export function PrivateDashboard() {
         rowEnd={5}
         colStart={1}
         colEnd={2}
-        p={3}
+        p={1}
       >
         <Flex height={"full"}>
-          <Tabs isFitted display={"flex"} flexDir={"column"} flex={1}>
+          <Tabs
+            variant={"line"}
+            isFitted
+            display={"flex"}
+            flexDir={"column"}
+            flex={1}
+            colorScheme="purple"
+          >
             <TabList>
               <Tab>Test Cases</Tab>
               <Tab> Bookmarks</Tab>
             </TabList>
             <TabPanels display={"flex"} flex={1}>
-              <TabPanel display={"flex"} flex={1}>
+              <TabPanel display={"flex"} flex={1} pb={1} pl={1} pr={1}>
                 <TestCaseBarChart
                   passRatePerTestCase={exampleInformation.passRatePerTestCase}
                   exactMatch={exactMatch}
@@ -621,11 +667,12 @@ export function PrivateDashboard() {
                   setTestCaseSelection={setTestCaseSelection}
                 ></TestCaseBarChart>
               </TabPanel>
-              <TabPanel>Placeholder</TabPanel>
+              <TabPanel display={"flex"} flex={1}>
+                <Bookmarks bookmarks={bookmarks} />
+              </TabPanel>
             </TabPanels>
           </Tabs>
         </Flex>
-        {/* <Bookmarks></Bookmarks> */}
       </GridItem>
       <GridItem gap={4} colStart={2} colEnd={4} rowStart={1} rowEnd={4}>
         <Flex direction={"column"} h={"full"}>
@@ -639,6 +686,7 @@ export function PrivateDashboard() {
               submissions={submissions}
               selectedTests={testCaseSelection}
               exactMatch={exactMatch}
+              handleOnBookmarkClick={handleOnBookmarkClick}
             />
           )}
         </Flex>

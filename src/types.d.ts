@@ -244,3 +244,13 @@ declare interface SubmissionSsePayload {
   testsPassed: number[]
   content: string
 }
+
+declare interface Bookmark {
+  submissionId: number
+  studentId: string
+  testsPassed: number[]
+  filters: {
+    testCaseSelection: Record<string | boolean>
+    exactMatch: boolean
+  }
+}
