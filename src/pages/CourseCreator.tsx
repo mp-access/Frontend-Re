@@ -21,6 +21,7 @@ import { useCreate } from "../components/Hooks"
 
 export default function CourseCreator({
   slug = "",
+  repositoryBranch = "",
   repository = "",
   repositoryUser = "",
   repositoryPassword = "",
@@ -34,6 +35,7 @@ export default function CourseCreator({
   const { mutate, isLoading } = useCreate(slug)
   const [course, setCourse] = useState({
     slug: slug,
+    repositoryBranch: repositoryBranch,
     repository: repository,
     repositoryUser: repositoryUser,
     repositoryPassword: repositoryPassword,
@@ -71,6 +73,20 @@ export default function CourseCreator({
                 value={course.repository}
                 onChange={(e) =>
                   setCourse({ ...course, repository: e.target.value })
+                }
+                type="text"
+              />
+            </FormControl>
+            <Text color="gray.600" lineHeight={1.5}>
+              Which Git branch should the course be loaded from? Leave empty to
+              use the repository's default branch.
+            </Text>
+            <FormControl>
+              <FormLabel>Git branch:</FormLabel>
+              <Input
+                value={course.repositoryBranch}
+                onChange={(e) =>
+                  setCourse({ ...course, repositoryBranch: e.target.value })
                 }
                 type="text"
               />

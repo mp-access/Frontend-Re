@@ -34,6 +34,7 @@ declare interface CourseMetaProps {
   description?: string
   slug?: string
   repository?: string
+  repositoryBranch?: string
   repositoryUser?: string
   repositoryPassword?: string
   webhookSecret?: string
