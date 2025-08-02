@@ -6,6 +6,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogOverlay,
+  Box,
   Button,
   Divider,
   Flex,
@@ -174,22 +175,59 @@ const SubmissionInspector: React.FC<{
     [inspect, toast],
   )
 
+  const rawColors = ["purple", "green", "yellow", "blue", "orange", "gray"]
+  const sizes = [180, 120, 80, 30, 20, 70]
+
   return (
     <Flex direction={"column"} h={"full"} gap={2}>
-      <Flex layerStyle={"segment"} direction={"column"}>
-        <Heading fontSize="xl">Implementation Type #2</Heading>
-        <Divider />
-        <Flex justify={"space-around"} pt={2}>
-          <Text display={"flex"} flexDirection={"row"} gap={2}>
-            Number of implementations: <Text fontWeight={"bold"}>115</Text>
-          </Text>
-          <Text display={"flex"} flexDirection={"row"} gap={2}>
-            Avg. Score: <Text fontWeight={"bold"}>3.2</Text>
-          </Text>
-          <Text display={"flex"} flexDirection={"row"} gap={2}>
-            Std. Dev.: <Text fontWeight={"bold"}>0.8</Text>
-          </Text>
-        </Flex>
+      <Flex layerStyle={"segment"} direction="row" p={2}>
+        {rawColors.map((color, i) => {
+          // eslint-disable-next-line react-hooks/rules-of-hooks
+          const [bgColor, selectedColor] = useToken("colors", [
+            `${color}.200`,
+            `${color}.500`,
+          ])
+
+          return (
+            <Box
+              h={9}
+              position={"relative"}
+              flex={sizes[i]}
+              overflow={"hidden"}
+              bgColor={bgColor}
+              roundedLeft={i === 0 ? 8 : 0}
+              roundedRight={i === rawColors.length - 1 ? 8 : 0}
+            >
+              <Box
+                position={"absolute"}
+                h={"full"}
+                w={1 / 8}
+                bgColor={selectedColor}
+                border={"1px solid black"}
+                roundedLeft={i === 0 ? 8 : 0}
+                //   roundedRight={i === rawColors.length - 1 ? 5 : 0}
+              />
+              <Grid
+                position={"absolute"}
+                p={2}
+                h={"full"}
+                w={"full"}
+                placeItems={"center"}
+                color={"white"}
+                fontSize={"xs"}
+                textOverflow={"ellipsis"}
+                whiteSpace={"nowrap"}
+                textShadow={`-1px -1px 0 ${selectedColor}, 1px -1px 0 ${selectedColor}, -1px 1px 0 ${selectedColor}, 1px 1px 0 ${selectedColor}`}
+              >
+                {sizes[i]} | Avg: 80%
+              </Grid>
+            </Box>
+          )
+        })}
+
+        <Button h={9} variant={"outline"} borderRadius={8} ml={2}>
+          Re-categorize
+        </Button>
       </Flex>
 
       <SubmissionsCarousel
