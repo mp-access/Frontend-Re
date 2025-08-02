@@ -25,8 +25,8 @@ export default function CourseController() {
   const { mutate: pull, isLoading } = usePull()
   return (
     <ButtonGroup variant="gradient">
-      <Button as={Link} to="students" leftIcon={<AiOutlineAudit />}>
-        {t("Students")}
+      <Button as={Link} to="participants" leftIcon={<AiOutlineAudit />}>
+        {t("Participants")}
       </Button>
       <Button leftIcon={<AiOutlineGithub />} onClick={onOpen}>
         Pull

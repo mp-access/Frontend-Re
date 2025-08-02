@@ -129,7 +129,6 @@ export default function Task({ type }: { type: "task" | "example" }) {
       }
     }
   }, [submissionId])
-
   useEffect(() => {
     if (task) {
       if (currentFile == undefined || taskId != task.id) {

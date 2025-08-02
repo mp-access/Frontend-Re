@@ -24,9 +24,9 @@ const usePath = (prefix: string): string[] => {
           "assignments",
           assignmentSlug,
           prefix !== "assignments" && ["tasks", taskSlug],
-        ],
-      ),
-    ),
+        ]
+      )
+    )
   )
 }
 
@@ -34,7 +34,7 @@ export const useCreate = (slug: string) => {
   const target = slug === "" ? "/create" : "/edit"
   const { mutate, isLoading } = useMutation<string, AxiosError, object>(
     (repository) => axios.post(target, repository),
-    { onSuccess: () => window.location.reload() },
+    { onSuccess: () => window.location.reload() }
   )
   return { mutate, isLoading }
 }
@@ -43,7 +43,7 @@ export const usePull = () => {
   const path = usePath("")
   const { mutate, isLoading } = useMutation(
     () => axios.post("/courses" + `/${path[1]}/pull`, {}),
-    { onSuccess: () => window.location.reload() },
+    { onSuccess: () => window.location.reload() }
   )
   return { mutate, isLoading }
 }
@@ -76,16 +76,16 @@ export const usePublish = () => {
   return { publish }
 }
 
-export const useStudents = () => {
+export const useParticipants = () => {
   const { courseSlug } = useParams()
-  return useQuery<StudentProps[]>(["courses", courseSlug, "students"], {
+  return useQuery<ParticipantProps[]>(["courses", courseSlug, "participants"], {
     enabled: !!courseSlug,
   })
 }
 
-export const useStudentPoints = () => {
+export const usePoints = () => {
   const { courseSlug } = useParams()
-  return useQuery<StudentProps[]>(["courses", courseSlug, "studentPoints"], {
+  return useQuery<ParticipantProps[]>(["courses", courseSlug, "points"], {
     enabled: !!courseSlug,
   })
 }
@@ -94,7 +94,7 @@ export const useAssignment = () => {
   const { courseSlug, assignmentSlug } = useParams()
   return useQuery<AssignmentProps>(
     ["courses", courseSlug, "assignments", assignmentSlug],
-    { enabled: !!assignmentSlug },
+    { enabled: !!assignmentSlug }
   )
 }
 
@@ -108,7 +108,7 @@ export const useExample = (userId: string) => {
   const { courseSlug, exampleSlug } = useParams()
   const query = useQuery<TaskProps>(
     ["courses", courseSlug, "examples", exampleSlug, "users", userId],
-    { enabled: !timer },
+    { enabled: !timer }
   )
   // eslint-disable-next-line
   const { mutateAsync } = useMutation<any, AxiosError, any[]>(
@@ -117,7 +117,7 @@ export const useExample = (userId: string) => {
       onMutate: () => setTimer(Date.now() + 30000),
       onSettled: () => setTimer(undefined),
       onSuccess: query.refetch,
-    },
+    }
   )
   const submit = (data: NewSubmissionProps) =>
     mutateAsync([
@@ -141,7 +141,7 @@ export const useTask = (userId: string) => {
       "users",
       userId,
     ],
-    { enabled: !timer },
+    { enabled: !timer }
   )
   // eslint-disable-next-line
   const { mutateAsync } = useMutation<any, AxiosError, any[]>(
@@ -150,7 +150,7 @@ export const useTask = (userId: string) => {
       onMutate: () => setTimer(Date.now() + 30000),
       onSettled: () => setTimer(undefined),
       onSuccess: query.refetch,
-    },
+    }
   )
   const submit = (data: NewSubmissionProps) =>
     mutateAsync([
