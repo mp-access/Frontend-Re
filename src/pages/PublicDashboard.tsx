@@ -1,7 +1,6 @@
 import {
   CircularProgress,
   CircularProgressLabel,
-  Container,
   Divider,
   Flex,
   Grid,
@@ -11,29 +10,100 @@ import {
   Icon,
   Spacer,
 } from "@chakra-ui/react"
-import { Markdown } from "../components/Panels"
-import { FcAlarmClock, FcDocument } from "react-icons/fc"
 import { t } from "i18next"
-
-const someExampleMarkdownTaskDescription = `Transform the following mathematical expression into a Python program to be able to calculate the
-result for arbitrary values of a, b, c, and d defined in the source code:
-
-\`a - (b^2 / (c - d * (a + b)))\`
-
-Implement it in a function \`calculate\` where it should be returned.
-
-Please make sure that your solution is self-contained within the \`calculate\` function. In other words, only change the body of the function, not the code outside the function.
-
-Transform the following mathematical expression into a Python program to be able to calculate the
-result for arbitrary values of a, b, c, and d defined in the source code:
-
-\`a - (b^2 / (c - d * (a + b)))\`
-
-Implement it in a function \`calculate\` where it should be returned.
-
-Please make sure that your solution is self-contained within the \`calculate\` function. In other words, only change the body of the function, not the code outside the function.`
+import { useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
+import { FcAlarmClock, FcDocument } from "react-icons/fc"
+import { useNavigate, useOutletContext } from "react-router-dom"
+import { CountdownTimer } from "../components/CountdownTimer"
+import {
+  useExample,
+  useGeneralExampleInformation,
+  useSSE,
+  useTimeframeFromSSE,
+} from "../components/Hooks"
+import { Markdown, Placeholder } from "../components/Panels"
 
 export function PublicDashboard() {
+  const { user } = useOutletContext<UserContext>()
+  const { data: example } = useExample(user.email)
+  const { i18n } = useTranslation()
+  const navigate = useNavigate()
+  const currentLanguage = i18n.language
+  const { timeFrameFromEvent } = useTimeframeFromSSE()
+  const { data: initialExampleInformation } = useGeneralExampleInformation()
+  const [exampleInformation, setExampleInformation] =
+    useState<ExampleInformation | null>(null)
+  const [derivedStartDate, derivedEndDate] = useMemo(() => {
+    if (!example) {
+      return [null, null]
+    }
+
+    if (timeFrameFromEvent) {
+      return timeFrameFromEvent
+    }
+
+    if (!example.start || !example.end) {
+      return [null, null]
+    }
+
+    return [Date.parse(example.start), Date.parse(example.end)]
+  }, [example, timeFrameFromEvent])
+
+  useSSE<string>("inspect", (editorURL) => {
+    if (!editorURL) {
+      return
+    }
+
+    navigate(editorURL)
+  })
+
+  useSSE<ExampleInformation>("example-information", (data) => {
+    setExampleInformation(data)
+  })
+
+  useEffect(() => {
+    if (initialExampleInformation) {
+      setExampleInformation(initialExampleInformation)
+    }
+  }, [initialExampleInformation])
+
+  const submissionsProgress = useMemo(() => {
+    if (
+      !example ||
+      !exampleInformation ||
+      (exampleInformation.participantsOnline <= 0 &&
+        exampleInformation.numberOfStudentsWhoSubmitted <= 0)
+    ) {
+      return 0
+    }
+
+    const { participantsOnline, numberOfStudentsWhoSubmitted } =
+      exampleInformation
+
+    if (
+      (participantsOnline <= 0 && numberOfStudentsWhoSubmitted > 0) ||
+      numberOfStudentsWhoSubmitted >= participantsOnline
+    ) {
+      return 100
+    } else {
+      return (numberOfStudentsWhoSubmitted / participantsOnline) * 100
+    }
+  }, [example, exampleInformation])
+
+  if (!example || !exampleInformation) {
+    return <Placeholder />
+  }
+  const instructionFile =
+    example.information[currentLanguage]?.instructionsFile ||
+    example.information["en"].instructionsFile
+  const instructionsContent = example?.files.filter(
+    (file) => file.path === `/${instructionFile}`,
+  )[0]?.template
+  const title =
+    example.information[currentLanguage]?.title ||
+    example.information["en"]?.title
+
   return (
     <Grid
       layerStyle={"container"}
@@ -52,10 +122,10 @@ export function PublicDashboard() {
         colEnd={2}
         p={3}
       >
-        <Heading fontSize="xl">Some Title</Heading>
+        <Heading fontSize="xl">{title}</Heading>
         <Divider />
         <Spacer height={1} />
-        <Markdown children={someExampleMarkdownTaskDescription}></Markdown>
+        <Markdown children={instructionsContent}></Markdown>
       </GridItem>
       <GridItem layerStyle={"card"} p={3} maxHeight={450}>
         <HStack>
@@ -65,9 +135,12 @@ export function PublicDashboard() {
         <Divider />
         <Spacer height={1} />
         <Flex justify={"center"} align={"center"} flex={1} h={"100%"}>
-          <CircularProgress size={175} value={80} color="green.500">
-            <CircularProgressLabel>2:30</CircularProgressLabel>
-          </CircularProgress>
+          <CountdownTimer
+            startTime={derivedStartDate}
+            endTime={derivedEndDate}
+            size="large"
+            variant="circular"
+          />
         </Flex>
       </GridItem>
       <GridItem layerStyle={"card"} p={3} maxHeight={450}>
@@ -78,11 +151,20 @@ export function PublicDashboard() {
         <Divider />
         <Spacer height={1} />
         <Flex justify={"center"} align={"center"} flex={1} h={"100%"}>
-          <CircularProgress size={175} value={75} color={"green.500"}>
-            <CircularProgressLabel>
-              75%
-              <CircularProgressLabel insetY={12} fontSize={12}>
-                150/200
+          <CircularProgress
+            size={175}
+            value={submissionsProgress}
+            color={"green.500"}
+          >
+            <CircularProgressLabel fontFamily={"monospace"}>
+              {Math.round(submissionsProgress)}%
+              <CircularProgressLabel insetY={12} fontSize={16}>
+                {exampleInformation.numberOfStudentsWhoSubmitted}/
+                {Math.max(
+                  exampleInformation.numberOfStudentsWhoSubmitted,
+                  exampleInformation.participantsOnline,
+                )}
+                {/* if participants online not correctly updated, UI should not break */}
               </CircularProgressLabel>
             </CircularProgressLabel>
           </CircularProgress>

@@ -15,32 +15,32 @@ import {
   Tag,
   TagLabel,
   TagLeftIcon,
-  Text,
   Tbody,
   Td,
+  Text,
   Tr,
   VStack,
   Wrap,
 } from "@chakra-ui/react"
+import { format, parseISO } from "date-fns"
+import { de, enUS } from "date-fns/locale"
+import { get, groupBy, keys, omit } from "lodash"
 import { fork, mapEntries, objectify } from "radash"
-import CourseController from "./CourseController"
-import React, { useState } from "react"
+import { useState } from "react"
 import { DayPicker } from "react-day-picker"
-import { enUS, de } from "date-fns/locale"
-import { AiOutlineTeam, AiOutlineClockCircle } from "react-icons/ai"
+import { useTranslation } from "react-i18next"
+import { AiOutlineClockCircle, AiOutlineTeam } from "react-icons/ai"
 import { BsFillCircleFill } from "react-icons/bs"
 import { FcAlarmClock, FcIdea, FcLock, FcPlanner } from "react-icons/fc"
+import { HiOutlineCalendarDays } from "react-icons/hi2"
 import { Link, useOutletContext } from "react-router-dom"
 import { Detail, EventBox } from "../components/Buttons"
-import { CourseAvatar } from "../components/Icons"
-import { TimeCountDown, ScoreBar } from "../components/Statistics"
 import { useCourse } from "../components/Hooks"
-import { get, groupBy, keys, omit } from "lodash"
-import { format, parseISO } from "date-fns"
-import { HiOutlineCalendarDays } from "react-icons/hi2"
+import { CourseAvatar } from "../components/Icons"
+import { ScoreBar, TimeCountDown } from "../components/Statistics"
 import { formatDateRange } from "../components/Util"
+import CourseController from "./CourseController"
 import CourseCreator from "./CourseCreator"
-import { useTranslation } from "react-i18next"
 
 export default function Course() {
   const { i18n, t } = useTranslation()
@@ -65,9 +65,8 @@ export default function Course() {
 
   const [activeExamples, inactiveExamples] = fork(
     course.examples,
-    (e) => e.active,
+    (e) => e.status === "Active" || e.status === "Interactive",
   )
-
   const nrOfSolvedExampels = activeExamples.reduce(
     (total, example) => total + example.points,
     0,
@@ -177,38 +176,40 @@ export default function Course() {
         </VStack>
       </GridItem>
       <GridItem as={Stack} layerStyle="container" p={0} spacing={4}>
-        <TableContainer layerStyle="segment">
-          <HStack>
-            <Icon as={FcIdea} boxSize={6} />
-            <Heading fontSize="2xl">{t("Lecture Examples")}</Heading>
-          </HStack>
-          <Divider borderColor="gray.300" my={4} />
-          <Table>
-            <Tbody>
-              <Tr key={course.slug}>
-                {" "}
-                {/* replace this with something better*/}
-                <Td>
-                  <VStack>
-                    <Heading fontSize="lg">{t("Examples")}</Heading>
-                  </VStack>
-                </Td>
-                <Td w="17em" maxW="17em"></Td>
-                <Td w="12em" maxW="12em"></Td>
-                <Td w="10em" maxW="13em">
-                  <Button
-                    w="full"
-                    colorScheme="green"
-                    as={Link}
-                    to={"examples"}
-                  >
-                    {nrOfSolvedExampels ? t("Continue") : t("Examples")}
-                  </Button>
-                </Td>
-              </Tr>
-            </Tbody>
-          </Table>
-        </TableContainer>
+        {isSupervisor || activeExamples.length > 0 ? (
+          <TableContainer layerStyle="segment">
+            <HStack>
+              <Icon as={FcIdea} boxSize={6} />
+              <Heading fontSize="2xl">{t("Lecture Examples")}</Heading>
+            </HStack>
+            <Divider borderColor="gray.300" my={4} />
+
+            <Table>
+              <Tbody>
+                <Tr key={course.slug}>
+                  <Td>
+                    <VStack>
+                      <Heading fontSize="lg">{t("Examples")}</Heading>
+                    </VStack>
+                  </Td>
+                  <Td w="17em" maxW="17em"></Td>
+                  <Td w="12em" maxW="12em"></Td>
+                  <Td w="10em" maxW="13em">
+                    <Button
+                      w="full"
+                      colorScheme="green"
+                      as={Link}
+                      to={"examples"}
+                    >
+                      {nrOfSolvedExampels ? t("Continue") : t("Examples")}
+                    </Button>
+                  </Td>
+                </Tr>
+              </Tbody>
+            </Table>
+          </TableContainer>
+        ) : null}
+
         {!!upcomingAssignments.length && (
           <TableContainer layerStyle="segment">
             <HStack>
@@ -340,7 +341,7 @@ export default function Course() {
             <TableCaption>
               {!activeAssignments.length && (
                 <Center minH={28} color="gray.400">
-                  No active assignments found.
+                  {t("No active assignments found.")}
                 </Center>
               )}
             </TableCaption>
@@ -405,7 +406,7 @@ export default function Course() {
             <TableCaption>
               {!pastAssignments.length && (
                 <Center minH={28} color="gray.400">
-                  No closed assignments found.
+                  {t("No closed assignments found")}.
                 </Center>
               )}
             </TableCaption>

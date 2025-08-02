@@ -4,6 +4,8 @@
   "Active Assignments": "Offene Übungen",
   "Closed Assignments": "Geschlossene Übungen",
   "Upcoming Assignments": "Bevorstehende Übungen",
+  "No active assignments found": "Keine aktiven Übungen gefunden",
+  "No closed assignmets found": "Keine geschlossenen Übungen gefunden",
   "Task": "Aufgabe",
   "Tasks": "Aufgaben",
   "Example": "Beispiel",
@@ -50,5 +52,17 @@
   "Public Dashboard": "Öffentliches Dashboard",
   "Remaining Time": "Verbleibende Zeit",
   "General Information": "Allgemeine Informationen",
-  "Duration": "Dauer"
+  "Duration": "Dauer",
+  "Published Examples": "Veröffentlichte Beispiele",
+  "Planned Examples": "Geplante Beispiele",
+  "Terminate Example": "Beispiel beenden",
+  "termination_alert": "Sind Sie sicher, dass Sie die Beispielsaufgabe beenden wollen?",
+  "Terminate": "Beenden",
+  "No": "Nein",
+  "Reset Example": "Beispiel Zurücksetzen",
+  "reset_alert": "Sind Sie sicher, dass Sie die Beispielsaufgabe zurücksetzen wollen?",
+  "Ascending": "Aufsteigend",
+  "Descending": "Absteigend",
+  "Default": "Standard",
+  "redirect_toast": "Weitergeleitet zum veröffentlichten Beispiel"
 }

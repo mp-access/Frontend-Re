@@ -13,9 +13,12 @@ import {
   MenuGroup,
   MenuItem,
   MenuList,
+  useToast,
 } from "@chakra-ui/react"
 import { useKeycloak } from "@react-keycloak/web"
-import React, { useEffect, useState } from "react"
+import { compact, join } from "lodash"
+import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { AiOutlineLogout } from "react-icons/ai"
 import {
   Link,
@@ -26,19 +29,23 @@ import {
   useParams,
 } from "react-router-dom"
 import { LogoButton } from "../components/Buttons"
-import { useAssignment, useCourse } from "../components/Hooks"
-import { compact, join } from "lodash"
-import { Placeholder } from "../components/Panels"
+import {
+  useAssignment,
+  useCourse,
+  useExamples,
+  useSSE,
+} from "../components/Hooks"
 import { LanguageSwitcher } from "../components/LanguageSwitcher"
-import { useTranslation } from "react-i18next"
-import { EventSource } from "extended-eventsource"
+import { Placeholder } from "../components/Panels"
 
 export default function Layout() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const toast = useToast()
+
   const { keycloak } = useKeycloak()
   const { courseSlug } = useParams()
-
+  const { data: examples } = useExamples()
   const [ongoingExamplePath, setOngoingExamplePath] = useState<string | null>(
     null,
   )
@@ -49,44 +56,33 @@ export default function Layout() {
     if (ongoingExamplePath) {
       navigate(ongoingExamplePath)
     }
-  }, [ongoingExamplePath])
+  }, [navigate, ongoingExamplePath])
 
   useEffect(() => {
-    if (!keycloak.token || !courseSlug) return
+    if (!courseSlug || !examples || isSupervisor) return
 
-    // course slug will only be defined once within a course route.
-    if (courseSlug != undefined) {
-      const eventSource = new EventSource(
-        `/api/courses/${courseSlug}/subscribe`,
-        {
-          headers: {
-            Authorization: `Bearer ${keycloak.token}`,
-          },
-          retry: 3000,
-        },
-      )
-      eventSource.onopen = () => {}
-      if (!isSupervisor) {
-        eventSource.addEventListener("redirect", (event) => {
-          console.log("redirect...")
-          setOngoingExamplePath(event.data)
-        })
-      }
+    const interactiveExample = examples.find(
+      (example) => example.status === "Interactive",
+    )
 
-      eventSource.onerror = (error) => {
-        console.error("SSE error occurred:", error)
-      }
-      const handleBeforeUnload = () => {
-        console.log("Closing EventSource (before unload)")
-        eventSource.close()
-      }
-      window.addEventListener("beforeunload", handleBeforeUnload)
-      return () => {
-        console.log("Closing EventSource (component unmount)")
-        eventSource.close()
+    if (interactiveExample) {
+      const interactiveExamplePath = `/courses/${courseSlug}/examples/${interactiveExample.slug}`
+
+      if (interactiveExamplePath !== location.pathname) {
+        navigate(interactiveExamplePath)
       }
     }
-  }, [courseSlug, keycloak.token, isSupervisor])
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [examples, courseSlug, navigate, isSupervisor, location.pathname])
+
+  useSSE<string>("redirect", (data) => {
+    setOngoingExamplePath(data)
+    toast({
+      title: t("redirect_toast"),
+      status: "info",
+    })
+  })
 
   useEffect(() => {
     const timeout = setTimeout(() => !keycloak.token && navigate("/"), 2000)

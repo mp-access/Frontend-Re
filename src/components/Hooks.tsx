@@ -1,10 +1,13 @@
 import { useMonaco } from "@monaco-editor/react"
-import { Uri } from "monaco-editor"
-import { useParams } from "react-router-dom"
+import { useKeycloak } from "@react-keycloak/web"
 import { useMutation, useQuery, UseQueryOptions } from "@tanstack/react-query"
-import { useState } from "react"
 import axios, { AxiosError } from "axios"
+import { EventSource } from "extended-eventsource"
 import { compact, concat, flatten } from "lodash"
+import { Uri } from "monaco-editor"
+import { useEffect, useRef, useState } from "react"
+import { useParams } from "react-router-dom"
+import { useEventSource } from "../context/EventSourceContext"
 
 export const useCodeEditor = () => {
   const monaco = useMonaco()
@@ -56,12 +59,10 @@ export const useCourse = (options: UseQueryOptions<CourseProps> = {}) => {
   })
 }
 
-// remove this, handled differently with SSE
 export const usePublish = () => {
   const { courseSlug, exampleSlug } = useParams()
-  console.log(courseSlug, exampleSlug)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { mutate } = useMutation<any, AxiosError, any[]>({
+  const { mutateAsync } = useMutation<any, AxiosError, any[]>({
     // TODO: type this correctly once backend res is known.
     onSuccess: () => {
       // just for now
@@ -69,11 +70,79 @@ export const usePublish = () => {
     },
   })
 
-  const publish = () => {
-    mutate([["courses", courseSlug, "examples", exampleSlug, "publish"], {}])
-    console.log("publishing")
-  }
+  const publish = (duration: number) =>
+    mutateAsync([
+      ["courses", courseSlug, "examples", exampleSlug, "publish"],
+      { duration },
+    ])
+
   return { publish }
+}
+
+export const useExtendExample = () => {
+  const { courseSlug, exampleSlug } = useParams()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { mutateAsync } = useMutation<any, AxiosError, any[]>({
+    mutationFn: (duration) => {
+      const url = `/courses/${courseSlug}/examples/${exampleSlug}/extend`
+      return axios.put<void>(url, { duration: duration[0] })
+    },
+  })
+
+  const extendExampleDuration = (duration: number) => mutateAsync([duration])
+
+  return { extendExampleDuration }
+}
+
+export const useTerminate = () => {
+  const { courseSlug, exampleSlug } = useParams()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { mutateAsync } = useMutation<any, AxiosError, any[]>({
+    mutationFn: () => {
+      const url = `/courses/${courseSlug}/examples/${exampleSlug}/terminate`
+      return axios.put<void>(url)
+    },
+  })
+
+  const terminate = () =>
+    mutateAsync([["courses", courseSlug, "examples", exampleSlug, "terminate"]])
+
+  return { terminate }
+}
+
+export const useResetExample = () => {
+  const { courseSlug, exampleSlug } = useParams()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { mutateAsync } = useMutation<any, AxiosError, any[]>({
+    mutationFn: () => {
+      const url = `/courses/${courseSlug}/examples/${exampleSlug}/reset`
+      return axios.delete<void>(url)
+    },
+  })
+
+  const resetExample = () =>
+    mutateAsync([["courses", courseSlug, "examples", exampleSlug, "reset"]])
+
+  return { resetExample }
+}
+
+export const useExamples = () => {
+  const { courseSlug } = useParams()
+
+  return useQuery<TaskOverview[]>(["courses", courseSlug, "examples"], {
+    enabled: !!courseSlug,
+  })
+}
+
+export const useGeneralExampleInformation = () => {
+  const { courseSlug, exampleSlug } = useParams()
+  return useQuery<ExampleInformation>([
+    "courses",
+    courseSlug,
+    "examples",
+    exampleSlug,
+    "information",
+  ])
 }
 
 export const useParticipants = () => {
@@ -96,11 +165,6 @@ export const useAssignment = () => {
     ["courses", courseSlug, "assignments", assignmentSlug],
     { enabled: !!assignmentSlug }
   )
-}
-
-export const useExamples = () => {
-  const { courseSlug } = useParams()
-  return useQuery<TaskOverview[]>(["courses", courseSlug, "examples"])
 }
 
 export const useExample = (userId: string) => {
@@ -166,4 +230,173 @@ export const useTask = (userId: string) => {
       data,
     ])
   return { ...query, submit, timer }
+}
+
+export const useCountdown = (start: number | null, end: number | null) => {
+  const [timeLeftInSeconds, setTimeLeftInSeconds] = useState<number | null>(
+    null
+  )
+  const [circleValue, setCircleValue] = useState<number | null>(null)
+  const requestRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (start === null || end === null) {
+      return
+    }
+
+    const update = () => {
+      const total = end - start
+      const now = Date.now()
+      const timeLeft = Math.max(0, end - now)
+
+      setTimeLeftInSeconds(Math.floor(timeLeft / 1000))
+
+      const progress = Math.max(0, (timeLeft / total) * 100)
+      setCircleValue(progress)
+      if (timeLeft > 0) {
+        requestRef.current = requestAnimationFrame(update)
+      } else {
+        requestRef.current = null
+      }
+    }
+
+    update() // only called initially or when startUnix or endUnix changes
+
+    return () => {
+      if (requestRef.current) {
+        cancelAnimationFrame(requestRef.current)
+        requestRef.current = null
+      }
+    }
+  }, [start, end])
+
+  return { timeLeftInSeconds, circleValue }
+}
+
+export const useTimeframeFromSSE = () => {
+  const { keycloak } = useKeycloak()
+  const { courseSlug } = useParams()
+  const token = keycloak.token
+
+  const [timeFrameFromEvent, setTimeFrameFromEvent] = useState<
+    [number, number] | null
+  >(null)
+  const [error, setError] = useState<Error | null>(null)
+
+  useEffect(() => {
+    if (!token || !courseSlug) return
+    const eventSource = new EventSource(
+      `/api/courses/${courseSlug}/subscribe`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        retry: 3000,
+      }
+    )
+
+    const onTimeEvent = (e: MessageEvent) => {
+      const [startTimeString, endTimeString] = (e.data as string).split("/")
+      setTimeFrameFromEvent([
+        Date.parse(startTimeString),
+        Date.parse(endTimeString),
+      ])
+    }
+
+    eventSource.addEventListener("timer-update", onTimeEvent)
+    eventSource.onerror = (error) => {
+      console.error("SSE error", error)
+      setError(new Error("SSE connection error"))
+    }
+
+    const cleanup = () => {
+      eventSource.removeEventListener("timer-update", onTimeEvent)
+      eventSource.close()
+    }
+    window.addEventListener("beforeunload", cleanup)
+    return () => {
+      window.removeEventListener("beforeunload", cleanup)
+      cleanup()
+    }
+  }, [courseSlug, token])
+
+  return { timeFrameFromEvent, error }
+}
+
+// properly define eventType
+export const useSSE = <T,>(eventType: string, handler: (data: T) => void) => {
+  const { eventSource } = useEventSource()
+
+  useEffect(() => {
+    if (!eventSource) return
+
+    const listener = (event: MessageEvent) => {
+      try {
+        const parsed = JSON.parse(event.data)
+        handler(parsed as T)
+      } catch {
+        handler(event.data as unknown as T)
+      }
+    }
+
+    eventSource.addEventListener(eventType, listener)
+
+    return () => {
+      eventSource.removeEventListener(eventType, listener)
+    }
+  }, [eventSource, eventType, handler])
+}
+
+export const useInspect = () => {
+  const { courseSlug, exampleSlug } = useParams()
+
+  if (!courseSlug || !exampleSlug) {
+    throw new Error(
+      `Course Slug ${courseSlug} or example slug ${exampleSlug} undefined`
+    )
+  }
+
+  const { mutateAsync } = useMutation<void, AxiosError, [string[]]>({})
+  const inspect = (userId: string) =>
+    mutateAsync([
+      [
+        "courses",
+        courseSlug,
+        "examples",
+        exampleSlug,
+        "user",
+        userId,
+        "inspect",
+      ],
+    ])
+
+  return { inspect }
+}
+
+export const useStudentSubmissions = () => {
+  const { courseSlug, exampleSlug } = useParams()
+
+  return useQuery<SubmissionSsePayload[]>([
+    "courses",
+    courseSlug,
+    "examples",
+    exampleSlug,
+    "submissions",
+  ])
+}
+
+export const useHeartbeat = () => {
+  const { courseSlug } = useParams()
+
+  const { mutateAsync } = useMutation<unknown, AxiosError, string>({
+    mutationFn: (emitterId: string) => {
+      if (!courseSlug) {
+        return Promise.resolve()
+      }
+      const url = `/courses/${courseSlug}/heartbeat/${emitterId}`
+      return axios.put<void>(url)
+    },
+  })
+
+  const sendHeartbeat = (emitterId: string) => mutateAsync(emitterId)
+
+  return { sendHeartbeat }
 }

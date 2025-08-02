@@ -1,20 +1,4 @@
 import {
-  Flex,
-  Heading,
-  HStack,
-  Grid,
-  GridItem,
-  Divider,
-  Spacer,
-  Progress,
-  Text,
-  TagLabel,
-  Tag,
-  TagLeftIcon,
-  Button,
-  CircularProgress,
-  CircularProgressLabel,
-  useDisclosure,
   AlertDialog,
   AlertDialogBody,
   AlertDialogCloseButton,
@@ -22,53 +6,67 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogOverlay,
+  Button,
+  Divider,
+  Flex,
+  Grid,
+  GridItem,
+  Heading,
+  HStack,
+  Icon,
+  Tag,
+  TagLabel,
+  TagLeftIcon,
+  Text,
+  useDisclosure,
+  useToast,
+  useToken,
 } from "@chakra-ui/react"
-import { Markdown } from "../components/Panels"
+import { useTranslation } from "react-i18next"
 import { BsFillCircleFill } from "react-icons/bs"
-import { usePublish } from "../components/Hooks"
-import { useCallback, useMemo, useRef, useState } from "react"
+import { GoChecklist } from "react-icons/go"
+import { Cell, Pie, PieChart } from "recharts"
+
 import { t } from "i18next"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { CountdownTimer } from "../components/CountdownTimer"
+import { RotateFromRightIcon } from "../components/CustomIcons"
 import {
-  ListIcon,
-  RotateFromRightIcon,
-  UprightFromSquareIcon,
-} from "../components/CustomIcons"
+  useExample,
+  useExtendExample,
+  useGeneralExampleInformation,
+  useInspect,
+  usePublish,
+  useResetExample,
+  useSSE,
+  useStudentSubmissions,
+  useTerminate,
+  useTimeframeFromSSE,
+} from "../components/Hooks"
 
-const CIRCLE_BUTTON_DIAMETER = 12
-const someExampleMarkdownTaskDescription = `Transform the following mathematical expression into a Python program to be able to calculate the
-result for arbitrary values of a, b, c, and d defined in the source code:
+import { useOutletContext } from "react-router-dom"
+import { Markdown, Placeholder } from "../components/Panels"
+import { SubmissionsCarousel } from "../components/SubmissionsCarousel"
+import { TestCaseBarChart } from "../components/TestCaseBarChart"
 
-\`a - (b^2 / (c - d * (a + b)))\`
+import { formatSeconds } from "../components/Util"
 
-Implement it in a function \`calculate\` where it should be returned.
+type ExampleState =
+  | "unpublished"
+  | "publishing"
+  | "ongoing"
+  | "finished"
+  | "resetting"
 
-Please make sure that your solution is self-contained within the \`calculate\` function. In other words, only change the body of the function, not the code outside the function.
-
-Transform the following mathematical expression into a Python program to be able to calculate the
-result for arbitrary values of a, b, c, and d defined in the source code:
-
-\`a - (b^2 / (c - d * (a + b)))\`
-
-Implement it in a function \`calculate\` where it should be returned.
-
-Please make sure that your solution is self-contained within the \`calculate\` function. In other words, only change the body of the function, not the code outside the function.`
-
-type ExampleState = "unpublished" | "ongoing" | "finished"
-
-const formatSeconds = (totalSeconds: number) => {
-  const seconds = Math.floor(totalSeconds % 60)
-  const minutes = Math.floor((totalSeconds / 60) % 60)
-
-  const padded = (num: number) => String(num).padStart(2, "0")
-
-  return `${padded(minutes)}:${padded(seconds)}`
-}
+// const Bookmarks: React.FC = () => {
+//   return <Flex>Some Bookmarks</Flex>
+// }
 
 const TerminationDialog: React.FC<{ handleTermination: () => void }> = ({
   handleTermination,
 }) => {
   const { isOpen, onOpen, onClose } = useDisclosure()
-  const cancelRef = useRef()
+  const cancelRef = useRef<HTMLButtonElement>(null)
   return (
     <>
       <Button
@@ -76,9 +74,7 @@ const TerminationDialog: React.FC<{ handleTermination: () => void }> = ({
         colorScheme="red"
         backgroundColor={"red.600"}
         borderRadius={"lg"}
-      >
-        Terminate
-      </Button>
+      ></Button>
       <AlertDialog
         motionPreset="slideInBottom"
         leastDestructiveRef={cancelRef}
@@ -89,21 +85,19 @@ const TerminationDialog: React.FC<{ handleTermination: () => void }> = ({
         <AlertDialogOverlay />
 
         <AlertDialogContent>
-          <AlertDialogHeader>Terminate Example?</AlertDialogHeader>
+          <AlertDialogHeader>{t("Terminate Example")}</AlertDialogHeader>
           <AlertDialogCloseButton />
-          <AlertDialogBody>
-            Are you sure you already want to Terminate this example?
-          </AlertDialogBody>
+          <AlertDialogBody>{t("termination_alert")}</AlertDialogBody>
           <AlertDialogFooter gap={2}>
             <Button variant={"outline"} ref={cancelRef} onClick={onClose}>
-              No
+              {t("No")}
             </Button>
             <Button
               onClick={handleTermination}
               colorScheme="red"
               backgroundColor={"red.600"}
             >
-              Terminate
+              {t("Terminate")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -112,11 +106,12 @@ const TerminationDialog: React.FC<{ handleTermination: () => void }> = ({
   )
 }
 
-const ResetDialog: React.FC<{ handleReset: () => void }> = ({
-  handleReset,
-}) => {
+const ResetDialog: React.FC<{
+  handleReset: () => void
+  exampleState: ExampleState
+}> = ({ handleReset, exampleState }) => {
   const { isOpen, onOpen, onClose } = useDisclosure()
-  const cancelRef = useRef()
+  const cancelRef = useRef<HTMLButtonElement>(null)
   return (
     <>
       <Button
@@ -125,8 +120,9 @@ const ResetDialog: React.FC<{ handleReset: () => void }> = ({
         backgroundColor={"red.600"}
         borderRadius={"lg"}
         leftIcon={<RotateFromRightIcon color="white" size={4} />}
+        isLoading={exampleState === "resetting"}
       >
-        Reset Example
+        {t("Reset Example")}?
       </Button>
       <AlertDialog
         motionPreset="slideInBottom"
@@ -138,21 +134,19 @@ const ResetDialog: React.FC<{ handleReset: () => void }> = ({
         <AlertDialogOverlay />
 
         <AlertDialogContent>
-          <AlertDialogHeader>Terminate Example?</AlertDialogHeader>
+          <AlertDialogHeader>{t("Reset Example")}</AlertDialogHeader>
           <AlertDialogCloseButton />
-          <AlertDialogBody>
-            Are you sure you want to reset this example?
-          </AlertDialogBody>
+          <AlertDialogBody>{t("reset_alert")}</AlertDialogBody>
           <AlertDialogFooter gap={2}>
             <Button variant={"outline"} ref={cancelRef} onClick={onClose}>
-              No
+              {t("No")}
             </Button>
             <Button
               onClick={handleReset}
               colorScheme="red"
               backgroundColor={"red.600"}
             >
-              Reset
+              {t("Reset")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -161,18 +155,33 @@ const ResetDialog: React.FC<{ handleReset: () => void }> = ({
   )
 }
 
-const SubmissionInspector: React.FC = () => {
+const SubmissionInspector: React.FC<{
+  submissions: SubmissionSsePayload[]
+  selectedTests: Record<string, boolean> | null
+  exactMatch: boolean
+}> = ({ submissions, selectedTests, exactMatch }) => {
+  const { inspect } = useInspect()
+  const toast = useToast()
+  const openInEditor = useCallback(
+    async (studentId: string) => {
+      inspect(studentId).then(() =>
+        toast({
+          title: "Submission opened on second device",
+          duration: 3000,
+        }),
+      )
+    },
+    [inspect, toast],
+  )
+
   return (
-    <>
-      <Flex layerStyle={"card"} direction={"column"}>
+    <Flex direction={"column"} h={"full"} gap={2}>
+      <Flex layerStyle={"segment"} direction={"column"}>
         <Heading fontSize="xl">Implementation Type #2</Heading>
         <Divider />
         <Flex justify={"space-around"} pt={2}>
           <Text display={"flex"} flexDirection={"row"} gap={2}>
-            Commonality: <Text fontWeight={"bold"}>21%</Text>
-          </Text>
-          <Text display={"flex"} flexDirection={"row"} gap={2}>
-            Number of variations: <Text fontWeight={"bold"}>115</Text>
+            Number of implementations: <Text fontWeight={"bold"}>115</Text>
           </Text>
           <Text display={"flex"} flexDirection={"row"} gap={2}>
             Avg. Score: <Text fontWeight={"bold"}>3.2</Text>
@@ -182,108 +191,124 @@ const SubmissionInspector: React.FC = () => {
           </Text>
         </Flex>
       </Flex>
-      <Flex layerStyle={"card"} direction={"column"} grow={1}>
-        <Heading fontSize="lg">{"{Student Username}"}</Heading>
-        <Divider />
-      </Flex>
-      <Flex gap={2}>
-        <Button variant={"outline"} borderRadius={"lg"} flex={1}>
-          Previous Type
-        </Button>
-        <Button borderRadius={"lg"} flex={1}>
-          Open in Editor
-        </Button>
-        <Button variant={"outline"} borderRadius={"lg"} flex={1}>
-          Next Type
-        </Button>
-      </Flex>
-    </>
-  )
-}
 
-const TaskDescription: React.FC = () => {
-  return (
-    <Flex layerStyle={"card"} direction={"column"} grow={1}>
-      <Heading fontSize="xl">Some Title</Heading>
-      <Divider />
-      <Markdown children={someExampleMarkdownTaskDescription}></Markdown>
+      <SubmissionsCarousel
+        submissions={submissions}
+        openInEditor={openInEditor}
+        testCaseSelection={selectedTests}
+        exactMatch={exactMatch}
+      />
     </Flex>
   )
 }
 
-const GenearlInformation: React.FC<{ exampleState: ExampleState }> = ({
-  exampleState,
-}) => {
+const TaskDescription: React.FC<{
+  instructionContent: string
+  title: string
+}> = ({ instructionContent, title }) => {
   return (
-    <Flex layerStyle={"card"} direction={"column"} flex={1} p={3}>
-      <Heading fontSize="xl">{t("General Information")}</Heading>
+    <Flex layerStyle={"segment"} direction={"column"} grow={1} p={3}>
+      <Heading fontSize="xl">{title}</Heading>
       <Divider />
-      <Flex flexDirection={"column"} justify={"space-between"} flex={1}>
-        <HStack w={"full"} p={2}>
-          <Text color={"gray.500"} w={105}>
-            {t("Submissions")}
-          </Text>
-          {exampleState === "ongoing" || exampleState === "finished" ? (
-            <>
-              <Progress
-                display={"flex"}
-                borderRadius={"full"}
-                backgroundColor={"grey.200"}
-                colorScheme="purple"
-                value={55}
-                flex={1}
-              ></Progress>
-              <Text
-                w={70}
-                color={"gray.500"}
-                display={"flex"}
-                justifyContent={"end"}
-              >
-                80/144
-              </Text>
-            </>
-          ) : (
-            <Text color={"gray.500"}> - </Text>
-          )}
-        </HStack>
-
-        <HStack w={"full"} p={2}>
-          <Text color={"gray.500"} w={105}>
-            Test pass rate
-          </Text>
-          {exampleState === "ongoing" || exampleState === "finished" ? (
-            <>
-              <Progress
-                display={"flex"}
-                borderRadius={"full"}
-                colorScheme="purple"
-                value={30}
-                flex={1}
-              ></Progress>
-              <Text
-                w={70}
-                color={"gray.500"}
-                display={"flex"}
-                justifyContent={"end"}
-              >
-                240/960
-              </Text>
-            </>
-          ) : (
-            <Text color={"gray.500"}> - </Text>
-          )}
-        </HStack>
-        <Flex grow={1} justify={"space-around"} align={"center"}>
-          <Tag colorScheme="purple">
-            <TagLabel> 12 Grading Tests</TagLabel>
-          </Tag>
-          <Tag color="green.600" bg="green.50">
-            <TagLeftIcon as={BsFillCircleFill} boxSize={2} />
-            <TagLabel> Online 144/219</TagLabel>
-          </Tag>
-        </Flex>
-      </Flex>
+      <Markdown children={instructionContent}></Markdown>
     </Flex>
+  )
+}
+const CustomPieChart: React.FC<{ value: number }> = ({ value }) => {
+  const rest = Math.max(0, 100 - value)
+
+  const data = [
+    { name: "Pass", value: value },
+    { name: "Remaining", value: rest },
+  ]
+
+  const COLORS = [
+    useToken("colors", "purple.600"),
+    useToken("colors", "gray.300"),
+  ]
+
+  const RADIUS = 16
+  return (
+    <PieChart width={2 * RADIUS} height={2 * RADIUS}>
+      <Pie
+        data={data}
+        dataKey="value"
+        cx="50%"
+        cy="50%"
+        outerRadius={RADIUS}
+        startAngle={90}
+        endAngle={-450}
+        stroke="none"
+      >
+        {data.map((_entry, index) => (
+          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+        ))}
+      </Pie>
+    </PieChart>
+  )
+}
+const GenearlInformation: React.FC<{
+  exampleState: ExampleState
+  generalInformation: ExampleInformation
+}> = ({ exampleState, generalInformation }) => {
+  const {
+    participantsOnline,
+    totalParticipants,
+    numberOfStudentsWhoSubmitted,
+    passRatePerTestCase,
+  } = generalInformation
+
+  const submissionsProgress = useMemo(() => {
+    if (participantsOnline <= 0 && numberOfStudentsWhoSubmitted <= 0) {
+      return 0
+    }
+
+    if (
+      (participantsOnline <= 0 && numberOfStudentsWhoSubmitted > 0) ||
+      numberOfStudentsWhoSubmitted >= participantsOnline
+    ) {
+      return 100
+    } else {
+      return numberOfStudentsWhoSubmitted / participantsOnline
+    }
+  }, [numberOfStudentsWhoSubmitted, participantsOnline])
+
+  const avgTestPassRate = useMemo(() => {
+    const passRates = Object.values(passRatePerTestCase)
+
+    return Math.round(
+      (passRates.reduce((sum, rate) => sum + rate, 0) / passRates.length) * 100,
+    )
+  }, [passRatePerTestCase])
+  return (
+    <HStack p={0} minW={200} gap={5}>
+      <Tag color="green.600" bg="green.50">
+        <TagLeftIcon as={BsFillCircleFill} boxSize={2} />
+        <TagLabel>
+          Online {participantsOnline}/{totalParticipants}
+        </TagLabel>
+      </Tag>
+      {exampleState === "ongoing" || exampleState === "finished" ? (
+        <>
+          <HStack>
+            <Icon as={GoChecklist} />
+            <Text color={"gray.500"} display={"flex"}>
+              {exampleState === "ongoing"
+                ? `${numberOfStudentsWhoSubmitted}/${Math.max(numberOfStudentsWhoSubmitted, participantsOnline)}` // if participants online not correctly updated, UI should not break
+                : numberOfStudentsWhoSubmitted}
+            </Text>
+            <CustomPieChart value={submissionsProgress}></CustomPieChart>
+          </HStack>
+
+          <HStack>
+            <Text color={"gray.500"} display={"flex"}>
+              Test Pass Rate {avgTestPassRate}%
+            </Text>
+            <CustomPieChart value={avgTestPassRate} />
+          </HStack>
+        </>
+      ) : null}
+    </HStack>
   )
 }
 
@@ -291,201 +316,331 @@ const ExampleTimeControler: React.FC<{
   handleTimeAdjustment: (value: number) => void
   handleStart: () => void
   handleTermination: () => void
+  handleReset: () => void
   durationAsString: string
+  setDurationInSeconds: React.Dispatch<React.SetStateAction<number>>
   exampleState: ExampleState
+  setExampleState: React.Dispatch<React.SetStateAction<ExampleState | null>>
+  startTime: number | null
+  endTime: number | null
 }> = ({
   handleTimeAdjustment,
   durationAsString,
   exampleState,
+  setExampleState,
   handleStart,
   handleTermination,
+  handleReset,
+  setDurationInSeconds,
+  startTime,
+  endTime,
 }) => {
-  if (exampleState === "unpublished") {
+  const { extendExampleDuration } = useExtendExample()
+
+  const handleExtendTime = useCallback(
+    async (duration: number) => {
+      try {
+        // TODO: make sure new time feteched properly once clock is implemented
+        await extendExampleDuration(duration)
+        setDurationInSeconds((oldVal) => oldVal + duration)
+      } catch (e) {
+        console.log("Error extending example duration: ", e)
+      }
+    },
+    [extendExampleDuration, setDurationInSeconds],
+  )
+
+  const handleTimeIsUp = useCallback(() => {
+    if (exampleState == "ongoing") {
+      setExampleState("finished")
+    }
+  }, [exampleState, setExampleState])
+
+  if (exampleState === "unpublished" || exampleState === "publishing") {
     return (
-      <Flex
-        direction={"column"}
-        align={"space-around"}
-        flex={1}
-        layerStyle={"card"}
-        p={3}
-      >
-        <Heading fontSize="xl">{t("Duration")}</Heading>
-        <Divider />
-        <Flex flexDirection={"column"} flex={1} justify={"center"}>
-          <Flex justify={"space-around"} align={"center"}>
-            <Button
-              w={CIRCLE_BUTTON_DIAMETER}
-              h={CIRCLE_BUTTON_DIAMETER}
-              variant={"outline"}
-              onClick={() => handleTimeAdjustment(-30)}
-            >
-              -30
-            </Button>
-            <Button
-              w={CIRCLE_BUTTON_DIAMETER}
-              h={CIRCLE_BUTTON_DIAMETER}
-              variant={"outline"}
-              borderRadius={"full"}
-              onClick={() => handleTimeAdjustment(-15)}
-            >
-              -15
-            </Button>
-            <Text width={"110px"} fontSize={"4xl"}>
-              {durationAsString}
-            </Text>
-            <Button
-              w={CIRCLE_BUTTON_DIAMETER}
-              h={CIRCLE_BUTTON_DIAMETER}
-              variant={"outline"}
-              borderRadius={"full"}
-              onClick={() => handleTimeAdjustment(15)}
-            >
-              +15
-            </Button>
-            <Button
-              w={CIRCLE_BUTTON_DIAMETER}
-              h={CIRCLE_BUTTON_DIAMETER}
-              variant={"outline"}
-              borderRadius={"full"}
-              onClick={() => handleTimeAdjustment(30)}
-            >
-              +30
-            </Button>
-          </Flex>
-        </Flex>
+      <HStack w={"full"} justify={"space-between"}>
+        <HStack gap={3}>
+          <Button variant={"outline"} onClick={() => handleTimeAdjustment(-30)}>
+            -30
+          </Button>
+          <Button
+            variant={"outline"}
+            borderRadius={"full"}
+            onClick={() => handleTimeAdjustment(-15)}
+          >
+            -15
+          </Button>
+          <Text fontSize={"3xl"} fontFamily={"monospace"} align={"center"}>
+            {durationAsString}
+          </Text>
+          <Button
+            variant={"outline"}
+            borderRadius={"full"}
+            onClick={() => handleTimeAdjustment(15)}
+          >
+            +15
+          </Button>
+          <Button
+            variant={"outline"}
+            borderRadius={"full"}
+            onClick={() => handleTimeAdjustment(30)}
+          >
+            +30
+          </Button>
+        </HStack>
+
         <Button
           colorScheme="green"
           borderRadius={"lg"}
           onClick={() => handleStart()}
+          isLoading={exampleState === "publishing"}
         >
           Start
         </Button>
-      </Flex>
+      </HStack>
     )
   }
 
-  if (exampleState === "ongoing") {
+  if (exampleState === "ongoing" && startTime !== null && endTime !== null) {
     return (
-      <Flex layerStyle={"card"} direction={"column"} p={2}>
-        <Heading fontSize="xl">{t("Remaining Time")}</Heading>
-        <Divider />
-        <Flex flex={1} justify="space-around" align={"center"} gap={2} p={2}>
-          <CircularProgress value={100} color={"green.500"} size={120}>
-            <CircularProgressLabel>{durationAsString}</CircularProgressLabel>
-          </CircularProgress>
-          <Flex direction={"column"} justify={"center"} h={"100%"} gap={1}>
-            <Button variant={"outline"}> +30</Button>
-            <Button variant={"outline"}> +60</Button>
-            <TerminationDialog
-              handleTermination={handleTermination}
-            ></TerminationDialog>
-          </Flex>
-        </Flex>
+      <Flex align={"center"} gap={2} flex={1} justify={"end"}>
+        <CountdownTimer
+          startTime={startTime}
+          endTime={endTime}
+          size={"large"}
+          onTimeIsUp={handleTimeIsUp}
+          variant="number-only"
+        ></CountdownTimer>
+        <Button variant={"outline"} onClick={() => handleExtendTime(30)}>
+          +30
+        </Button>
+        <Button variant={"outline"} onClick={() => handleExtendTime(60)}>
+          +60
+        </Button>
+        <TerminationDialog
+          handleTermination={handleTermination}
+        ></TerminationDialog>
       </Flex>
     )
   }
 
   return (
-    <Flex layerStyle={"card"} direction={"column"} p={2}>
-      <Heading fontSize="xl">{t("Controls")}</Heading>
-      <Divider />
-      <Flex flex={1} align={"center"} p={2}>
-        <Flex direction={"column"} justify={"center"} h={"100%"} gap={2}>
-          <Button
-            variant={"outline"}
-            borderRadius={"lg"}
-            leftIcon={
-              <UprightFromSquareIcon
-                color="purple.600"
-                size={4}
-              ></UprightFromSquareIcon>
-            }
-          >
-            Public Dashboard
-          </Button>
-          <Button
-            variant={"outline"}
-            borderRadius={"lg"}
-            leftIcon={<ListIcon color="purple.600" size={4}></ListIcon>}
-          >
-            Back to List
-          </Button>
-          <ResetDialog handleTermination={handleTermination}></ResetDialog>
-        </Flex>
-      </Flex>
+    <Flex flex={1} justify={"end"}>
+      <ResetDialog
+        handleReset={handleReset}
+        exampleState={exampleState}
+      ></ResetDialog>
     </Flex>
   )
 }
 
 export function PrivateDashboard() {
-  // replace with non-hardcoded values once object available
   const { publish } = usePublish()
+  const { terminate } = useTerminate()
+  const { data: fetchedSubmissions, refetch: refetchStudentSubmissions } =
+    useStudentSubmissions()
+  const { resetExample } = useResetExample()
   const [durationInSeconds, setDurationInSeconds] = useState<number>(150)
+  const [exampleState, setExampleState] = useState<ExampleState | null>(null)
+  const [exactMatch, setExactMatch] = useState<boolean>(false)
+  const [exampleInformation, setExampleInformation] =
+    useState<ExampleInformation | null>(null)
 
-  const [exampleState, setExampleState] = useState<
-    "unpublished" | "ongoing" | "finished"
-  >("unpublished")
+  const [testCaseSelection, setTestCaseSelection] = useState<Record<
+    string,
+    boolean
+  > | null>(null)
 
+  const { i18n } = useTranslation()
+  const currentLanguage = i18n.language
+  const { user } = useOutletContext<UserContext>()
+  const { data: example } = useExample(user.email)
+  const {
+    data: initialExampleInformation,
+    refetch: refetchInitialExampleInformation,
+  } = useGeneralExampleInformation()
+  const { timeFrameFromEvent } = useTimeframeFromSSE()
   const durationAsString = useMemo(() => {
     return formatSeconds(durationInSeconds || 0)
   }, [durationInSeconds])
+  const [submissions, setSubmissions] = useState<SubmissionSsePayload[] | null>(
+    null,
+  )
+
+  useSSE<SubmissionSsePayload>("student-submission", (data) => {
+    setSubmissions((prev) => {
+      if (prev == null) {
+        return [data]
+      }
+      return [...prev, data]
+    })
+  })
+
+  useSSE<ExampleInformation>("example-information", (data) => {
+    setExampleInformation(data)
+  })
 
   const handleTimeAdjustment = useCallback(
     (value: number) => {
       setDurationInSeconds((oldVal) => Math.max(0, oldVal + value))
     },
-    [durationInSeconds],
+    [setDurationInSeconds],
   )
 
-  const handleStart = useCallback(() => {
-    publish()
-    setExampleState("ongoing")
-  }, [])
+  const handleStart = useCallback(async () => {
+    try {
+      await publish(durationInSeconds)
+    } catch (e) {
+      console.log("Error publishing example: ", e)
+    }
+  }, [publish, durationInSeconds])
 
-  const handleTermination = useCallback(() => {
-    setExampleState("finished")
-  }, [])
+  const handleTermination = useCallback(async () => {
+    try {
+      await terminate()
+      setExampleState("finished")
+    } catch (e) {
+      console.log("Error terminating example: ", e)
+    }
+  }, [terminate])
 
+  const handleReset = useCallback(async () => {
+    try {
+      setExampleState("resetting")
+      await resetExample()
+      setExampleState("unpublished")
+      refetchInitialExampleInformation()
+      refetchStudentSubmissions()
+    } catch (e) {
+      console.log("An error occured when resetting the example: ", e)
+      setExampleState("finished")
+    }
+  }, [
+    refetchInitialExampleInformation,
+    refetchStudentSubmissions,
+    resetExample,
+  ])
+
+  const [derivedStartDate, derivedEndDate] = useMemo(() => {
+    if (!example) {
+      return [null, null]
+    }
+
+    if (timeFrameFromEvent) {
+      return timeFrameFromEvent
+    }
+
+    if (!example.start || !example.end) {
+      return [null, null]
+    }
+
+    return [Date.parse(example.start), Date.parse(example.end)]
+  }, [example, timeFrameFromEvent])
+
+  useEffect(() => {
+    if (initialExampleInformation) {
+      setExampleInformation(initialExampleInformation)
+      const initialSelectedTests = Object.fromEntries(
+        Object.keys(initialExampleInformation.passRatePerTestCase).map(
+          (testName) => [testName, false],
+        ),
+      )
+      setTestCaseSelection(initialSelectedTests)
+    }
+  }, [initialExampleInformation])
+
+  useEffect(() => {
+    if (fetchedSubmissions) {
+      setSubmissions(fetchedSubmissions)
+    }
+  }, [fetchedSubmissions])
+
+  useEffect(() => {
+    if (!derivedEndDate || !derivedEndDate) {
+      setExampleState("unpublished")
+      return
+    }
+
+    const now = Date.now()
+
+    if (derivedStartDate < now && derivedEndDate > now) {
+      setExampleState("ongoing")
+    } else if (derivedEndDate < now) {
+      setExampleState("finished")
+    }
+  }, [derivedEndDate, derivedStartDate, example])
+
+  if (!example || !exampleState || !exampleInformation) {
+    return <Placeholder />
+  }
+
+  const instructionFile =
+    example?.information[currentLanguage]?.instructionsFile ||
+    example?.information["en"].instructionsFile
+  const instructionsContent = example?.files.filter(
+    (file) => file.path === `/${instructionFile}`,
+  )[0]?.template
+  const title =
+    example?.information[currentLanguage]?.title ||
+    example?.information["en"]?.title
   return (
     <Grid
       layerStyle={"container"}
       templateColumns="1fr 1fr 1fr"
-      templateRows={"3fr 1fr"}
+      templateRows={"5fr 1fr"}
       gap={2}
       height={"full"}
     >
       <GridItem
-        layerStyle={"card"}
+        layerStyle={"segment"}
         gap={4}
         rowStart={1}
-        rowEnd={-1}
+        rowEnd={5}
         colStart={1}
         colEnd={2}
         p={3}
       >
-        <Heading fontSize="xl">Testcases</Heading>
-        <Divider />
-        <div>...</div>
+        <TestCaseBarChart
+          passRatePerTestCase={exampleInformation.passRatePerTestCase}
+          exactMatch={exactMatch}
+          setExactMatch={setExactMatch}
+          testCaseSelection={testCaseSelection}
+          setTestCaseSelection={setTestCaseSelection}
+        ></TestCaseBarChart>
+        {/* <Bookmarks></Bookmarks> */}
       </GridItem>
-      <GridItem gap={4} colStart={2} colEnd={4}>
-        <Flex direction={"column"} h={"full"} gap={2}>
-          {exampleState === "unpublished" ? (
-            <TaskDescription />
+      <GridItem gap={4} colStart={2} colEnd={4} rowStart={1} rowEnd={4}>
+        <Flex direction={"column"} h={"full"}>
+          {!submissions || submissions.length < 1 ? (
+            <TaskDescription
+              instructionContent={instructionsContent}
+              title={title}
+            />
           ) : (
-            <SubmissionInspector />
+            <SubmissionInspector
+              submissions={submissions}
+              selectedTests={testCaseSelection}
+              exactMatch={exactMatch}
+            />
           )}
         </Flex>
       </GridItem>
       <GridItem
-        rowStart={2}
-        rowEnd={-1}
+        rowStart={4}
+        rowEnd={5}
         colStart={2}
         colEnd={-1}
         display={"flex"}
         flexDirection={"row"}
         gap={3}
+        layerStyle={"segment"}
+        alignContent={"space-between"}
+        p={2}
       >
-        <GenearlInformation exampleState={exampleState}></GenearlInformation>
+        <GenearlInformation
+          exampleState={exampleState}
+          generalInformation={exampleInformation}
+        ></GenearlInformation>
 
         <ExampleTimeControler
           handleTimeAdjustment={handleTimeAdjustment}
@@ -493,6 +648,11 @@ export function PrivateDashboard() {
           exampleState={exampleState}
           handleStart={handleStart}
           handleTermination={handleTermination}
+          handleReset={handleReset}
+          setDurationInSeconds={setDurationInSeconds}
+          startTime={derivedStartDate}
+          endTime={derivedEndDate}
+          setExampleState={setExampleState}
         ></ExampleTimeControler>
       </GridItem>
     </Grid>

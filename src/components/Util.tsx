@@ -50,3 +50,12 @@ export function createDownloadHref(file: PersistentResultFileProps): string {
     return `data:text/plain;charset=utf-8,${encodeURIComponent(file.content)}`
   }
 }
+
+export const formatSeconds = (totalSeconds: number) => {
+  const seconds = Math.floor(totalSeconds % 60)
+  const minutes = Math.floor((totalSeconds / 60) % 60)
+
+  const padded = (num: number) => String(num).padStart(2, "0")
+
+  return `${padded(minutes)}:${padded(seconds)}`
+}

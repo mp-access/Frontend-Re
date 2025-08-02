@@ -74,6 +74,8 @@ declare interface AssignmentInformation {
   description: string
 }
 
+type TaskStatus = "Planned" | "Interactive" | "Active" | "Closed"
+
 declare interface TaskOverview {
   id: number
   slug: string
@@ -82,10 +84,15 @@ declare interface TaskOverview {
   maxPoints: number
   maxAttempts: number
   timeLimit: number
-  active: boolean
+  status: TaskStatus
   avgPoints: number
   remainingAttempts: number
   points: number
+  start: string | null
+  end: string | null
+  runCommandAvailable: boolean
+  testCommandAvailable: boolean
+  gradeCommandAvailable: boolean
 }
 
 declare interface TaskInformation {
@@ -96,12 +103,11 @@ declare interface TaskInformation {
 }
 
 declare interface TaskProps extends TaskOverview {
-  testable: boolean
   instructions: string
   files: Array<TaskFileProps>
   submissions: Array<SubmissionProps>
   nextAttemptAt: string
-  deadline: string
+  deadline: string | null
 }
 
 declare interface TaskFileProps {
@@ -165,12 +171,18 @@ declare interface SubmissionProps {
   output: string
   files: Array<SubmissionFileProps>
   persistentResultFiles: Array<PersistenResultFileProps>
+  embedding: Array<number>
+  testsPassed: Array<number>
 }
 
 declare interface NewSubmissionProps {
   restricted: boolean
   command: string
   files: Array<{ taskFileId: number; content: string }>
+}
+
+declare interface PublishExampleProps {
+  duration: number
 }
 
 declare type WorkspaceProps = Partial<SubmissionProps>
@@ -216,4 +228,20 @@ declare interface UserContext {
 declare interface CurrentUser {
   given_name: string
   email: string
+}
+
+declare interface ExampleInformation {
+  participantsOnline: number
+  totalParticipants: number
+  numberOfStudentsWhoSubmitted: number
+  passRatePerTestCase: Record<string, number>
+}
+
+declare interface SubmissionSsePayload {
+  submissionId: number
+  studentId: string
+  date: string
+  points: number | null
+  testsPassed: number[]
+  content: string
 }
