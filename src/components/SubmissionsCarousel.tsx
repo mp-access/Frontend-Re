@@ -5,7 +5,7 @@ import "./Carousel.css"
 import { Editor } from "@monaco-editor/react"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
-const getFilteredSubmissions = (
+export const getFilteredSubmissions = (
   testCaseSelection: Record<string, boolean> | null,
   submissions: SubmissionSsePayload[],
   exactMatch: boolean,

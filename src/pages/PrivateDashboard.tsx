@@ -29,10 +29,18 @@ import { GoChecklist } from "react-icons/go"
 import { Cell, Pie, PieChart } from "recharts"
 
 import { t } from "i18next"
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import { CountdownTimer } from "../components/CountdownTimer"
 import { RotateFromRightIcon } from "../components/CustomIcons"
 import {
+  useCategorize,
   useExample,
   useExtendExample,
   useGeneralExampleInformation,
@@ -47,7 +55,10 @@ import {
 
 import { useOutletContext } from "react-router-dom"
 import { Markdown, Placeholder } from "../components/Panels"
-import { SubmissionsCarousel } from "../components/SubmissionsCarousel"
+import {
+  getFilteredSubmissions,
+  SubmissionsCarousel,
+} from "../components/SubmissionsCarousel"
 import { TestCaseBarChart } from "../components/TestCaseBarChart"
 
 import { formatSeconds } from "../components/Util"
@@ -158,9 +169,14 @@ const ResetDialog: React.FC<{
 
 const SubmissionInspector: React.FC<{
   submissions: SubmissionSsePayload[]
-  selectedTests: Record<string, boolean> | null
+  testCaseSelection: Record<string, boolean> | null
   exactMatch: boolean
-}> = ({ submissions, selectedTests, exactMatch }) => {
+}> = ({ submissions, testCaseSelection, exactMatch }) => {
+  type CategoriesType = Record<
+    string,
+    { ids: number[]; color: string; selectedIds: number[]; avgScore: number }
+  >
+
   const { inspect } = useInspect()
   const toast = useToast()
   const openInEditor = useCallback(
@@ -175,37 +191,140 @@ const SubmissionInspector: React.FC<{
     [inspect, toast],
   )
 
-  const rawColors = ["purple", "green", "yellow", "blue", "orange", "gray"]
-  const sizes = [180, 120, 80, 30, 20, 70]
+  const [categories, setCategories] = useState<CategoriesType>({})
+  const NONE_KEY = "none"
+
+  const { categorize, isLoading } = useCategorize()
+
+  const getSubmissionsAvgScore = (ids: number[]) => {
+    const selectedPoints = submissions
+      .filter((f) => ids.includes(f.submissionId))
+      .map((s) => s.points)
+
+    return selectedPoints.reduce((a, b) => a! + b!, 0)! / selectedPoints.length
+  }
+
+  // Handle the fetching button
+  const handleFetchCategories = async () => {
+    categorize(submissions.map((s) => s.submissionId)).then((res) => {
+      const rawColors = ["purple", "green", "yellow", "blue", "orange"]
+      const newCategories: CategoriesType = {}
+
+      Object.keys(res.categories)
+        .sort((a, b) => res.categories[b].length - res.categories[a].length)
+        .map((key, i) => {
+          newCategories[`cat-${i}`] = {
+            color: rawColors[i],
+            ids: res.categories[key],
+            selectedIds: res.categories[key],
+            avgScore: getSubmissionsAvgScore(res.categories[key]),
+          }
+        })
+
+      const noCatIds = submissions
+        .map((s) => s.submissionId)
+        .filter((f) => !Object.values(res.categories).flat().includes(f))
+
+      if (noCatIds.length > 0) {
+        newCategories[NONE_KEY] = {
+          color: "gray",
+          ids: noCatIds,
+          selectedIds: noCatIds,
+          avgScore: getSubmissionsAvgScore(noCatIds),
+        }
+      }
+
+      setCategories(newCategories)
+    })
+  }
+
+  // Handle the "None" category
+  useEffect(() => {
+    const withCatIds = Object.keys(categories)
+      .filter((f) => f !== NONE_KEY)
+      .map((key) => categories[key].ids)
+      .flat()
+
+    const noCatIds = submissions
+      .map((s) => s.submissionId)
+      .filter((f) => !withCatIds.includes(f))
+
+    if (noCatIds.length > 0)
+      setCategories((prev) => ({
+        ...prev,
+        [NONE_KEY]: {
+          color: "gray",
+          ids: noCatIds,
+          selectedIds: noCatIds,
+          avgScore: getSubmissionsAvgScore(noCatIds),
+        },
+      }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [submissions])
+
+  // Handle filter change
+  useEffect(() => {
+    const filteredSubmissionIds = getFilteredSubmissions(
+      testCaseSelection,
+      submissions,
+      exactMatch,
+    ).map((f) => f.submissionId)
+
+    Object.keys(categories).forEach((key) => {
+      setCategories((prev) => ({
+        ...prev,
+        [key]: {
+          ...prev[key],
+          selectedIds: categories[key].ids.filter((f) =>
+            filteredSubmissionIds.includes(f),
+          ),
+        },
+      }))
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exactMatch, testCaseSelection])
+
+  useLayoutEffect(() => {
+    if (submissions.length >= 5) handleFetchCategories()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <Flex direction={"column"} h={"full"} gap={2}>
       <Flex layerStyle={"segment"} direction="row" p={2}>
-        {rawColors.map((color, i) => {
+        {Object.values(categories).map((category, i) => {
           // eslint-disable-next-line react-hooks/rules-of-hooks
           const [bgColor, selectedColor] = useToken("colors", [
-            `${color}.200`,
-            `${color}.500`,
+            `${category.color}.200`,
+            `${category.color}.500`,
           ])
+
+          const lastIndex = Object.values(categories).length - 1
 
           return (
             <Box
               h={9}
               position={"relative"}
-              flex={sizes[i]}
+              flex={category.ids.length}
               overflow={"hidden"}
               bgColor={bgColor}
               roundedLeft={i === 0 ? 8 : 0}
-              roundedRight={i === rawColors.length - 1 ? 8 : 0}
+              roundedRight={i === lastIndex ? 8 : 0}
+              mr={-1}
+              key={i}
             >
               <Box
                 position={"absolute"}
                 h={"full"}
-                w={1 / 8}
+                w={
+                  category.selectedIds.length === category.ids.length
+                    ? "full"
+                    : category.selectedIds.length / category.ids.length
+                }
                 bgColor={selectedColor}
                 border={"1px solid black"}
                 roundedLeft={i === 0 ? 8 : 0}
-                //   roundedRight={i === rawColors.length - 1 ? 5 : 0}
+                roundedRight={i === lastIndex ? 8 : 0}
               />
               <Grid
                 position={"absolute"}
@@ -219,13 +338,20 @@ const SubmissionInspector: React.FC<{
                 whiteSpace={"nowrap"}
                 textShadow={`-1px -1px 0 ${selectedColor}, 1px -1px 0 ${selectedColor}, -1px 1px 0 ${selectedColor}, 1px 1px 0 ${selectedColor}`}
               >
-                {sizes[i]} | Avg: 80%
+                {category.ids.length} | Avg: {category.avgScore.toFixed(2)}
               </Grid>
             </Box>
           )
         })}
 
-        <Button h={9} variant={"outline"} borderRadius={8} ml={2}>
+        <Button
+          h={9}
+          variant={"outline"}
+          borderRadius={8}
+          ml={3}
+          onClick={handleFetchCategories}
+          disabled={submissions.length < 5 || isLoading}
+        >
           Re-categorize
         </Button>
       </Flex>
@@ -233,7 +359,7 @@ const SubmissionInspector: React.FC<{
       <SubmissionsCarousel
         submissions={submissions}
         openInEditor={openInEditor}
-        testCaseSelection={selectedTests}
+        testCaseSelection={testCaseSelection}
         exactMatch={exactMatch}
       />
     </Flex>
@@ -657,7 +783,7 @@ export function PrivateDashboard() {
           ) : (
             <SubmissionInspector
               submissions={submissions}
-              selectedTests={testCaseSelection}
+              testCaseSelection={testCaseSelection}
               exactMatch={exactMatch}
             />
           )}
