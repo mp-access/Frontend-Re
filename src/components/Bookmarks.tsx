@@ -1,4 +1,4 @@
-import { HStack, Text, useToken, VStack } from "@chakra-ui/react"
+import { Button, Text, useToken, VStack } from "@chakra-ui/react"
 import { useCallback } from "react"
 
 const Bookmark: React.FC<{ bookmark: Bookmark }> = ({ bookmark }) => {
@@ -18,8 +18,7 @@ const Bookmark: React.FC<{ bookmark: Bookmark }> = ({ bookmark }) => {
   }, [colors.length, finalColors])
 
   return (
-    <HStack
-      layerStyle={"segment"}
+    <Button
       border={"1px solid black"}
       borderRadius={"lg"}
       h={10}
@@ -27,7 +26,7 @@ const Bookmark: React.FC<{ bookmark: Bookmark }> = ({ bookmark }) => {
       background={getRandomColor()}
     >
       <Text>{bookmark.studentId}</Text>
-    </HStack>
+    </Button>
   )
 }
 

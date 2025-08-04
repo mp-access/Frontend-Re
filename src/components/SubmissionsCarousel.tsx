@@ -43,9 +43,10 @@ const getFilteredSubmissions = (
   })
 }
 
-const BookmarkToggle: React.FC<{ onClick: () => void }> = ({ onClick }) => {
-  const [selected, setSelected] = useState(false)
-
+const BookmarkToggle: React.FC<{
+  bookmarked: boolean
+  onClick: () => void
+}> = ({ bookmarked, onClick }) => {
   const color = useToken("colors", "purple.600")
   const bookmarkIcon = (
     <svg
@@ -56,7 +57,6 @@ const BookmarkToggle: React.FC<{ onClick: () => void }> = ({ onClick }) => {
       <path d="M128 128C128 92.7 156.7 64 192 64L448 64C483.3 64 512 92.7 512 128L512 545.1C512 570.7 483.5 585.9 462.2 571.7L320 476.8L177.8 571.7C156.5 585.9 128 570.6 128 545.1L128 128zM192 112C183.2 112 176 119.2 176 128L176 515.2L293.4 437C309.5 426.3 330.5 426.3 346.6 437L464 515.2L464 128C464 119.2 456.8 112 448 112L192 112z" />
     </svg>
   )
-
   const bookmarkIconFilled = (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -67,15 +67,10 @@ const BookmarkToggle: React.FC<{ onClick: () => void }> = ({ onClick }) => {
     </svg>
   )
 
-  const handleClick = useCallback(() => {
-    setSelected(!selected)
-    onClick()
-  }, [onClick, selected])
-
   return (
     <Box
       as="button"
-      onClick={handleClick}
+      onClick={onClick}
       p={0}
       m={0}
       bg="transparent"
@@ -84,7 +79,7 @@ const BookmarkToggle: React.FC<{ onClick: () => void }> = ({ onClick }) => {
       _focus={{ outline: "none" }}
       _hover={{ transform: "scale(1.05)" }}
     >
-      {selected ? bookmarkIconFilled : bookmarkIcon}
+      {bookmarked ? bookmarkIconFilled : bookmarkIcon}
     </Box>
   )
 }
@@ -93,7 +88,8 @@ const Slide: React.FC<{
   submission: SubmissionSsePayload
   handleOnBookmarkClick: (submission: SubmissionSsePayload) => void
   openInEditor: (studentId: string) => Promise<void>
-}> = ({ submission, handleOnBookmarkClick, openInEditor }) => {
+  bookmarked: boolean
+}> = ({ submission, handleOnBookmarkClick, openInEditor, bookmarked }) => {
   return (
     <Flex direction={"column"} p={2}>
       <HStack justify={"space-between"} pl={2} pr={2}>
@@ -101,6 +97,7 @@ const Slide: React.FC<{
         <Text>Points: {submission.points}</Text>
         <BookmarkToggle
           onClick={() => handleOnBookmarkClick(submission)}
+          bookmarked={bookmarked}
         ></BookmarkToggle>
       </HStack>
       <Divider />
@@ -135,6 +132,7 @@ export const SubmissionsCarousel: React.FC<{
   submissions: SubmissionSsePayload[]
   testCaseSelection: Record<string, boolean> | null
   exactMatch: boolean
+  bookmarks: Bookmark[] | null
   handleOnBookmarkClick: (submission: SubmissionSsePayload) => void
   openInEditor: (studentId: string) => Promise<void>
 }> = ({
@@ -143,6 +141,7 @@ export const SubmissionsCarousel: React.FC<{
   exactMatch,
   handleOnBookmarkClick,
   openInEditor,
+  bookmarks,
 }) => {
   const sliderRef = useRef<HTMLDivElement | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -215,6 +214,17 @@ export const SubmissionsCarousel: React.FC<{
     filteredSubmissions.length > 0 &&
     currentIndex < filteredSubmissions.length - 1
 
+  const bookmarked = useCallback(
+    (submissionId: number) => {
+      if (!bookmarks) return false
+
+      return bookmarks.some(
+        (bookmark) => bookmark.submissionId === submissionId,
+      )
+    },
+    [bookmarks],
+  )
+
   return (
     <Flex
       position={"relative"}
@@ -231,6 +241,7 @@ export const SubmissionsCarousel: React.FC<{
               openInEditor={openInEditor}
               handleOnBookmarkClick={handleOnBookmarkClick}
               key={key}
+              bookmarked={bookmarked(submission.submissionId)}
             ></Slide>
           ))}
         </Flex>

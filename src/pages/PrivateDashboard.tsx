@@ -163,7 +163,14 @@ const SubmissionInspector: React.FC<{
   selectedTests: Record<string, boolean> | null
   exactMatch: boolean
   handleOnBookmarkClick: (submission: SubmissionSsePayload) => void
-}> = ({ submissions, selectedTests, exactMatch, handleOnBookmarkClick }) => {
+  bookmarks: Bookmark[] | null
+}> = ({
+  submissions,
+  selectedTests,
+  exactMatch,
+  handleOnBookmarkClick,
+  bookmarks,
+}) => {
   const { inspect } = useInspect()
   const toast = useToast()
   const openInEditor = useCallback(
@@ -202,6 +209,7 @@ const SubmissionInspector: React.FC<{
         testCaseSelection={selectedTests}
         exactMatch={exactMatch}
         handleOnBookmarkClick={handleOnBookmarkClick}
+        bookmarks={bookmarks}
       />
     </Flex>
   )
@@ -518,6 +526,7 @@ export function PrivateDashboard() {
       setExampleState("resetting")
       await resetExample()
       setExampleState("unpublished")
+      setBookmarks(null)
       refetchInitialExampleInformation()
       refetchStudentSubmissions()
     } catch (e) {
@@ -528,6 +537,7 @@ export function PrivateDashboard() {
     refetchInitialExampleInformation,
     refetchStudentSubmissions,
     resetExample,
+    setBookmarks,
   ])
 
   const handleOnBookmarkClick = useCallback(
@@ -687,6 +697,7 @@ export function PrivateDashboard() {
               selectedTests={testCaseSelection}
               exactMatch={exactMatch}
               handleOnBookmarkClick={handleOnBookmarkClick}
+              bookmarks={bookmarks}
             />
           )}
         </Flex>
