@@ -12,7 +12,14 @@ import { MdOutlineScreenShare } from "react-icons/md"
 import "./Carousel.css"
 
 import { Editor } from "@monaco-editor/react"
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import React, {
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 
 const getFilteredSubmissions = (
   testCaseSelection: Record<string, boolean> | null,
@@ -133,21 +140,23 @@ export const SubmissionsCarousel: React.FC<{
   testCaseSelection: Record<string, boolean> | null
   exactMatch: boolean
   bookmarks: Bookmark[] | null
+  lastDisplayedSubmissionId: number | null
+  setLastDisplayedSubmissionId: React.Dispatch<SetStateAction<number | null>>
   handleOnBookmarkClick: (submission: SubmissionSsePayload) => void
   openInEditor: (studentId: string) => Promise<void>
 }> = ({
   submissions,
   testCaseSelection,
   exactMatch,
+  lastDisplayedSubmissionId,
+  setLastDisplayedSubmissionId,
   handleOnBookmarkClick,
   openInEditor,
   bookmarks,
 }) => {
   const sliderRef = useRef<HTMLDivElement | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [lastDisplayedSubmissionId, setLastDisplayedSubmissionId] = useState<
-    number | null
-  >(null)
+
   const slideCount = submissions ? submissions?.length : 0
   const filteredSubmissions = useMemo(() => {
     return getFilteredSubmissions(testCaseSelection, submissions, exactMatch)

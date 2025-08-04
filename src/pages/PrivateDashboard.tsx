@@ -33,7 +33,14 @@ import { GoChecklist } from "react-icons/go"
 import { Cell, Pie, PieChart } from "recharts"
 
 import { t } from "i18next"
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import React, {
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import { CountdownTimer } from "../components/CountdownTimer"
 import { RotateFromRightIcon } from "../components/CustomIcons"
 import {
@@ -55,7 +62,7 @@ import { Markdown, Placeholder } from "../components/Panels"
 import { SubmissionsCarousel } from "../components/SubmissionsCarousel"
 import { TestCaseBarChart } from "../components/TestCaseBarChart"
 
-import { Bookmarks } from "../components/Bookmarks"
+import { BookmarkView } from "../components/BookmarkView"
 import { formatSeconds } from "../components/Util"
 
 type ExampleState =
@@ -164,12 +171,16 @@ const SubmissionInspector: React.FC<{
   exactMatch: boolean
   handleOnBookmarkClick: (submission: SubmissionSsePayload) => void
   bookmarks: Bookmark[] | null
+  lastDisplayedSubmissionId: number | null
+  setLastDisplayedSubmissionId: React.Dispatch<SetStateAction<number | null>>
 }> = ({
   submissions,
   selectedTests,
   exactMatch,
   handleOnBookmarkClick,
   bookmarks,
+  lastDisplayedSubmissionId,
+  setLastDisplayedSubmissionId,
 }) => {
   const { inspect } = useInspect()
   const toast = useToast()
@@ -210,6 +221,8 @@ const SubmissionInspector: React.FC<{
         exactMatch={exactMatch}
         handleOnBookmarkClick={handleOnBookmarkClick}
         bookmarks={bookmarks}
+        lastDisplayedSubmissionId={lastDisplayedSubmissionId}
+        setLastDisplayedSubmissionId={setLastDisplayedSubmissionId}
       />
     </Flex>
   )
@@ -468,6 +481,10 @@ export function PrivateDashboard() {
     boolean
   > | null>(null)
 
+  const [lastDisplayedSubmissionId, setLastDisplayedSubmissionId] = useState<
+    number | null
+  >(null)
+
   const { i18n } = useTranslation()
   const currentLanguage = i18n.language
   const { user } = useOutletContext<UserContext>()
@@ -540,6 +557,7 @@ export function PrivateDashboard() {
     setBookmarks,
   ])
 
+  console.log(bookmarks)
   const handleOnBookmarkClick = useCallback(
     (submission: SubmissionSsePayload) => {
       const submissionBookmark: Bookmark = {
@@ -590,6 +608,13 @@ export function PrivateDashboard() {
 
     return [Date.parse(example.start), Date.parse(example.end)]
   }, [example, timeFrameFromEvent])
+
+  const handleBookmarkSelection = useCallback((bookmark: Bookmark) => {
+    const { exactMatch, testCaseSelection } = bookmark.filters
+    setExactMatch(exactMatch)
+    setTestCaseSelection(testCaseSelection)
+    setLastDisplayedSubmissionId(bookmark.submissionId)
+  }, [])
 
   useEffect(() => {
     if (initialExampleInformation) {
@@ -678,7 +703,10 @@ export function PrivateDashboard() {
                 ></TestCaseBarChart>
               </TabPanel>
               <TabPanel display={"flex"} flex={1}>
-                <Bookmarks bookmarks={bookmarks} />
+                <BookmarkView
+                  bookmarks={bookmarks}
+                  handleBookmarkSelection={handleBookmarkSelection}
+                />
               </TabPanel>
             </TabPanels>
           </Tabs>
@@ -698,6 +726,8 @@ export function PrivateDashboard() {
               exactMatch={exactMatch}
               handleOnBookmarkClick={handleOnBookmarkClick}
               bookmarks={bookmarks}
+              lastDisplayedSubmissionId={lastDisplayedSubmissionId}
+              setLastDisplayedSubmissionId={setLastDisplayedSubmissionId}
             />
           )}
         </Flex>

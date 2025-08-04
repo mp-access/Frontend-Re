@@ -1,7 +1,10 @@
 import { Button, Text, useToken, VStack } from "@chakra-ui/react"
 import { useCallback } from "react"
 
-const Bookmark: React.FC<{ bookmark: Bookmark }> = ({ bookmark }) => {
+const Bookmark: React.FC<{
+  bookmark: Bookmark
+  handleBookmarkSelection: (bookmark: Bookmark) => void
+}> = ({ bookmark, handleBookmarkSelection }) => {
   const colors = [
     useToken("colors", "purple.300"),
     useToken("colors", "yellow.300"),
@@ -24,20 +27,26 @@ const Bookmark: React.FC<{ bookmark: Bookmark }> = ({ bookmark }) => {
       h={10}
       width={"full"}
       background={getRandomColor()}
+      onClick={() => handleBookmarkSelection(bookmark)}
     >
       <Text>{bookmark.studentId}</Text>
     </Button>
   )
 }
 
-export const Bookmarks: React.FC<{ bookmarks: Bookmark[] | null }> = ({
-  bookmarks,
-}) => {
+export const BookmarkView: React.FC<{
+  bookmarks: Bookmark[] | null
+  handleBookmarkSelection: (bookmark: Bookmark) => void
+}> = ({ bookmarks, handleBookmarkSelection }) => {
   if (!bookmarks) return null
   return (
     <VStack width={"full"} align={"start"}>
       {bookmarks.map((bookmark, key) => (
-        <Bookmark key={key} bookmark={bookmark}></Bookmark>
+        <Bookmark
+          key={key}
+          bookmark={bookmark}
+          handleBookmarkSelection={handleBookmarkSelection}
+        ></Bookmark>
       ))}
     </VStack>
   )
