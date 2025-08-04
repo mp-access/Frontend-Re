@@ -395,7 +395,7 @@ export const useInspect = () => {
 export const useStudentSubmissions = () => {
   const { courseSlug, exampleSlug } = useParams()
 
-  return useQuery<SubmissionSsePayload[]>([
+  return useQuery<ExampleSubmissionsDTO>([
     "courses",
     courseSlug,
     "examples",

@@ -29,21 +29,13 @@ import { GoChecklist } from "react-icons/go"
 import { Cell, Pie, PieChart } from "recharts"
 
 import { t } from "i18next"
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { CountdownTimer } from "../components/CountdownTimer"
 import { RotateFromRightIcon } from "../components/CustomIcons"
 import {
   useCategorize,
   useExample,
   useExtendExample,
-  useGeneralExampleInformation,
   useInspect,
   usePublish,
   useResetExample,
@@ -167,16 +159,23 @@ const ResetDialog: React.FC<{
   )
 }
 
+type CategoriesType = Record<
+  string,
+  { ids: number[]; color: string; selectedIds: number[]; avgScore: number }
+>
 const SubmissionInspector: React.FC<{
   submissions: SubmissionSsePayload[]
   testCaseSelection: Record<string, boolean> | null
   exactMatch: boolean
-}> = ({ submissions, testCaseSelection, exactMatch }) => {
-  type CategoriesType = Record<
-    string,
-    { ids: number[]; color: string; selectedIds: number[]; avgScore: number }
-  >
-
+  categories: CategoriesType
+  setCategories: React.Dispatch<React.SetStateAction<CategoriesType>>
+}> = ({
+  submissions,
+  testCaseSelection,
+  exactMatch,
+  categories,
+  setCategories,
+}) => {
   const { inspect } = useInspect()
   const toast = useToast()
   const openInEditor = useCallback(
@@ -191,8 +190,20 @@ const SubmissionInspector: React.FC<{
     [inspect, toast],
   )
 
-  const [categories, setCategories] = useState<CategoriesType>({})
+  const [selectedCategory, setSelectedCategory] = useState<string>()
   const NONE_KEY = "none"
+
+  const handleCategorySelection = (categoryKey: string) => {
+    setSelectedCategory((prev) => {
+      if (prev === categoryKey) {
+        // TODO: set submissions order
+        return undefined
+      }
+
+      // TODO: set submissions order = current category ids
+      return categoryKey
+    })
+  }
 
   const { categorize, isLoading } = useCategorize()
 
@@ -249,6 +260,8 @@ const SubmissionInspector: React.FC<{
       .map((s) => s.submissionId)
       .filter((f) => !withCatIds.includes(f))
 
+    // TODO: set submissions order = current category ids
+
     if (noCatIds.length > 0)
       setCategories((prev) => ({
         ...prev,
@@ -284,15 +297,10 @@ const SubmissionInspector: React.FC<{
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exactMatch, testCaseSelection])
 
-  useLayoutEffect(() => {
-    if (submissions.length >= 5) handleFetchCategories()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
   return (
     <Flex direction={"column"} h={"full"} gap={2}>
-      <Flex layerStyle={"segment"} direction="row" p={2}>
-        {Object.values(categories).map((category, i) => {
+      <Flex layerStyle={"segment"} direction="row" p={3}>
+        {Object.entries(categories).map(([categoryKey, category], i) => {
           // eslint-disable-next-line react-hooks/rules-of-hooks
           const [bgColor, selectedColor] = useToken("colors", [
             `${category.color}.200`,
@@ -306,12 +314,12 @@ const SubmissionInspector: React.FC<{
               h={9}
               position={"relative"}
               flex={category.ids.length}
-              overflow={"hidden"}
               bgColor={bgColor}
               roundedLeft={i === 0 ? 8 : 0}
               roundedRight={i === lastIndex ? 8 : 0}
               mr={-1}
               key={i}
+              onClick={() => handleCategorySelection(categoryKey)}
             >
               <Box
                 position={"absolute"}
@@ -325,12 +333,27 @@ const SubmissionInspector: React.FC<{
                 border={"1px solid black"}
                 roundedLeft={i === 0 ? 8 : 0}
                 roundedRight={i === lastIndex ? 8 : 0}
+                _before={
+                  selectedCategory === categoryKey
+                    ? {
+                        content: `""`,
+                        top: "calc(100% + 2px)",
+                        left: 0,
+                        position: "absolute",
+                        width: "100%",
+                        height: 2,
+                        bg: selectedColor,
+                        roundedBottom: "10px",
+                      }
+                    : {}
+                }
               />
               <Grid
                 position={"absolute"}
                 p={2}
                 h={"full"}
                 w={"full"}
+                overflow={"hidden"}
                 placeItems={"center"}
                 color={"white"}
                 fontSize={"xs"}
@@ -619,10 +642,6 @@ export function PrivateDashboard() {
   const currentLanguage = i18n.language
   const { user } = useOutletContext<UserContext>()
   const { data: example } = useExample(user.email)
-  const {
-    data: initialExampleInformation,
-    refetch: refetchInitialExampleInformation,
-  } = useGeneralExampleInformation()
   const { timeFrameFromEvent } = useTimeframeFromSSE()
   const durationAsString = useMemo(() => {
     return formatSeconds(durationInSeconds || 0)
@@ -630,6 +649,7 @@ export function PrivateDashboard() {
   const [submissions, setSubmissions] = useState<SubmissionSsePayload[] | null>(
     null,
   )
+  const [categories, setCategories] = useState<CategoriesType>({})
 
   useSSE<SubmissionSsePayload>("student-submission", (data) => {
     setSubmissions((prev) => {
@@ -673,17 +693,12 @@ export function PrivateDashboard() {
       setExampleState("resetting")
       await resetExample()
       setExampleState("unpublished")
-      refetchInitialExampleInformation()
       refetchStudentSubmissions()
     } catch (e) {
       console.log("An error occured when resetting the example: ", e)
       setExampleState("finished")
     }
-  }, [
-    refetchInitialExampleInformation,
-    refetchStudentSubmissions,
-    resetExample,
-  ])
+  }, [refetchStudentSubmissions, resetExample])
 
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
     if (!example) {
@@ -702,20 +717,17 @@ export function PrivateDashboard() {
   }, [example, timeFrameFromEvent])
 
   useEffect(() => {
-    if (initialExampleInformation) {
-      setExampleInformation(initialExampleInformation)
+    if (fetchedSubmissions) {
+      setSubmissions(fetchedSubmissions.submissions)
+
+      setExampleInformation(fetchedSubmissions)
       const initialSelectedTests = Object.fromEntries(
-        Object.keys(initialExampleInformation.passRatePerTestCase).map(
-          (testName) => [testName, false],
-        ),
+        Object.keys(fetchedSubmissions.passRatePerTestCase).map((testName) => [
+          testName,
+          false,
+        ]),
       )
       setTestCaseSelection(initialSelectedTests)
-    }
-  }, [initialExampleInformation])
-
-  useEffect(() => {
-    if (fetchedSubmissions) {
-      setSubmissions(fetchedSubmissions)
     }
   }, [fetchedSubmissions])
 
@@ -785,6 +797,8 @@ export function PrivateDashboard() {
               submissions={submissions}
               testCaseSelection={testCaseSelection}
               exactMatch={exactMatch}
+              categories={categories}
+              setCategories={setCategories}
             />
           )}
         </Flex>
