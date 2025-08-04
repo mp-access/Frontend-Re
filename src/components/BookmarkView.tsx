@@ -1,4 +1,4 @@
-import { Button, Text, useToken, VStack } from "@chakra-ui/react"
+import { Button, Flex, Text, useToken, VStack } from "@chakra-ui/react"
 import { useCallback } from "react"
 
 const Bookmark: React.FC<{
@@ -20,16 +20,27 @@ const Bookmark: React.FC<{
     return finalColors[index]
   }, [colors.length, finalColors])
 
+  const nameOnly = bookmark.studentId.split("@")[0]
+  const testsPassed = bookmark.testsPassed.reduce(
+    (accumulator, currentVal) => (accumulator += currentVal),
+  )
   return (
     <Button
       border={"1px solid black"}
       borderRadius={"lg"}
       h={10}
       width={"full"}
-      background={getRandomColor()}
+      colorScheme="blue"
       onClick={() => handleBookmarkSelection(bookmark)}
     >
-      <Text>{bookmark.studentId}</Text>
+      <Flex flex={1}>
+        <Text flex={1} align={"start"}>
+          {nameOnly}
+        </Text>
+        <Text flex={1} align={"start"}>
+          Tests Passed: {testsPassed}/{bookmark.testsPassed.length}
+        </Text>
+      </Flex>
     </Button>
   )
 }
@@ -46,7 +57,7 @@ export const BookmarkView: React.FC<{
           key={key}
           bookmark={bookmark}
           handleBookmarkSelection={handleBookmarkSelection}
-        ></Bookmark>
+        />
       ))}
     </VStack>
   )

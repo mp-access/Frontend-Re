@@ -476,6 +476,11 @@ export function PrivateDashboard() {
     `${courseSlug}-${exampleSlug}-bookmarks`,
     null,
   )
+
+  const [tabIndex, setTabIndex] = useLocalStorage<number>(
+    `${courseSlug}-${exampleSlug}-tabindex`,
+    0,
+  )
   const [testCaseSelection, setTestCaseSelection] = useState<Record<
     string,
     boolean
@@ -687,6 +692,8 @@ export function PrivateDashboard() {
             flexDir={"column"}
             flex={1}
             colorScheme="purple"
+            index={tabIndex}
+            onChange={(index) => setTabIndex(index)}
           >
             <TabList>
               <Tab>Test Cases</Tab>
