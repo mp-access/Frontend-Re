@@ -188,7 +188,12 @@ export const SubmissionsCarousel: React.FC<{
         clearTimeout(scrollTimeoutRef.current)
       }
     }
-  }, [currentIndex, filteredSubmissions, submissions])
+  }, [
+    currentIndex,
+    filteredSubmissions,
+    setLastDisplayedSubmissionId,
+    submissions,
+  ])
 
   const goToSlide = useCallback(
     (index: number, behavior?: ScrollBehavior) => {
@@ -203,7 +208,7 @@ export const SubmissionsCarousel: React.FC<{
         setLastDisplayedSubmissionId(filteredSubmissions[newIndex].submissionId)
       }
     },
-    [filteredSubmissions, slideCount],
+    [filteredSubmissions, setLastDisplayedSubmissionId, slideCount],
   )
   useEffect(() => {
     if (!lastDisplayedSubmissionId) return
@@ -216,7 +221,12 @@ export const SubmissionsCarousel: React.FC<{
     } else {
       setLastDisplayedSubmissionId(filteredSubmissions[0]?.submissionId ?? null)
     }
-  }, [lastDisplayedSubmissionId, filteredSubmissions, goToSlide])
+  }, [
+    lastDisplayedSubmissionId,
+    filteredSubmissions,
+    goToSlide,
+    setLastDisplayedSubmissionId,
+  ])
 
   const showPrevButton = currentIndex !== 0
   const showNextButton =
