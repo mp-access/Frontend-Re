@@ -191,28 +191,36 @@ const SubmissionInspector: React.FC<{
   )
 
   const [selectedCategory, setSelectedCategory] = useState<string>()
-  const NONE_KEY = "none"
+  const [carouselSubmissions, setCarouselSubmissions] = useState<
+    SubmissionSsePayload[]
+  >([])
+  const LEFTOVER_CATEGORY_KEY = "none"
 
   const handleCategorySelection = (categoryKey: string) => {
-    setSelectedCategory((prev) => {
-      if (prev === categoryKey) {
-        // TODO: set submissions order
-        return undefined
-      }
-
-      // TODO: set submissions order = current category ids
-      return categoryKey
-    })
+    if (Object.keys(categories).length > 1)
+      setSelectedCategory((prev) =>
+        prev === categoryKey ? undefined : categoryKey,
+      )
   }
 
   const { categorize, isLoading } = useCategorize()
 
+  // Utils
   const getSubmissionsAvgScore = (ids: number[]) => {
     const selectedPoints = submissions
       .filter((f) => ids.includes(f.submissionId))
       .map((s) => s.points)
 
     return selectedPoints.reduce((a, b) => a! + b!, 0)! / selectedPoints.length
+  }
+
+  const getSubmissionColor = (submissionId: number) => {
+    const foundColor = Object.values(categories).filter((category) =>
+      category.ids.includes(submissionId),
+    )
+
+    if (foundColor.length > 0) return foundColor[0].color
+    return "gray"
   }
 
   // Handle the fetching button
@@ -237,7 +245,7 @@ const SubmissionInspector: React.FC<{
         .filter((f) => !Object.values(res.categories).flat().includes(f))
 
       if (noCatIds.length > 0) {
-        newCategories[NONE_KEY] = {
+        newCategories[LEFTOVER_CATEGORY_KEY] = {
           color: "gray",
           ids: noCatIds,
           selectedIds: noCatIds,
@@ -252,7 +260,7 @@ const SubmissionInspector: React.FC<{
   // Handle the "None" category
   useEffect(() => {
     const withCatIds = Object.keys(categories)
-      .filter((f) => f !== NONE_KEY)
+      .filter((f) => f !== LEFTOVER_CATEGORY_KEY)
       .map((key) => categories[key].ids)
       .flat()
 
@@ -260,12 +268,10 @@ const SubmissionInspector: React.FC<{
       .map((s) => s.submissionId)
       .filter((f) => !withCatIds.includes(f))
 
-    // TODO: set submissions order = current category ids
-
     if (noCatIds.length > 0)
       setCategories((prev) => ({
         ...prev,
-        [NONE_KEY]: {
+        [LEFTOVER_CATEGORY_KEY]: {
           color: "gray",
           ids: noCatIds,
           selectedIds: noCatIds,
@@ -296,6 +302,22 @@ const SubmissionInspector: React.FC<{
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exactMatch, testCaseSelection])
+
+  useEffect(() => {
+    if (selectedCategory) {
+      const selectedIds = categories[selectedCategory].selectedIds
+
+      const selectedSubmissions = submissions.filter((f) =>
+        selectedIds.includes(f.submissionId),
+      )
+
+      setCarouselSubmissions(selectedSubmissions)
+    } else {
+      setCarouselSubmissions(
+        getFilteredSubmissions(testCaseSelection, submissions, exactMatch),
+      )
+    }
+  }, [categories, exactMatch, selectedCategory, submissions, testCaseSelection])
 
   return (
     <Flex direction={"column"} h={"full"} gap={2}>
@@ -338,9 +360,9 @@ const SubmissionInspector: React.FC<{
                     ? {
                         content: `""`,
                         top: "calc(100% + 2px)",
-                        left: 0,
+                        left: "-1px",
                         position: "absolute",
-                        width: "100%",
+                        width: "max(100%, 8px)",
                         height: 2,
                         bg: selectedColor,
                         roundedBottom: "10px",
@@ -380,10 +402,9 @@ const SubmissionInspector: React.FC<{
       </Flex>
 
       <SubmissionsCarousel
-        submissions={submissions}
+        submissions={carouselSubmissions}
         openInEditor={openInEditor}
-        testCaseSelection={testCaseSelection}
-        exactMatch={exactMatch}
+        getSubmissionColor={getSubmissionColor}
       />
     </Flex>
   )
@@ -434,7 +455,7 @@ const CustomPieChart: React.FC<{ value: number }> = ({ value }) => {
     </PieChart>
   )
 }
-const GenearlInformation: React.FC<{
+const GeneralInformation: React.FC<{
   exampleState: ExampleState
   generalInformation: ExampleInformation
 }> = ({ exampleState, generalInformation }) => {
@@ -499,7 +520,7 @@ const GenearlInformation: React.FC<{
   )
 }
 
-const ExampleTimeControler: React.FC<{
+const ExampleTimeController: React.FC<{
   handleTimeAdjustment: (value: number) => void
   handleStart: () => void
   handleTermination: () => void
@@ -718,7 +739,11 @@ export function PrivateDashboard() {
 
   useEffect(() => {
     if (fetchedSubmissions) {
-      setSubmissions(fetchedSubmissions.submissions)
+      setSubmissions(
+        fetchedSubmissions.submissions.sort(
+          (a, b) => Date.parse(a.date) - Date.parse(b.date),
+        ),
+      )
 
       setExampleInformation(fetchedSubmissions)
       const initialSelectedTests = Object.fromEntries(
@@ -815,12 +840,12 @@ export function PrivateDashboard() {
         alignContent={"space-between"}
         p={2}
       >
-        <GenearlInformation
+        <GeneralInformation
           exampleState={exampleState}
           generalInformation={exampleInformation}
-        ></GenearlInformation>
+        ></GeneralInformation>
 
-        <ExampleTimeControler
+        <ExampleTimeController
           handleTimeAdjustment={handleTimeAdjustment}
           durationAsString={durationAsString} // will be some derived state once implemented properly
           exampleState={exampleState}
@@ -831,7 +856,7 @@ export function PrivateDashboard() {
           startTime={derivedStartDate}
           endTime={derivedEndDate}
           setExampleState={setExampleState}
-        ></ExampleTimeControler>
+        ></ExampleTimeController>
       </GridItem>
     </Grid>
   )

@@ -3,7 +3,14 @@ import { MdOutlineScreenShare } from "react-icons/md"
 import "./Carousel.css"
 
 import { Editor } from "@monaco-editor/react"
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 
 export const getFilteredSubmissions = (
   testCaseSelection: Record<string, boolean> | null,
@@ -36,16 +43,35 @@ export const getFilteredSubmissions = (
 
 const Slide: React.FC<{
   submission: SubmissionSsePayload
+  categoryColor: string
+  currentIndex: number
+  totalSubmissions: number
   openInEditor: (studentId: string) => Promise<void>
-}> = ({ submission, openInEditor }) => {
+}> = ({
+  submission,
+  currentIndex,
+  totalSubmissions,
+  categoryColor,
+  openInEditor,
+}) => {
   return (
-    <Flex direction={"column"} p={2}>
-      <HStack justify={"space-between"} pl={2} pr={2}>
-        <Heading fontSize="lg">{submission.studentId}</Heading>
+    <Flex direction={"column"}>
+      <HStack
+        justify={"space-between"}
+        px={3}
+        py={2}
+        bg={`${categoryColor}.200`}
+      >
+        <Heading fontSize="lg">
+          {submission.studentId}{" "}
+          <Text fontSize={"sm"} fontWeight={400} display={"inline"}>
+            ({currentIndex + 1}/{totalSubmissions})
+          </Text>
+        </Heading>
         <Text>Points: {submission.points}</Text>
       </HStack>
       <Divider />
-      <Flex h={"full"} marginTop={4} direction={"column"}>
+      <Flex h={"full"} marginTop={4} direction={"column"} p={2}>
         <Editor
           value={submission.content}
           options={{
@@ -74,47 +100,53 @@ const Slide: React.FC<{
 
 export const SubmissionsCarousel: React.FC<{
   submissions: SubmissionSsePayload[]
-  testCaseSelection: Record<string, boolean> | null
-  exactMatch: boolean
   openInEditor: (studentId: string) => Promise<void>
-}> = ({ submissions, testCaseSelection, exactMatch, openInEditor }) => {
+  getSubmissionColor: (submissionId: number) => string
+}> = ({ submissions, openInEditor, getSubmissionColor }) => {
   const sliderRef = useRef<HTMLDivElement | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [lastDisplayedSubmissionId, setLastDisplayedSubmissionId] = useState<
-    number | null
-  >(null)
-  const slideCount = submissions ? submissions?.length : 0
-  const filteredSubmissions = useMemo(() => {
-    return getFilteredSubmissions(testCaseSelection, submissions, exactMatch)
-  }, [exactMatch, testCaseSelection, submissions])
+  //   const [lastDisplayedSubmissionId, setLastDisplayedSubmissionId] = useState<
+  //     number | null
+  //   >(null)
+  const slideCount = useMemo(
+    () => (submissions ? submissions?.length : 0),
+    [submissions],
+  )
+  //   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  useEffect(() => {
+  useLayoutEffect(() => {
     const slider = sliderRef.current
     if (!slider) return
 
     const handleScroll = () => {
       const index = Math.round(slider.scrollLeft / slider.offsetWidth)
       setCurrentIndex(index)
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current)
-      }
+      //   if (scrollTimeoutRef.current) {
+      //     clearTimeout(scrollTimeoutRef.current)
+      //   }
 
       // this is needed to still enable smooth scrolling via touch screen while keeping track of last selected submission
-      scrollTimeoutRef.current = setTimeout(() => {
-        setLastDisplayedSubmissionId(filteredSubmissions[index].submissionId)
-      }, 500)
+      //   scrollTimeoutRef.current = setTimeout(() => {
+      //     setLastDisplayedSubmissionId(submissions[index].submissionId)
+      //   }, 500)
     }
 
     slider.addEventListener("scroll", handleScroll)
     return () => {
       slider.removeEventListener("scroll", handleScroll)
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current)
-      }
+      //   if (scrollTimeoutRef.current) {
+      //     clearTimeout(scrollTimeoutRef.current)
+      //   }
     }
-  }, [currentIndex, filteredSubmissions, submissions])
+  }, [])
+
+  useEffect(() => {
+    if (submissions.length) {
+      setCurrentIndex(0)
+      goToSlide(0, "instant")
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [submissions])
 
   const goToSlide = useCallback(
     (index: number, behavior?: ScrollBehavior) => {
@@ -125,29 +157,28 @@ export const SubmissionsCarousel: React.FC<{
           left: newIndex * slider.offsetWidth,
           behavior: behavior ?? "smooth",
         })
-        setCurrentIndex(newIndex)
-        setLastDisplayedSubmissionId(filteredSubmissions[newIndex].submissionId)
+        // setCurrentIndex(newIndex)
+        // setLastDisplayedSubmissionId(submissions[newIndex].submissionId)
       }
     },
-    [filteredSubmissions, slideCount],
+    [slideCount],
   )
-  useEffect(() => {
-    if (!lastDisplayedSubmissionId) return
-
-    const index = filteredSubmissions.findIndex(
-      (submission) => submission.submissionId === lastDisplayedSubmissionId,
-    )
-    if (index !== -1) {
-      goToSlide(index, "instant")
-    } else {
-      setLastDisplayedSubmissionId(filteredSubmissions[0]?.submissionId ?? null)
-    }
-  }, [lastDisplayedSubmissionId, filteredSubmissions, goToSlide])
+  //   useEffect(() => {
+  //     if (!lastDisplayedSubmissionId) return
+  //
+  //     const index = submissions.findIndex(
+  //       (submission) => submission.submissionId === lastDisplayedSubmissionId,
+  //     )
+  //     if (index !== -1) {
+  //       goToSlide(index, "instant")
+  //     } else {
+  //       setLastDisplayedSubmissionId(submissions[0]?.submissionId ?? null)
+  //     }
+  //   }, [lastDisplayedSubmissionId, goToSlide])
 
   const showPrevButton = currentIndex !== 0
   const showNextButton =
-    filteredSubmissions.length > 0 &&
-    currentIndex < filteredSubmissions.length - 1
+    submissions.length > 0 && currentIndex < submissions.length - 1
 
   return (
     <Flex
@@ -159,8 +190,15 @@ export const SubmissionsCarousel: React.FC<{
     >
       <Flex className="slider" width={"full"} borderRadius={"2xl"}>
         <Flex className="slides" ref={sliderRef}>
-          {filteredSubmissions?.map((submission) => (
-            <Slide submission={submission} openInEditor={openInEditor}></Slide>
+          {submissions?.map((submission, i) => (
+            <Slide
+              submission={submission}
+              categoryColor={getSubmissionColor(submission.submissionId)}
+              currentIndex={i}
+              totalSubmissions={submissions.length}
+              openInEditor={openInEditor}
+              key={submission.submissionId}
+            ></Slide>
           ))}
         </Flex>
       </Flex>
