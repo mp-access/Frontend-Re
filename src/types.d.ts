@@ -214,6 +214,7 @@ declare interface ParticipantProps {
   email: string
   points: number
   registrationId?: string
+  otherId?: string
   username?: string
 }
 
