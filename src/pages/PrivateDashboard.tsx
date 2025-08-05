@@ -319,16 +319,25 @@ const SubmissionInspector: React.FC<{
     }
   }, [categories, exactMatch, selectedCategory, submissions, testCaseSelection])
 
+  const categoryColorNames = useMemo(() => {
+    return Object.values(categories).map((category) => category.color)
+  }, [categories])
+
+  const bgColors = useToken(
+    "colors",
+    categoryColorNames.map((color) => `${color}.200`),
+  )
+  const selectedColors = useToken(
+    "colors",
+    categoryColorNames.map((color) => `${color}.500`),
+  )
+
   return (
     <Flex direction={"column"} h={"full"} gap={2}>
       <Flex layerStyle={"segment"} direction="row" p={3}>
         {Object.entries(categories).map(([categoryKey, category], i) => {
-          // eslint-disable-next-line react-hooks/rules-of-hooks
-          const [bgColor, selectedColor] = useToken("colors", [
-            `${category.color}.200`,
-            `${category.color}.500`,
-          ])
-
+          const bgColor = bgColors[i]
+          const selectedColor = selectedColors[i]
           const lastIndex = Object.values(categories).length - 1
 
           return (
