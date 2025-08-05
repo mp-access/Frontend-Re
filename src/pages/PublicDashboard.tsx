@@ -15,14 +15,81 @@ import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { FcAlarmClock, FcDocument } from "react-icons/fc"
 import { useNavigate, useOutletContext } from "react-router-dom"
+import {
+  Bar,
+  BarChart,
+  Label,
+  LabelList,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+} from "recharts"
 import { CountdownTimer } from "../components/CountdownTimer"
 import {
+  useCountdown,
   useExample,
+  useExamplePointDistribution,
   useGeneralExampleInformation,
   useSSE,
   useTimeframeFromSSE,
 } from "../components/Hooks"
 import { Markdown, Placeholder } from "../components/Panels"
+
+const PointsHistogram: React.FC = () => {
+  const { data } = useExamplePointDistribution()
+
+  const pointDistribution = useMemo(() => {
+    if (!data || !Array.isArray(data.pointDistribution)) return []
+
+    const total = data.pointDistribution.reduce(
+      (sum, curr) => sum + curr.numberOfSubmissions,
+      0,
+    )
+
+    return data.pointDistribution.map((elem) => {
+      const count = elem.numberOfSubmissions
+      const percentage = total > 0 ? ((count / total) * 100).toFixed(0) : "0"
+      return {
+        bin: `${elem.lowerBoundary}-${elem.upperBoundary}`,
+        count,
+        percentage,
+      }
+    })
+  }, [data])
+  return (
+    <ResponsiveContainer width="100%">
+      <BarChart data={pointDistribution} margin={{ left: 4, bottom: 8 }}>
+        <XAxis dataKey="bin">
+          <Label
+            value={"Points"}
+            position={"insideBottom"}
+            offset={-8}
+            fontSize={18}
+          />
+        </XAxis>
+        <YAxis>
+          <Label
+            value={"Submissions"}
+            position={"insideLeft"}
+            angle={-90}
+            fontSize={18}
+            dy={55}
+          />
+        </YAxis>
+
+        <Bar dataKey="count" fill="#8884d8">
+          <LabelList
+            dataKey="percentage"
+            position="insideTop"
+            fill="white"
+            fontSize={18}
+            formatter={(val: string) => `${val}%`}
+          />
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
+  )
+}
 
 export function PublicDashboard() {
   const { user } = useOutletContext<UserContext>()
@@ -34,6 +101,7 @@ export function PublicDashboard() {
   const { data: initialExampleInformation } = useGeneralExampleInformation()
   const [exampleInformation, setExampleInformation] =
     useState<ExampleInformation | null>(null)
+
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
     if (!example) {
       return [null, null]
@@ -50,6 +118,11 @@ export function PublicDashboard() {
     return [Date.parse(example.start), Date.parse(example.end)]
   }, [example, timeFrameFromEvent])
 
+  const { timeLeftInSeconds } = useCountdown(derivedStartDate, derivedEndDate)
+  const showHistogram = useMemo(() => {
+    if (timeLeftInSeconds === null) return true
+    return !timeLeftInSeconds
+  }, [timeLeftInSeconds])
   useSSE<string>("inspect", (editorURL) => {
     if (!editorURL) {
       return
@@ -114,20 +187,29 @@ export function PublicDashboard() {
       maxH={900}
     >
       <GridItem
-        layerStyle={"card"}
-        gap={4}
+        gap={2}
         rowStart={1}
         rowEnd={-1}
         colStart={1}
         colEnd={2}
-        p={3}
+        p={0}
+        display={"flex"}
+        flexDirection={"column"}
       >
-        <Heading fontSize="xl">{title}</Heading>
-        <Divider />
-        <Spacer height={1} />
-        <Markdown children={instructionsContent}></Markdown>
+        <Flex direction={"column"} layerStyle={"segment"} flex={1} m={0}>
+          <Heading fontSize="xl">{title}</Heading>
+          <Divider />
+          <Flex pt={2} direction={"column"}>
+            <Markdown children={instructionsContent}></Markdown>
+          </Flex>
+        </Flex>
+        {showHistogram ? (
+          <Flex flex={1} layerStyle={"segment"} direction={"column"}>
+            <PointsHistogram />
+          </Flex>
+        ) : null}
       </GridItem>
-      <GridItem layerStyle={"card"} p={3} maxHeight={450}>
+      <GridItem layerStyle={"segment"} p={3} maxHeight={450}>
         <HStack>
           <Icon as={FcAlarmClock} boxSize={6} />
           <Heading fontSize="xl">{t("Remaining Time")}</Heading>
@@ -143,7 +225,7 @@ export function PublicDashboard() {
           />
         </Flex>
       </GridItem>
-      <GridItem layerStyle={"card"} p={3} maxHeight={450}>
+      <GridItem layerStyle={"segment"} p={3} maxHeight={450}>
         <HStack>
           <Icon as={FcDocument} boxSize={6} />
           <Heading fontSize="xl">{t("Submissions")}</Heading>

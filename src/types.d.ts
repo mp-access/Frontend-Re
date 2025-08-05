@@ -255,3 +255,12 @@ declare interface Bookmark {
     exactMatch: boolean
   }
 }
+
+declare interface DistributionBin {
+  lowerBoundary: number
+  upperBoundary: number
+  numberOfSubmissions: number
+}
+declare interface PointDistribution {
+  pointDistribution: DistributionBin[]
+}
