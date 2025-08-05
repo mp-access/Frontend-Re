@@ -90,10 +90,12 @@ export const TestCaseBarChart: React.FC<{
 }) => {
   const [sorting, setSorting] = useState<Sortings>("default")
 
-  const data = Object.entries(passRatePerTestCase).map(([name, value]) => ({
-    name,
-    value: Math.max(value * 100, 1),
-  }))
+  const data = useMemo(() => {
+    return Object.entries(passRatePerTestCase).map(([name, value]) => ({
+      name,
+      value: Math.max(value * 100, 1),
+    }))
+  }, [passRatePerTestCase])
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     // TODO: type this properly
