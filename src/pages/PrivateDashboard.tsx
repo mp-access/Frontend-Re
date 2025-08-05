@@ -562,7 +562,6 @@ export function PrivateDashboard() {
     setBookmarks,
   ])
 
-  console.log(bookmarks)
   const handleOnBookmarkClick = useCallback(
     (submission: SubmissionSsePayload) => {
       const submissionBookmark: Bookmark = {

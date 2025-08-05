@@ -135,6 +135,8 @@ const Slide: React.FC<{
   )
 }
 
+const SLIDES_GAP = 50
+
 export const SubmissionsCarousel: React.FC<{
   submissions: SubmissionSsePayload[]
   testCaseSelection: Record<string, boolean> | null
@@ -157,7 +159,6 @@ export const SubmissionsCarousel: React.FC<{
   const sliderRef = useRef<HTMLDivElement | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
 
-  const slideCount = submissions ? submissions?.length : 0
   const filteredSubmissions = useMemo(() => {
     return getFilteredSubmissions(testCaseSelection, submissions, exactMatch)
   }, [exactMatch, testCaseSelection, submissions])
@@ -169,7 +170,8 @@ export const SubmissionsCarousel: React.FC<{
     if (!slider) return
 
     const handleScroll = () => {
-      const index = Math.round(slider.scrollLeft / slider.offsetWidth)
+      const slideWidth = slider.offsetWidth + SLIDES_GAP
+      const index = Math.round(slider.scrollLeft / slideWidth)
       setCurrentIndex(index)
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current)
@@ -198,17 +200,19 @@ export const SubmissionsCarousel: React.FC<{
   const goToSlide = useCallback(
     (index: number, behavior?: ScrollBehavior) => {
       const slider = sliderRef.current
+      const slideCount = filteredSubmissions.length
       if (slider) {
         const newIndex = Math.max(0, Math.min(index, slideCount - 1))
+        const slideWidth = slider.offsetWidth + SLIDES_GAP
         slider.scrollTo({
-          left: newIndex * slider.offsetWidth,
+          left: newIndex * slideWidth,
           behavior: behavior ?? "smooth",
         })
         setCurrentIndex(newIndex)
         setLastDisplayedSubmissionId(filteredSubmissions[newIndex].submissionId)
       }
     },
-    [filteredSubmissions, setLastDisplayedSubmissionId, slideCount],
+    [filteredSubmissions, setLastDisplayedSubmissionId],
   )
   useEffect(() => {
     if (!lastDisplayedSubmissionId) return
@@ -253,13 +257,13 @@ export const SubmissionsCarousel: React.FC<{
       height={"full"}
     >
       <Flex className="slider" width={"full"} borderRadius={"2xl"}>
-        <Flex className="slides" ref={sliderRef}>
-          {filteredSubmissions?.map((submission, key) => (
+        <Flex className="slides" ref={sliderRef} gap={SLIDES_GAP}>
+          {filteredSubmissions.map((submission) => (
             <Slide
               submission={submission}
               openInEditor={openInEditor}
               handleOnBookmarkClick={handleOnBookmarkClick}
-              key={key}
+              key={submission.submissionId}
               bookmarked={bookmarked(submission.submissionId)}
             ></Slide>
           ))}
