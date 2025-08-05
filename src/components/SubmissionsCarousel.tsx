@@ -101,7 +101,7 @@ const Slide: React.FC<{
     <Flex direction={"column"} p={2}>
       <HStack justify={"space-between"} pl={2} pr={2}>
         <Heading fontSize="lg">{submission.studentId}</Heading>
-        <Text>Points: {submission.points}</Text>
+        <Text>Points: {submission.points?.toFixed(2)}</Text>
         <BookmarkToggle
           onClick={() => handleOnBookmarkClick(submission)}
           bookmarked={bookmarked}
