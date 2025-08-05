@@ -196,7 +196,13 @@ export function PublicDashboard() {
         display={"flex"}
         flexDirection={"column"}
       >
-        <Flex direction={"column"} layerStyle={"segment"} flex={1} m={0}>
+        <Flex
+          direction={"column"}
+          layerStyle={"segment"}
+          flex={1}
+          m={0}
+          overflow={"auto"}
+        >
           <Heading fontSize="xl">{title}</Heading>
           <Divider />
           <Flex pt={2} direction={"column"}>
