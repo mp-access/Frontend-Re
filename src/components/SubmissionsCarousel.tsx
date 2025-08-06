@@ -6,7 +6,6 @@ import {
   Heading,
   HStack,
   Text,
-  useToken,
 } from "@chakra-ui/react"
 import { MdOutlineScreenShare } from "react-icons/md"
 import "./Carousel.css"
@@ -55,21 +54,28 @@ const BookmarkToggle: React.FC<{
   bookmarked: boolean
   onClick: () => void
 }> = ({ bookmarked, onClick }) => {
-  const color = useToken("colors", "purple.600")
+  const color = "white"
+  const iconStyle: React.CSSProperties = {
+    fill: color,
+    strokeWidth: 10,
+    height: 32,
+    width: 32,
+  }
   const bookmarkIcon = (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 640 640"
-      style={{ fill: color, height: 32, width: 32 }}
+      style={iconStyle}
     >
       <path d="M128 128C128 92.7 156.7 64 192 64L448 64C483.3 64 512 92.7 512 128L512 545.1C512 570.7 483.5 585.9 462.2 571.7L320 476.8L177.8 571.7C156.5 585.9 128 570.6 128 545.1L128 128zM192 112C183.2 112 176 119.2 176 128L176 515.2L293.4 437C309.5 426.3 330.5 426.3 346.6 437L464 515.2L464 128C464 119.2 456.8 112 448 112L192 112z" />
     </svg>
   )
+
   const bookmarkIconFilled = (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 640 640"
-      style={{ fill: color, height: 32, width: 32 }}
+      style={iconStyle}
     >
       <path d="M192 64C156.7 64 128 92.7 128 128L128 544C128 555.5 134.2 566.2 144.2 571.8C154.2 577.4 166.5 577.3 176.4 571.4L320 485.3L463.5 571.4C473.4 577.3 485.7 577.5 495.7 571.8C505.7 566.1 512 555.5 512 544L512 128C512 92.7 483.3 64 448 64L192 64z" />
     </svg>
@@ -115,7 +121,8 @@ const Slide: React.FC<{
         justify={"space-between"}
         px={3}
         py={2}
-        bg={`${categoryColor}.200`}
+        bg={`${categoryColor}.500`}
+        color={"white"}
       >
         <Heading fontSize="lg">
           {submission.studentId}{" "}

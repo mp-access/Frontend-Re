@@ -11,7 +11,6 @@ const Bookmark: React.FC<{
   )
   return (
     <Button
-      border={"1px solid black"}
       borderRadius={"lg"}
       h={10}
       width={"full"}
@@ -37,7 +36,13 @@ export const BookmarkView: React.FC<{
   getSubmissionColor: (submissionId: number) => string
   handleBookmarkSelection: (bookmark: Bookmark) => void
 }> = ({ bookmarks, handleBookmarkSelection, getSubmissionColor }) => {
-  if (!bookmarks) return null
+  if (!bookmarks)
+    return (
+      <Flex justify={"center"} flex={1}>
+        <Text> There are no Bookmarks yet.</Text>
+      </Flex>
+    )
+
   return (
     <VStack width={"full"} align={"start"}>
       {bookmarks.map((bookmark, key) => (
