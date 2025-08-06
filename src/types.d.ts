@@ -253,6 +253,7 @@ declare interface Bookmark {
   filters: {
     testCaseSelection: Record<string | boolean>
     exactMatch: boolean
+    categorySelected: boolean
   }
 }
 
@@ -261,6 +262,15 @@ declare interface DistributionBin {
   upperBoundary: number
   numberOfSubmissions: number
 }
+
 declare interface PointDistribution {
   pointDistribution: DistributionBin[]
+}
+
+declare interface ExampleSubmissionsDTO {
+  participantsOnline: number
+  totalParticipants: number
+  numberOfStudentsWhoSubmitted: number
+  passRatePerTestCase: Record<string, number>
+  submissions: SubmissionSsePayload[]
 }

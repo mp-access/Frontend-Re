@@ -25,13 +25,18 @@ export const CountdownTimer: React.FC<{
       onTimeIsUp &&
       startTime !== null &&
       endTime !== null &&
-      timeLeftInSeconds == 0
+      timeLeftInSeconds !== null &&
+      timeLeftInSeconds <= 0
     ) {
       onTimeIsUp()
     }
   }, [endTime, onTimeIsUp, startTime, timeLeftInSeconds])
 
-  const totalTimeInSeconds = ((endTime ?? 0) - (startTime ?? 0)) / 1000
+  const totalTimeInSeconds = useMemo(() => {
+    if (startTime == null || endTime == null) return 0
+    return Math.max(0, (endTime - startTime) / 1000)
+  }, [startTime, endTime])
+
   const remainingTimeString = formatSeconds(timeLeftInSeconds ?? 0)
   const fontSize = size === "large" ? "4xl" : size === "medium" ? "3xl" : "md"
   const dynamicColor = useMemo(() => {

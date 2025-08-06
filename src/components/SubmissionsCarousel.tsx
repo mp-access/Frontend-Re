@@ -6,7 +6,6 @@ import {
   Heading,
   HStack,
   Text,
-  useToken,
 } from "@chakra-ui/react"
 import { MdOutlineScreenShare } from "react-icons/md"
 import "./Carousel.css"
@@ -16,12 +15,13 @@ import React, {
   SetStateAction,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from "react"
 
-const getFilteredSubmissions = (
+export const getFilteredSubmissions = (
   testCaseSelection: Record<string, boolean> | null,
   submissions: SubmissionSsePayload[],
   exactMatch: boolean,
@@ -54,21 +54,28 @@ const BookmarkToggle: React.FC<{
   bookmarked: boolean
   onClick: () => void
 }> = ({ bookmarked, onClick }) => {
-  const color = useToken("colors", "purple.600")
+  const color = "white"
+  const iconStyle: React.CSSProperties = {
+    fill: color,
+    strokeWidth: 10,
+    height: 32,
+    width: 32,
+  }
   const bookmarkIcon = (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 640 640"
-      style={{ fill: color, height: 32, width: 32 }}
+      style={iconStyle}
     >
       <path d="M128 128C128 92.7 156.7 64 192 64L448 64C483.3 64 512 92.7 512 128L512 545.1C512 570.7 483.5 585.9 462.2 571.7L320 476.8L177.8 571.7C156.5 585.9 128 570.6 128 545.1L128 128zM192 112C183.2 112 176 119.2 176 128L176 515.2L293.4 437C309.5 426.3 330.5 426.3 346.6 437L464 515.2L464 128C464 119.2 456.8 112 448 112L192 112z" />
     </svg>
   )
+
   const bookmarkIconFilled = (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 640 640"
-      style={{ fill: color, height: 32, width: 32 }}
+      style={iconStyle}
     >
       <path d="M192 64C156.7 64 128 92.7 128 128L128 544C128 555.5 134.2 566.2 144.2 571.8C154.2 577.4 166.5 577.3 176.4 571.4L320 485.3L463.5 571.4C473.4 577.3 485.7 577.5 495.7 571.8C505.7 566.1 512 555.5 512 544L512 128C512 92.7 483.3 64 448 64L192 64z" />
     </svg>
@@ -93,22 +100,45 @@ const BookmarkToggle: React.FC<{
 
 const Slide: React.FC<{
   submission: SubmissionSsePayload
+  categoryColor: string
+  currentIndex: number
+  totalSubmissions: number
+  bookmarked: boolean
   handleOnBookmarkClick: (submission: SubmissionSsePayload) => void
   openInEditor: (studentId: string) => Promise<void>
-  bookmarked: boolean
-}> = ({ submission, handleOnBookmarkClick, openInEditor, bookmarked }) => {
+}> = ({
+  submission,
+  currentIndex,
+  totalSubmissions,
+  categoryColor,
+  bookmarked,
+  openInEditor,
+  handleOnBookmarkClick,
+}) => {
   return (
-    <Flex direction={"column"} p={2}>
-      <HStack justify={"space-between"} pl={2} pr={2}>
-        <Heading fontSize="lg">{submission.studentId}</Heading>
-        <Text>Points: {submission.points}</Text>
+    <Flex direction={"column"} borderRadius={"lg"}>
+      <HStack
+        justify={"space-between"}
+        px={3}
+        py={2}
+        bg={`${categoryColor}.500`}
+        color={"white"}
+        borderTopRadius={"xl"}
+      >
+        <Heading fontSize="lg">
+          {submission.studentId}{" "}
+          <Text fontSize={"sm"} fontWeight={400} display={"inline"}>
+            ({currentIndex + 1}/{totalSubmissions})
+          </Text>
+        </Heading>
+        <Text>Points: {submission.points?.toFixed(2)}</Text>
         <BookmarkToggle
           onClick={() => handleOnBookmarkClick(submission)}
           bookmarked={bookmarked}
         ></BookmarkToggle>
       </HStack>
       <Divider />
-      <Flex h={"full"} marginTop={4} direction={"column"}>
+      <Flex h={"full"} marginTop={4} direction={"column"} p={2}>
         <Editor
           value={submission.content}
           options={{
@@ -135,41 +165,42 @@ const Slide: React.FC<{
   )
 }
 
+const SLIDES_GAP = 50
+
 export const SubmissionsCarousel: React.FC<{
   submissions: SubmissionSsePayload[]
-  testCaseSelection: Record<string, boolean> | null
-  exactMatch: boolean
   bookmarks: Bookmark[] | null
   lastDisplayedSubmissionId: number | null
   setLastDisplayedSubmissionId: React.Dispatch<SetStateAction<number | null>>
   handleOnBookmarkClick: (submission: SubmissionSsePayload) => void
   openInEditor: (studentId: string) => Promise<void>
+  getSubmissionColor: (submissionId: number) => string
 }> = ({
   submissions,
-  testCaseSelection,
-  exactMatch,
   lastDisplayedSubmissionId,
   setLastDisplayedSubmissionId,
   handleOnBookmarkClick,
   openInEditor,
   bookmarks,
+  getSubmissionColor,
 }) => {
   const sliderRef = useRef<HTMLDivElement | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
 
-  const slideCount = submissions ? submissions?.length : 0
-  const filteredSubmissions = useMemo(() => {
-    return getFilteredSubmissions(testCaseSelection, submissions, exactMatch)
-  }, [exactMatch, testCaseSelection, submissions])
+  const slideCount = useMemo(
+    () => (submissions ? submissions?.length : 0),
+    [submissions],
+  )
 
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const slider = sliderRef.current
     if (!slider) return
 
     const handleScroll = () => {
-      const index = Math.round(slider.scrollLeft / slider.offsetWidth)
+      const slideWidth = slider.offsetWidth + SLIDES_GAP
+      const index = Math.round(slider.scrollLeft / slideWidth)
       setCurrentIndex(index)
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current)
@@ -177,7 +208,7 @@ export const SubmissionsCarousel: React.FC<{
 
       // this is needed to still enable smooth scrolling via touch screen while keeping track of last selected submission
       scrollTimeoutRef.current = setTimeout(() => {
-        setLastDisplayedSubmissionId(filteredSubmissions[index].submissionId)
+        setLastDisplayedSubmissionId(submissions[index].submissionId)
       }, 500)
     }
 
@@ -188,50 +219,44 @@ export const SubmissionsCarousel: React.FC<{
         clearTimeout(scrollTimeoutRef.current)
       }
     }
-  }, [
-    currentIndex,
-    filteredSubmissions,
-    setLastDisplayedSubmissionId,
-    submissions,
-  ])
+  }, [currentIndex, setLastDisplayedSubmissionId, submissions])
 
   const goToSlide = useCallback(
     (index: number, behavior?: ScrollBehavior) => {
       const slider = sliderRef.current
+
       if (slider) {
         const newIndex = Math.max(0, Math.min(index, slideCount - 1))
+        const slideWidth = slider.offsetWidth + SLIDES_GAP
         slider.scrollTo({
-          left: newIndex * slider.offsetWidth,
+          left: newIndex * slideWidth,
           behavior: behavior ?? "smooth",
         })
         setCurrentIndex(newIndex)
-        setLastDisplayedSubmissionId(filteredSubmissions[newIndex].submissionId)
+        setLastDisplayedSubmissionId(submissions[newIndex].submissionId)
       }
     },
-    [filteredSubmissions, setLastDisplayedSubmissionId, slideCount],
+    [setLastDisplayedSubmissionId, slideCount, submissions],
   )
   useEffect(() => {
     if (!lastDisplayedSubmissionId) return
 
-    const index = filteredSubmissions.findIndex(
+    const index = submissions.findIndex(
       (submission) => submission.submissionId === lastDisplayedSubmissionId,
     )
-    if (index !== -1) {
-      goToSlide(index, "instant")
-    } else {
-      setLastDisplayedSubmissionId(filteredSubmissions[0]?.submissionId ?? null)
-    }
+
+    if (index === -1) return
+
+    goToSlide(index, "instant")
   }, [
     lastDisplayedSubmissionId,
-    filteredSubmissions,
     goToSlide,
     setLastDisplayedSubmissionId,
+    submissions,
   ])
 
   const showPrevButton = currentIndex !== 0
-  const showNextButton =
-    filteredSubmissions.length > 0 &&
-    currentIndex < filteredSubmissions.length - 1
+  const showNextButton = currentIndex !== submissions.length - 1
 
   const bookmarked = useCallback(
     (submissionId: number) => {
@@ -253,13 +278,16 @@ export const SubmissionsCarousel: React.FC<{
       height={"full"}
     >
       <Flex className="slider" width={"full"} borderRadius={"2xl"}>
-        <Flex className="slides" ref={sliderRef}>
-          {filteredSubmissions?.map((submission, key) => (
+        <Flex className="slides" ref={sliderRef} gap={SLIDES_GAP}>
+          {submissions.map((submission, i) => (
             <Slide
               submission={submission}
+              categoryColor={getSubmissionColor(submission.submissionId)}
+              currentIndex={i}
+              totalSubmissions={submissions.length}
               openInEditor={openInEditor}
               handleOnBookmarkClick={handleOnBookmarkClick}
-              key={key}
+              key={submission.submissionId}
               bookmarked={bookmarked(submission.submissionId)}
             ></Slide>
           ))}

@@ -6,6 +6,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogOverlay,
+  Box,
   Button,
   Divider,
   Flex,
@@ -44,9 +45,9 @@ import React, {
 import { CountdownTimer } from "../components/CountdownTimer"
 import { RotateFromRightIcon } from "../components/CustomIcons"
 import {
+  useCategorize,
   useExample,
   useExtendExample,
-  useGeneralExampleInformation,
   useInspect,
   useLocalStorage,
   usePublish,
@@ -59,7 +60,10 @@ import {
 
 import { useOutletContext, useParams } from "react-router-dom"
 import { Markdown, Placeholder } from "../components/Panels"
-import { SubmissionsCarousel } from "../components/SubmissionsCarousel"
+import {
+  getFilteredSubmissions,
+  SubmissionsCarousel,
+} from "../components/SubmissionsCarousel"
 import { TestCaseBarChart } from "../components/TestCaseBarChart"
 
 import { BookmarkView } from "../components/BookmarkView"
@@ -165,22 +169,36 @@ const ResetDialog: React.FC<{
   )
 }
 
+type CategoriesType = Record<
+  string,
+  { ids: number[]; color: string; selectedIds: number[]; avgScore: number }
+>
 const SubmissionInspector: React.FC<{
   submissions: SubmissionSsePayload[]
-  selectedTests: Record<string, boolean> | null
+  testCaseSelection: Record<string, boolean> | null
   exactMatch: boolean
-  handleOnBookmarkClick: (submission: SubmissionSsePayload) => void
   bookmarks: Bookmark[] | null
   lastDisplayedSubmissionId: number | null
+  categories: CategoriesType
+  selectedCategory: string | null
   setLastDisplayedSubmissionId: React.Dispatch<SetStateAction<number | null>>
+  setCategories: React.Dispatch<React.SetStateAction<CategoriesType>>
+  setSelectedCategory: React.Dispatch<SetStateAction<string | null>>
+  getSubmissionColor: (submissionId: number) => string
+  handleOnBookmarkClick: (submission: SubmissionSsePayload) => void
 }> = ({
   submissions,
-  selectedTests,
+  testCaseSelection,
   exactMatch,
-  handleOnBookmarkClick,
   bookmarks,
   lastDisplayedSubmissionId,
+  categories,
+  selectedCategory,
   setLastDisplayedSubmissionId,
+  setSelectedCategory,
+  setCategories,
+  getSubmissionColor,
+  handleOnBookmarkClick,
 }) => {
   const { inspect } = useInspect()
   const toast = useToast()
@@ -196,33 +214,223 @@ const SubmissionInspector: React.FC<{
     [inspect, toast],
   )
 
+  const [carouselSubmissions, setCarouselSubmissions] = useState<
+    SubmissionSsePayload[]
+  >([])
+  const LEFTOVER_CATEGORY_KEY = "none"
+
+  const handleCategorySelection = (categoryKey: string) => {
+    if (Object.keys(categories).length > 1)
+      setSelectedCategory((prev) => (prev === categoryKey ? null : categoryKey))
+    setLastDisplayedSubmissionId(categories[categoryKey].selectedIds[0])
+  }
+
+  const { categorize, isLoading } = useCategorize()
+
+  // Utils
+  const getSubmissionsAvgScore = (ids: number[]) => {
+    const selectedPoints = submissions
+      .filter((f) => ids.includes(f.submissionId))
+      .map((s) => s.points)
+
+    return selectedPoints.reduce((a, b) => a! + b!, 0)! / selectedPoints.length
+  }
+
+  // Handle the fetching button
+  const handleFetchCategories = async () => {
+    categorize(submissions.map((s) => s.submissionId)).then((res) => {
+      const rawColors = ["purple", "green", "yellow", "blue", "orange"]
+      const newCategories: CategoriesType = {}
+
+      Object.keys(res.categories)
+        .sort((a, b) => res.categories[b].length - res.categories[a].length)
+        .map((key, i) => {
+          newCategories[`cat-${i}`] = {
+            color: rawColors[i],
+            ids: res.categories[key],
+            selectedIds: res.categories[key],
+            avgScore: getSubmissionsAvgScore(res.categories[key]),
+          }
+        })
+
+      const noCatIds = submissions
+        .map((s) => s.submissionId)
+        .filter((f) => !Object.values(res.categories).flat().includes(f))
+
+      if (noCatIds.length > 0) {
+        newCategories[LEFTOVER_CATEGORY_KEY] = {
+          color: "gray",
+          ids: noCatIds,
+          selectedIds: noCatIds,
+          avgScore: getSubmissionsAvgScore(noCatIds),
+        }
+      }
+
+      setCategories(newCategories)
+    })
+  }
+
+  // Handle the "None" category
+  useEffect(() => {
+    const withCatIds = Object.keys(categories)
+      .filter((f) => f !== LEFTOVER_CATEGORY_KEY)
+      .map((key) => categories[key].ids)
+      .flat()
+
+    const noCatIds = submissions
+      .map((s) => s.submissionId)
+      .filter((f) => !withCatIds.includes(f))
+
+    if (noCatIds.length > 0)
+      setCategories((prev) => ({
+        ...prev,
+        [LEFTOVER_CATEGORY_KEY]: {
+          color: "gray",
+          ids: noCatIds,
+          selectedIds: noCatIds,
+          avgScore: getSubmissionsAvgScore(noCatIds),
+        },
+      }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [submissions])
+
+  // Handle filter change
+  useEffect(() => {
+    const filteredSubmissionIds = getFilteredSubmissions(
+      testCaseSelection,
+      submissions,
+      exactMatch,
+    ).map((f) => f.submissionId)
+
+    Object.keys(categories).forEach((key) => {
+      setCategories((prev) => ({
+        ...prev,
+        [key]: {
+          ...prev[key],
+          selectedIds: categories[key].ids.filter((f) =>
+            filteredSubmissionIds.includes(f),
+          ),
+        },
+      }))
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exactMatch, testCaseSelection])
+
+  useEffect(() => {
+    if (selectedCategory) {
+      const selectedIds = categories[selectedCategory].selectedIds
+
+      const selectedSubmissions = submissions.filter((f) =>
+        selectedIds.includes(f.submissionId),
+      )
+
+      setCarouselSubmissions(selectedSubmissions)
+    } else {
+      setCarouselSubmissions(
+        getFilteredSubmissions(testCaseSelection, submissions, exactMatch),
+      )
+    }
+  }, [categories, exactMatch, selectedCategory, submissions, testCaseSelection])
+
+  const categoryColorNames = useMemo(() => {
+    return Object.values(categories).map((category) => category.color)
+  }, [categories])
+
+  const bgColors = useToken(
+    "colors",
+    categoryColorNames.map((color) => `${color}.200`),
+  )
+  const selectedColors = useToken(
+    "colors",
+    categoryColorNames.map((color) => `${color}.500`),
+  )
+
   return (
     <Flex direction={"column"} h={"full"} gap={2}>
-      <Flex layerStyle={"segment"} direction={"column"}>
-        <Heading fontSize="xl">Implementation Type #2</Heading>
-        <Divider />
-        <Flex justify={"space-around"} pt={2}>
-          <Text display={"flex"} flexDirection={"row"} gap={2}>
-            Number of implementations: <Text fontWeight={"bold"}>115</Text>
-          </Text>
-          <Text display={"flex"} flexDirection={"row"} gap={2}>
-            Avg. Score: <Text fontWeight={"bold"}>3.2</Text>
-          </Text>
-          <Text display={"flex"} flexDirection={"row"} gap={2}>
-            Std. Dev.: <Text fontWeight={"bold"}>0.8</Text>
-          </Text>
-        </Flex>
+      <Flex layerStyle={"segment"} direction="row" p={3}>
+        {Object.entries(categories).map(([categoryKey, category], i) => {
+          const bgColor = bgColors[i]
+          const selectedColor = selectedColors[i]
+          const lastIndex = Object.values(categories).length - 1
+
+          return (
+            <Box
+              h={9}
+              position={"relative"}
+              flex={category.ids.length}
+              bgColor={bgColor}
+              roundedLeft={i === 0 ? 8 : 0}
+              roundedRight={i === lastIndex ? 8 : 0}
+              mr={-1}
+              key={i}
+              onClick={() => handleCategorySelection(categoryKey)}
+            >
+              <Box
+                position={"absolute"}
+                h={"full"}
+                w={
+                  category.selectedIds.length === category.ids.length
+                    ? "full"
+                    : category.selectedIds.length / category.ids.length
+                }
+                bgColor={selectedColor}
+                border={"1px solid black"}
+                roundedLeft={i === 0 ? 8 : 0}
+                roundedRight={i === lastIndex ? 8 : 0}
+                _before={
+                  selectedCategory === categoryKey
+                    ? {
+                        content: `""`,
+                        top: "calc(100% + 2px)",
+                        left: "-1px",
+                        position: "absolute",
+                        width: "max(100%, 8px)",
+                        height: 2,
+                        bg: selectedColor,
+                        roundedBottom: "10px",
+                      }
+                    : {}
+                }
+              />
+              <Grid
+                position={"absolute"}
+                p={2}
+                h={"full"}
+                w={"full"}
+                overflow={"hidden"}
+                placeItems={"center"}
+                color={"white"}
+                fontSize={"xs"}
+                textOverflow={"ellipsis"}
+                whiteSpace={"nowrap"}
+                textShadow={`-1px -1px 0 ${selectedColor}, 1px -1px 0 ${selectedColor}, -1px 1px 0 ${selectedColor}, 1px 1px 0 ${selectedColor}`}
+              >
+                {category.ids.length} | Avg: {category.avgScore.toFixed(2)}
+              </Grid>
+            </Box>
+          )
+        })}
+
+        <Button
+          h={9}
+          variant={"outline"}
+          borderRadius={8}
+          ml={3}
+          onClick={handleFetchCategories}
+          disabled={submissions.length < 5 || isLoading}
+        >
+          Re-categorize
+        </Button>
       </Flex>
 
       <SubmissionsCarousel
-        submissions={submissions}
+        submissions={carouselSubmissions}
         openInEditor={openInEditor}
-        testCaseSelection={selectedTests}
-        exactMatch={exactMatch}
         handleOnBookmarkClick={handleOnBookmarkClick}
         bookmarks={bookmarks}
         lastDisplayedSubmissionId={lastDisplayedSubmissionId}
         setLastDisplayedSubmissionId={setLastDisplayedSubmissionId}
+        getSubmissionColor={getSubmissionColor}
       />
     </Flex>
   )
@@ -273,7 +481,7 @@ const CustomPieChart: React.FC<{ value: number }> = ({ value }) => {
     </PieChart>
   )
 }
-const GenearlInformation: React.FC<{
+const GeneralInformation: React.FC<{
   exampleState: ExampleState
   generalInformation: ExampleInformation
 }> = ({ exampleState, generalInformation }) => {
@@ -338,7 +546,7 @@ const GenearlInformation: React.FC<{
   )
 }
 
-const ExampleTimeControler: React.FC<{
+const ExampleTimeController: React.FC<{
   handleTimeAdjustment: (value: number) => void
   handleStart: () => void
   handleTermination: () => void
@@ -494,10 +702,6 @@ export function PrivateDashboard() {
   const currentLanguage = i18n.language
   const { user } = useOutletContext<UserContext>()
   const { data: example } = useExample(user.email)
-  const {
-    data: initialExampleInformation,
-    refetch: refetchInitialExampleInformation,
-  } = useGeneralExampleInformation()
   const { timeFrameFromEvent } = useTimeframeFromSSE()
   const durationAsString = useMemo(() => {
     return formatSeconds(durationInSeconds || 0)
@@ -505,6 +709,16 @@ export function PrivateDashboard() {
   const [submissions, setSubmissions] = useState<SubmissionSsePayload[] | null>(
     null,
   )
+  const [categories, setCategories] = useState<CategoriesType>({})
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const getSubmissionColor = (submissionId: number) => {
+    const foundColor = Object.values(categories).filter((category) =>
+      category.ids.includes(submissionId),
+    )
+
+    if (foundColor.length > 0) return foundColor[0].color
+    return "gray"
+  }
 
   useSSE<SubmissionSsePayload>("student-submission", (data) => {
     setSubmissions((prev) => {
@@ -549,18 +763,12 @@ export function PrivateDashboard() {
       await resetExample()
       setExampleState("unpublished")
       setBookmarks(null)
-      refetchInitialExampleInformation()
       refetchStudentSubmissions()
     } catch (e) {
       console.log("An error occured when resetting the example: ", e)
       setExampleState("finished")
     }
-  }, [
-    refetchInitialExampleInformation,
-    refetchStudentSubmissions,
-    resetExample,
-    setBookmarks,
-  ])
+  }, [refetchStudentSubmissions, resetExample, setBookmarks])
 
   const handleOnBookmarkClick = useCallback(
     (submission: SubmissionSsePayload) => {
@@ -568,7 +776,11 @@ export function PrivateDashboard() {
         submissionId: submission.submissionId,
         studentId: submission.studentId,
         testsPassed: submission.testsPassed,
-        filters: { testCaseSelection, exactMatch },
+        filters: {
+          testCaseSelection,
+          exactMatch,
+          categorySelected: !!selectedCategory,
+        },
       }
 
       setBookmarks((prev) => {
@@ -594,7 +806,7 @@ export function PrivateDashboard() {
         return [...prev, submissionBookmark]
       })
     },
-    [exactMatch, setBookmarks, testCaseSelection],
+    [exactMatch, selectedCategory, setBookmarks, testCaseSelection],
   )
 
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
@@ -613,28 +825,57 @@ export function PrivateDashboard() {
     return [Date.parse(example.start), Date.parse(example.end)]
   }, [example, timeFrameFromEvent])
 
-  const handleBookmarkSelection = useCallback((bookmark: Bookmark) => {
-    const { exactMatch, testCaseSelection } = bookmark.filters
-    setExactMatch(exactMatch)
-    setTestCaseSelection(testCaseSelection)
-    setLastDisplayedSubmissionId(bookmark.submissionId)
-  }, [])
+  const getCategoryKeyBySubmissionId = useCallback(
+    (submissionId: number) => {
+      for (const [key, value] of Object.entries(categories)) {
+        if (value.ids.includes(submissionId)) {
+          return key
+        }
+      }
+      return null
+    },
+    [categories],
+  )
 
-  useEffect(() => {
-    if (initialExampleInformation) {
-      setExampleInformation(initialExampleInformation)
-      const initialSelectedTests = Object.fromEntries(
-        Object.keys(initialExampleInformation.passRatePerTestCase).map(
-          (testName) => [testName, false],
-        ),
-      )
-      setTestCaseSelection(initialSelectedTests)
-    }
-  }, [initialExampleInformation])
+  const handleBookmarkSelection = useCallback(
+    (bookmark: Bookmark) => {
+      const { exactMatch, testCaseSelection } = bookmark.filters
+      setExactMatch(exactMatch)
+      setTestCaseSelection(testCaseSelection)
+      if (
+        Object.keys(categories).length >= 1 &&
+        bookmark.filters.categorySelected
+      ) {
+        const submissionCat = getCategoryKeyBySubmissionId(
+          bookmark.submissionId,
+        )
+        setSelectedCategory(submissionCat)
+      } else {
+        setSelectedCategory(null)
+      }
+
+      setLastDisplayedSubmissionId(bookmark.submissionId)
+    },
+
+    [categories, getCategoryKeyBySubmissionId],
+  )
 
   useEffect(() => {
     if (fetchedSubmissions) {
-      setSubmissions(fetchedSubmissions)
+      setSubmissions(
+        fetchedSubmissions.submissions.sort(
+          (a, b) => Date.parse(a.date) - Date.parse(b.date),
+        ),
+      )
+
+      setExampleInformation(fetchedSubmissions)
+      const initialSelectedTests = Object.fromEntries(
+        Object.keys(fetchedSubmissions.passRatePerTestCase).map((testName) => [
+          testName,
+          false,
+        ]),
+      )
+      setTestCaseSelection(initialSelectedTests)
     }
   }, [fetchedSubmissions])
 
@@ -712,6 +953,7 @@ export function PrivateDashboard() {
                 <BookmarkView
                   bookmarks={bookmarks}
                   handleBookmarkSelection={handleBookmarkSelection}
+                  getSubmissionColor={getSubmissionColor}
                 />
               </TabPanel>
             </TabPanels>
@@ -728,12 +970,17 @@ export function PrivateDashboard() {
           ) : (
             <SubmissionInspector
               submissions={submissions}
-              selectedTests={testCaseSelection}
+              testCaseSelection={testCaseSelection}
               exactMatch={exactMatch}
               handleOnBookmarkClick={handleOnBookmarkClick}
               bookmarks={bookmarks}
               lastDisplayedSubmissionId={lastDisplayedSubmissionId}
               setLastDisplayedSubmissionId={setLastDisplayedSubmissionId}
+              categories={categories}
+              setCategories={setCategories}
+              getSubmissionColor={getSubmissionColor}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
             />
           )}
         </Flex>
@@ -750,12 +997,12 @@ export function PrivateDashboard() {
         alignContent={"space-between"}
         p={2}
       >
-        <GenearlInformation
+        <GeneralInformation
           exampleState={exampleState}
           generalInformation={exampleInformation}
-        ></GenearlInformation>
+        ></GeneralInformation>
 
-        <ExampleTimeControler
+        <ExampleTimeController
           handleTimeAdjustment={handleTimeAdjustment}
           durationAsString={durationAsString} // will be some derived state once implemented properly
           exampleState={exampleState}
@@ -766,7 +1013,7 @@ export function PrivateDashboard() {
           startTime={derivedStartDate}
           endTime={derivedEndDate}
           setExampleState={setExampleState}
-        ></ExampleTimeControler>
+        ></ExampleTimeController>
       </GridItem>
     </Grid>
   )

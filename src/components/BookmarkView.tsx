@@ -1,36 +1,22 @@
-import { Button, Flex, Text, useToken, VStack } from "@chakra-ui/react"
-import { useCallback } from "react"
+import { Button, Flex, Text, VStack } from "@chakra-ui/react"
 
 const Bookmark: React.FC<{
   bookmark: Bookmark
   handleBookmarkSelection: (bookmark: Bookmark) => void
-}> = ({ bookmark, handleBookmarkSelection }) => {
-  const colors = [
-    useToken("colors", "purple.300"),
-    useToken("colors", "yellow.300"),
-    useToken("colors", "teal.300"),
-  ]
-
-  const finalColors = colors
-
-  // just for the time being until we have actual categories with colors
-  const getRandomColor = useCallback(() => {
-    const len = colors.length
-    const index = Math.floor(Math.random() * len)
-    return finalColors[index]
-  }, [colors.length, finalColors])
-
+  color: string
+}> = ({ bookmark, handleBookmarkSelection, color }) => {
   const nameOnly = bookmark.studentId.split("@")[0]
   const testsPassed = bookmark.testsPassed.reduce(
     (accumulator, currentVal) => (accumulator += currentVal),
   )
   return (
     <Button
-      border={"1px solid black"}
       borderRadius={"lg"}
       h={10}
       width={"full"}
-      colorScheme="blue"
+      colorScheme={color}
+      bg={`${color}.500`}
+      color={"white"}
       onClick={() => handleBookmarkSelection(bookmark)}
     >
       <Flex flex={1}>
@@ -47,9 +33,16 @@ const Bookmark: React.FC<{
 
 export const BookmarkView: React.FC<{
   bookmarks: Bookmark[] | null
+  getSubmissionColor: (submissionId: number) => string
   handleBookmarkSelection: (bookmark: Bookmark) => void
-}> = ({ bookmarks, handleBookmarkSelection }) => {
-  if (!bookmarks) return null
+}> = ({ bookmarks, handleBookmarkSelection, getSubmissionColor }) => {
+  if (!bookmarks)
+    return (
+      <Flex justify={"center"} flex={1}>
+        <Text> There are no Bookmarks yet.</Text>
+      </Flex>
+    )
+
   return (
     <VStack width={"full"} align={"start"}>
       {bookmarks.map((bookmark, key) => (
@@ -57,6 +50,7 @@ export const BookmarkView: React.FC<{
           key={key}
           bookmark={bookmark}
           handleBookmarkSelection={handleBookmarkSelection}
+          color={getSubmissionColor(bookmark.submissionId)}
         />
       ))}
     </VStack>
