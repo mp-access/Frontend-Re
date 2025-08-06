@@ -222,6 +222,7 @@ const SubmissionInspector: React.FC<{
   const handleCategorySelection = (categoryKey: string) => {
     if (Object.keys(categories).length > 1)
       setSelectedCategory((prev) => (prev === categoryKey ? null : categoryKey))
+    setLastDisplayedSubmissionId(categories[categoryKey].selectedIds[0])
   }
 
   const { categorize, isLoading } = useCategorize()

@@ -116,13 +116,14 @@ const Slide: React.FC<{
   handleOnBookmarkClick,
 }) => {
   return (
-    <Flex direction={"column"}>
+    <Flex direction={"column"} borderRadius={"lg"}>
       <HStack
         justify={"space-between"}
         px={3}
         py={2}
         bg={`${categoryColor}.500`}
         color={"white"}
+        borderTopRadius={"xl"}
       >
         <Heading fontSize="lg">
           {submission.studentId}{" "}
