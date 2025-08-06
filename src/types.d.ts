@@ -255,3 +255,11 @@ declare interface Bookmark {
     exactMatch: boolean
   }
 }
+
+declare interface ExampleSubmissionsDTO {
+  participantsOnline: number
+  totalParticipants: number
+  numberOfStudentsWhoSubmitted: number
+  passRatePerTestCase: Record<string, number>
+  submissions: SubmissionSsePayload[]
+}
