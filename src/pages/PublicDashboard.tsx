@@ -35,10 +35,10 @@ import {
 } from "../components/Hooks"
 import { Markdown, Placeholder } from "../components/Panels"
 
-const PointsHistogram: React.FC = () => {
-  const { data } = useExamplePointDistribution()
-
-  const pointDistribution = useMemo(() => {
+const PointsHistogram: React.FC<{ data: PointDistribution | undefined }> = ({
+  data,
+}) => {
+  const mappedPointDistribution = useMemo(() => {
     if (!data || !Array.isArray(data.pointDistribution)) return []
 
     const total = data.pointDistribution.reduce(
@@ -56,9 +56,14 @@ const PointsHistogram: React.FC = () => {
       }
     })
   }, [data])
+
+  if (!data) return null
   return (
     <ResponsiveContainer width="100%">
-      <BarChart data={pointDistribution} margin={{ left: 4, bottom: 8 }}>
+      <BarChart
+        data={mappedPointDistribution}
+        margin={{ left: 4, top: 50, bottom: 8 }}
+      >
         <XAxis dataKey="bin">
           <Label
             value={"Points"}
@@ -80,8 +85,8 @@ const PointsHistogram: React.FC = () => {
         <Bar dataKey="count" fill="#8884d8">
           <LabelList
             dataKey="percentage"
-            position="insideTop"
-            fill="white"
+            position="top"
+            fill="black"
             fontSize={18}
             formatter={(val: string) => `${val}%`}
           />
@@ -101,7 +106,7 @@ export function PublicDashboard() {
   const { data: initialExampleInformation } = useGeneralExampleInformation()
   const [exampleInformation, setExampleInformation] =
     useState<ExampleInformation | null>(null)
-
+  const { data: pointsDistribution } = useExamplePointDistribution()
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
     if (!example) {
       return [null, null]
@@ -119,10 +124,12 @@ export function PublicDashboard() {
   }, [example, timeFrameFromEvent])
 
   const { timeLeftInSeconds } = useCountdown(derivedStartDate, derivedEndDate)
+
   const showHistogram = useMemo(() => {
     if (timeLeftInSeconds === null) return true
-    return !timeLeftInSeconds
-  }, [timeLeftInSeconds])
+    return !timeLeftInSeconds && pointsDistribution !== undefined
+  }, [pointsDistribution, timeLeftInSeconds])
+
   useSSE<string>("inspect", (editorURL) => {
     if (!editorURL) {
       return
@@ -211,7 +218,7 @@ export function PublicDashboard() {
         </Flex>
         {showHistogram ? (
           <Flex flex={1} layerStyle={"segment"} direction={"column"}>
-            <PointsHistogram />
+            <PointsHistogram data={pointsDistribution} />
           </Flex>
         ) : null}
       </GridItem>
