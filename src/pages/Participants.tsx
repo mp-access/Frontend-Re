@@ -26,8 +26,9 @@ export default function Participants() {
         <Table maxW="container.sm">
           <Thead>
             <Tr>
-              <Th>Registration ID</Th>
               <Th>Username</Th>
+              <Th>Registered in course as</Th>
+              <Th>Also known as</Th>
               <Th>Last Name</Th>
               <Th>First Name</Th>
               <Th>Email</Th>
@@ -37,12 +38,13 @@ export default function Participants() {
           <Tbody>
             {participants.map((participant) => (
               <Tr key={participant.username || participant.registrationId}>
-                <Td>{participant.registrationId}</Td>
                 <Td>{participant.username}</Td>
+                <Td>{participant.registrationId}</Td>
+                <Td>{participant.otherId}</Td>
                 <Td>{participant.lastName}</Td>
                 <Td>{participant.firstName}</Td>
                 <Td>{participant.email}</Td>
-                <Td>{participant.points}</Td>
+                <Td>{participant.points?.toFixed(2)}</Td>
               </Tr>
             ))}
           </Tbody>

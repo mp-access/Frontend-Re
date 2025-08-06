@@ -105,14 +105,14 @@ export const SubmissionsCarousel: React.FC<{
 }> = ({ submissions, openInEditor, getSubmissionColor }) => {
   const sliderRef = useRef<HTMLDivElement | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
-  //   const [lastDisplayedSubmissionId, setLastDisplayedSubmissionId] = useState<
-  //     number | null
-  //   >(null)
+  const [lastDisplayedSubmissionId, setLastDisplayedSubmissionId] = useState<
+    number | null
+  >(null)
   const slideCount = useMemo(
     () => (submissions ? submissions?.length : 0),
     [submissions],
   )
-  //   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useLayoutEffect(() => {
     const slider = sliderRef.current
@@ -121,31 +121,23 @@ export const SubmissionsCarousel: React.FC<{
     const handleScroll = () => {
       const index = Math.round(slider.scrollLeft / slider.offsetWidth)
       setCurrentIndex(index)
-      //   if (scrollTimeoutRef.current) {
-      //     clearTimeout(scrollTimeoutRef.current)
-      //   }
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
+      }
 
       // this is needed to still enable smooth scrolling via touch screen while keeping track of last selected submission
-      //   scrollTimeoutRef.current = setTimeout(() => {
-      //     setLastDisplayedSubmissionId(submissions[index].submissionId)
-      //   }, 500)
+      scrollTimeoutRef.current = setTimeout(() => {
+        setLastDisplayedSubmissionId(submissions[index].submissionId)
+      }, 500)
     }
 
     slider.addEventListener("scroll", handleScroll)
     return () => {
       slider.removeEventListener("scroll", handleScroll)
-      //   if (scrollTimeoutRef.current) {
-      //     clearTimeout(scrollTimeoutRef.current)
-      //   }
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
+      }
     }
-  }, [])
-
-  useEffect(() => {
-    if (submissions.length) {
-      setCurrentIndex(0)
-      goToSlide(0, "instant")
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [submissions])
 
   const goToSlide = useCallback(
@@ -157,28 +149,26 @@ export const SubmissionsCarousel: React.FC<{
           left: newIndex * slider.offsetWidth,
           behavior: behavior ?? "smooth",
         })
-        // setCurrentIndex(newIndex)
-        // setLastDisplayedSubmissionId(submissions[newIndex].submissionId)
+        setCurrentIndex(newIndex)
+        setLastDisplayedSubmissionId(submissions[newIndex].submissionId)
       }
     },
-    [slideCount],
+    [slideCount, submissions],
   )
-  //   useEffect(() => {
-  //     if (!lastDisplayedSubmissionId) return
-  //
-  //     const index = submissions.findIndex(
-  //       (submission) => submission.submissionId === lastDisplayedSubmissionId,
-  //     )
-  //     if (index !== -1) {
-  //       goToSlide(index, "instant")
-  //     } else {
-  //       setLastDisplayedSubmissionId(submissions[0]?.submissionId ?? null)
-  //     }
-  //   }, [lastDisplayedSubmissionId, goToSlide])
+  useEffect(() => {
+    if (!lastDisplayedSubmissionId) return
+
+    const index = submissions.findIndex(
+      (submission) => submission.submissionId === lastDisplayedSubmissionId,
+    )
+    if (index !== -1) {
+      goToSlide(index, "instant")
+    } else {
+      setLastDisplayedSubmissionId(submissions[0]?.submissionId ?? null)
+    }
+  }, [lastDisplayedSubmissionId, goToSlide, submissions])
 
   const showPrevButton = currentIndex !== 0
-  const showNextButton =
-    submissions.length > 0 && currentIndex < submissions.length - 1
 
   return (
     <Flex
@@ -218,22 +208,21 @@ export const SubmissionsCarousel: React.FC<{
           Prev
         </Button>
       ) : null}
-      {showNextButton ? (
-        <Button
-          style={{
-            position: "absolute",
-            top: "50%",
-            right: 5,
-          }}
-          onClick={() => goToSlide(currentIndex + 1)}
-          variant={"outline"}
-          borderRadius={"full"}
-          height={"65px"}
-          opacity={0.5}
-        >
-          Next
-        </Button>
-      ) : null}
+
+      <Button
+        style={{
+          position: "absolute",
+          top: "50%",
+          right: 5,
+        }}
+        onClick={() => goToSlide(currentIndex + 1)}
+        variant={"outline"}
+        borderRadius={"full"}
+        height={"65px"}
+        opacity={0.5}
+      >
+        Next
+      </Button>
     </Flex>
   )
 }
