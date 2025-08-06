@@ -234,38 +234,49 @@ export const useTask = (userId: string) => {
 
 export const useCountdown = (start: number | null, end: number | null) => {
   const [timeLeftInSeconds, setTimeLeftInSeconds] = useState<number | null>(
-    null
+    null,
   )
   const [circleValue, setCircleValue] = useState<number | null>(null)
-  const requestRef = useRef<number | null>(null)
+
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const cancelledRef = useRef(false)
 
   useEffect(() => {
-    if (start === null || end === null) {
+    if (start === null || end === null || end <= start) {
+      setTimeLeftInSeconds(null)
+      setCircleValue(null)
       return
     }
 
-    const update = () => {
-      const total = end - start
+    cancelledRef.current = false
+    const total = end - start
+
+    const tick = () => {
+      if (cancelledRef.current) return
+
       const now = Date.now()
       const timeLeft = Math.max(0, end - now)
 
-      setTimeLeftInSeconds(Math.floor(timeLeft / 1000))
+      setTimeLeftInSeconds((prev) => {
+        const current = Math.floor(timeLeft / 1000)
+        return prev !== current ? current : prev
+      })
 
       const progress = Math.max(0, (timeLeft / total) * 100)
       setCircleValue(progress)
+
       if (timeLeft > 0) {
-        requestRef.current = requestAnimationFrame(update)
-      } else {
-        requestRef.current = null
+        timeoutRef.current = setTimeout(tick, 100)
       }
     }
 
-    update() // only called initially or when startUnix or endUnix changes
+    tick()
 
     return () => {
-      if (requestRef.current) {
-        cancelAnimationFrame(requestRef.current)
-        requestRef.current = null
+      cancelledRef.current = true
+      if (timeoutRef.current !== null) {
+        clearTimeout(timeoutRef.current)
+        timeoutRef.current = null
       }
     }
   }, [start, end])
