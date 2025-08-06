@@ -177,22 +177,28 @@ const SubmissionInspector: React.FC<{
   submissions: SubmissionSsePayload[]
   testCaseSelection: Record<string, boolean> | null
   exactMatch: boolean
-  handleOnBookmarkClick: (submission: SubmissionSsePayload) => void
   bookmarks: Bookmark[] | null
   lastDisplayedSubmissionId: number | null
-  setLastDisplayedSubmissionId: React.Dispatch<SetStateAction<number | null>>
   categories: CategoriesType
+  selectedCategory: string | null
+  setLastDisplayedSubmissionId: React.Dispatch<SetStateAction<number | null>>
   setCategories: React.Dispatch<React.SetStateAction<CategoriesType>>
+  setSelectedCategory: React.Dispatch<SetStateAction<string | null>>
+  getSubmissionColor: (submissionId: number) => string
+  handleOnBookmarkClick: (submission: SubmissionSsePayload) => void
 }> = ({
   submissions,
   testCaseSelection,
   exactMatch,
-  handleOnBookmarkClick,
   bookmarks,
   lastDisplayedSubmissionId,
-  setLastDisplayedSubmissionId,
   categories,
+  selectedCategory,
+  setLastDisplayedSubmissionId,
+  setSelectedCategory,
   setCategories,
+  getSubmissionColor,
+  handleOnBookmarkClick,
 }) => {
   const { inspect } = useInspect()
   const toast = useToast()
@@ -208,7 +214,6 @@ const SubmissionInspector: React.FC<{
     [inspect, toast],
   )
 
-  const [selectedCategory, setSelectedCategory] = useState<string>()
   const [carouselSubmissions, setCarouselSubmissions] = useState<
     SubmissionSsePayload[]
   >([])
@@ -216,9 +221,7 @@ const SubmissionInspector: React.FC<{
 
   const handleCategorySelection = (categoryKey: string) => {
     if (Object.keys(categories).length > 1)
-      setSelectedCategory((prev) =>
-        prev === categoryKey ? undefined : categoryKey,
-      )
+      setSelectedCategory((prev) => (prev === categoryKey ? null : categoryKey))
   }
 
   const { categorize, isLoading } = useCategorize()
@@ -230,15 +233,6 @@ const SubmissionInspector: React.FC<{
       .map((s) => s.points)
 
     return selectedPoints.reduce((a, b) => a! + b!, 0)! / selectedPoints.length
-  }
-
-  const getSubmissionColor = (submissionId: number) => {
-    const foundColor = Object.values(categories).filter((category) =>
-      category.ids.includes(submissionId),
-    )
-
-    if (foundColor.length > 0) return foundColor[0].color
-    return "gray"
   }
 
   // Handle the fetching button
@@ -431,8 +425,6 @@ const SubmissionInspector: React.FC<{
       <SubmissionsCarousel
         submissions={carouselSubmissions}
         openInEditor={openInEditor}
-        testCaseSelection={testCaseSelection}
-        exactMatch={exactMatch}
         handleOnBookmarkClick={handleOnBookmarkClick}
         bookmarks={bookmarks}
         lastDisplayedSubmissionId={lastDisplayedSubmissionId}
@@ -717,6 +709,15 @@ export function PrivateDashboard() {
     null,
   )
   const [categories, setCategories] = useState<CategoriesType>({})
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const getSubmissionColor = (submissionId: number) => {
+    const foundColor = Object.values(categories).filter((category) =>
+      category.ids.includes(submissionId),
+    )
+
+    if (foundColor.length > 0) return foundColor[0].color
+    return "gray"
+  }
 
   useSSE<SubmissionSsePayload>("student-submission", (data) => {
     setSubmissions((prev) => {
@@ -774,7 +775,11 @@ export function PrivateDashboard() {
         submissionId: submission.submissionId,
         studentId: submission.studentId,
         testsPassed: submission.testsPassed,
-        filters: { testCaseSelection, exactMatch },
+        filters: {
+          testCaseSelection,
+          exactMatch,
+          categorySelected: !!selectedCategory,
+        },
       }
 
       setBookmarks((prev) => {
@@ -800,7 +805,7 @@ export function PrivateDashboard() {
         return [...prev, submissionBookmark]
       })
     },
-    [exactMatch, setBookmarks, testCaseSelection],
+    [exactMatch, selectedCategory, setBookmarks, testCaseSelection],
   )
 
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
@@ -819,12 +824,40 @@ export function PrivateDashboard() {
     return [Date.parse(example.start), Date.parse(example.end)]
   }, [example, timeFrameFromEvent])
 
-  const handleBookmarkSelection = useCallback((bookmark: Bookmark) => {
-    const { exactMatch, testCaseSelection } = bookmark.filters
-    setExactMatch(exactMatch)
-    setTestCaseSelection(testCaseSelection)
-    setLastDisplayedSubmissionId(bookmark.submissionId)
-  }, [])
+  const getCategoryKeyBySubmissionId = useCallback(
+    (submissionId: number) => {
+      for (const [key, value] of Object.entries(categories)) {
+        if (value.ids.includes(submissionId)) {
+          return key
+        }
+      }
+      return null
+    },
+    [categories],
+  )
+
+  const handleBookmarkSelection = useCallback(
+    (bookmark: Bookmark) => {
+      const { exactMatch, testCaseSelection } = bookmark.filters
+      setExactMatch(exactMatch)
+      setTestCaseSelection(testCaseSelection)
+      if (
+        Object.keys(categories).length >= 1 &&
+        bookmark.filters.categorySelected
+      ) {
+        const submissionCat = getCategoryKeyBySubmissionId(
+          bookmark.submissionId,
+        )
+        setSelectedCategory(submissionCat)
+      } else {
+        setSelectedCategory(null)
+      }
+
+      setLastDisplayedSubmissionId(bookmark.submissionId)
+    },
+
+    [categories, getCategoryKeyBySubmissionId],
+  )
 
   useEffect(() => {
     if (fetchedSubmissions) {
@@ -919,6 +952,7 @@ export function PrivateDashboard() {
                 <BookmarkView
                   bookmarks={bookmarks}
                   handleBookmarkSelection={handleBookmarkSelection}
+                  getSubmissionColor={getSubmissionColor}
                 />
               </TabPanel>
             </TabPanels>
@@ -943,6 +977,9 @@ export function PrivateDashboard() {
               setLastDisplayedSubmissionId={setLastDisplayedSubmissionId}
               categories={categories}
               setCategories={setCategories}
+              getSubmissionColor={getSubmissionColor}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
             />
           )}
         </Flex>

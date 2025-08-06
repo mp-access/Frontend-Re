@@ -253,6 +253,7 @@ declare interface Bookmark {
   filters: {
     testCaseSelection: Record<string | boolean>
     exactMatch: boolean
+    categorySelected: boolean
   }
 }
 

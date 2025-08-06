@@ -12,7 +12,15 @@ import { MdOutlineScreenShare } from "react-icons/md"
 import "./Carousel.css"
 
 import { Editor } from "@monaco-editor/react"
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import React, {
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 
 export const getFilteredSubmissions = (
   testCaseSelection: Record<string, boolean> | null,
@@ -89,6 +97,7 @@ const Slide: React.FC<{
   categoryColor: string
   currentIndex: number
   totalSubmissions: number
+  bookmarked: boolean
   handleOnBookmarkClick: (submission: SubmissionSsePayload) => void
   openInEditor: (studentId: string) => Promise<void>
 }> = ({
@@ -96,6 +105,7 @@ const Slide: React.FC<{
   currentIndex,
   totalSubmissions,
   categoryColor,
+  bookmarked,
   openInEditor,
   handleOnBookmarkClick,
 }) => {
@@ -159,8 +169,6 @@ export const SubmissionsCarousel: React.FC<{
   getSubmissionColor: (submissionId: number) => string
 }> = ({
   submissions,
-  testCaseSelection,
-  exactMatch,
   lastDisplayedSubmissionId,
   setLastDisplayedSubmissionId,
   handleOnBookmarkClick,
@@ -170,17 +178,11 @@ export const SubmissionsCarousel: React.FC<{
 }) => {
   const sliderRef = useRef<HTMLDivElement | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [lastDisplayedSubmissionId, setLastDisplayedSubmissionId] = useState<
-    number | null
-  >(null)
+
   const slideCount = useMemo(
     () => (submissions ? submissions?.length : 0),
     [submissions],
   )
-
-  const filteredSubmissions = useMemo(() => {
-    return getFilteredSubmissions(testCaseSelection, submissions, exactMatch)
-  }, [exactMatch, testCaseSelection, submissions])
 
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -209,17 +211,12 @@ export const SubmissionsCarousel: React.FC<{
         clearTimeout(scrollTimeoutRef.current)
       }
     }
-  }, [
-    currentIndex,
-    filteredSubmissions,
-    setLastDisplayedSubmissionId,
-    submissions,
-  ])
+  }, [currentIndex, setLastDisplayedSubmissionId, submissions])
 
   const goToSlide = useCallback(
     (index: number, behavior?: ScrollBehavior) => {
       const slider = sliderRef.current
-      const slideCount = filteredSubmissions.length
+
       if (slider) {
         const newIndex = Math.max(0, Math.min(index, slideCount - 1))
         const slideWidth = slider.offsetWidth + SLIDES_GAP
@@ -231,7 +228,7 @@ export const SubmissionsCarousel: React.FC<{
         setLastDisplayedSubmissionId(submissions[newIndex].submissionId)
       }
     },
-    [filteredSubmissions, slideCount, slideCount, submissions],
+    [setLastDisplayedSubmissionId, slideCount, submissions],
   )
   useEffect(() => {
     if (!lastDisplayedSubmissionId) return
@@ -239,30 +236,18 @@ export const SubmissionsCarousel: React.FC<{
     const index = submissions.findIndex(
       (submission) => submission.submissionId === lastDisplayedSubmissionId,
     )
-    if (index !== -1) {
-      goToSlide(index, "instant")
-    } else {
-      setLastDisplayedSubmissionId(submissions[0]?.submissionId ?? null)
-    }
+
+    if (index === -1) return
+
+    goToSlide(index, "instant")
   }, [
     lastDisplayedSubmissionId,
-    filteredSubmissions,
     goToSlide,
     setLastDisplayedSubmissionId,
+    submissions,
   ])
 
   const showPrevButton = currentIndex !== 0
-
-  const bookmarked = useCallback(
-    (submissionId: number) => {
-      if (!bookmarks) return false
-
-      return bookmarks.some(
-        (bookmark) => bookmark.submissionId === submissionId,
-      )
-    },
-    [bookmarks],
-  )
 
   const bookmarked = useCallback(
     (submissionId: number) => {
@@ -295,7 +280,6 @@ export const SubmissionsCarousel: React.FC<{
               handleOnBookmarkClick={handleOnBookmarkClick}
               key={submission.submissionId}
               bookmarked={bookmarked(submission.submissionId)}
-              key={submission.submissionId}
             ></Slide>
           ))}
         </Flex>
