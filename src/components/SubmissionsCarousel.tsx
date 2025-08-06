@@ -256,6 +256,7 @@ export const SubmissionsCarousel: React.FC<{
   ])
 
   const showPrevButton = currentIndex !== 0
+  const showNextButton = currentIndex !== submissions.length - 1
 
   const bookmarked = useCallback(
     (submissionId: number) => {
@@ -308,21 +309,22 @@ export const SubmissionsCarousel: React.FC<{
           Prev
         </Button>
       ) : null}
-
-      <Button
-        style={{
-          position: "absolute",
-          top: "50%",
-          right: 5,
-        }}
-        onClick={() => goToSlide(currentIndex + 1)}
-        variant={"outline"}
-        borderRadius={"full"}
-        height={"65px"}
-        opacity={0.5}
-      >
-        Next
-      </Button>
+      {showNextButton ? (
+        <Button
+          style={{
+            position: "absolute",
+            top: "50%",
+            right: 5,
+          }}
+          onClick={() => goToSlide(currentIndex + 1)}
+          variant={"outline"}
+          borderRadius={"full"}
+          height={"65px"}
+          opacity={0.5}
+        >
+          Next
+        </Button>
+      ) : null}
     </Flex>
   )
 }
