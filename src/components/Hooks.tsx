@@ -5,7 +5,7 @@ import axios, { AxiosError } from "axios"
 import { EventSource } from "extended-eventsource"
 import { compact, concat, flatten } from "lodash"
 import { Uri } from "monaco-editor"
-import { useEffect, useRef, useState } from "react"
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
 import { useParams } from "react-router-dom"
 import { useEventSource } from "../context/EventSourceContext"
 
@@ -431,4 +431,25 @@ export const useHeartbeat = () => {
   const sendHeartbeat = (emitterId: string) => mutateAsync(emitterId)
 
   return { sendHeartbeat }
+}
+
+const getStorageValue = <T,>(key: string, defaultValue: T) => {
+  const saved = localStorage.getItem(key)
+  if (!saved) return defaultValue
+  return JSON.parse(saved)
+}
+
+export const useLocalStorage = <T,>(
+  key: string,
+  defaultValue: T,
+): [T, Dispatch<SetStateAction<T>>] => {
+  const [value, setValue] = useState<T>(() =>
+    getStorageValue(key, defaultValue),
+  )
+
+  useEffect(() => {
+    localStorage.setItem(key, JSON.stringify(value))
+  }, [key, value])
+
+  return [value, setValue]
 }

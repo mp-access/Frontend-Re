@@ -15,6 +15,11 @@ import {
   Heading,
   HStack,
   Icon,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
   Tag,
   TagLabel,
   TagLeftIcon,
@@ -29,7 +34,14 @@ import { GoChecklist } from "react-icons/go"
 import { Cell, Pie, PieChart } from "recharts"
 
 import { t } from "i18next"
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import React, {
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import { CountdownTimer } from "../components/CountdownTimer"
 import { RotateFromRightIcon } from "../components/CustomIcons"
 import {
@@ -37,6 +49,7 @@ import {
   useExample,
   useExtendExample,
   useInspect,
+  useLocalStorage,
   usePublish,
   useResetExample,
   useSSE,
@@ -45,7 +58,7 @@ import {
   useTimeframeFromSSE,
 } from "../components/Hooks"
 
-import { useOutletContext } from "react-router-dom"
+import { useOutletContext, useParams } from "react-router-dom"
 import { Markdown, Placeholder } from "../components/Panels"
 import {
   getFilteredSubmissions,
@@ -53,6 +66,7 @@ import {
 } from "../components/SubmissionsCarousel"
 import { TestCaseBarChart } from "../components/TestCaseBarChart"
 
+import { BookmarkView } from "../components/BookmarkView"
 import { formatSeconds } from "../components/Util"
 
 type ExampleState =
@@ -61,10 +75,6 @@ type ExampleState =
   | "ongoing"
   | "finished"
   | "resetting"
-
-// const Bookmarks: React.FC = () => {
-//   return <Flex>Some Bookmarks</Flex>
-// }
 
 const TerminationDialog: React.FC<{ handleTermination: () => void }> = ({
   handleTermination,
@@ -167,14 +177,28 @@ const SubmissionInspector: React.FC<{
   submissions: SubmissionSsePayload[]
   testCaseSelection: Record<string, boolean> | null
   exactMatch: boolean
+  bookmarks: Bookmark[] | null
+  lastDisplayedSubmissionId: number | null
   categories: CategoriesType
+  selectedCategory: string | null
+  setLastDisplayedSubmissionId: React.Dispatch<SetStateAction<number | null>>
   setCategories: React.Dispatch<React.SetStateAction<CategoriesType>>
+  setSelectedCategory: React.Dispatch<SetStateAction<string | null>>
+  getSubmissionColor: (submissionId: number) => string
+  handleOnBookmarkClick: (submission: SubmissionSsePayload) => void
 }> = ({
   submissions,
   testCaseSelection,
   exactMatch,
+  bookmarks,
+  lastDisplayedSubmissionId,
   categories,
+  selectedCategory,
+  setLastDisplayedSubmissionId,
+  setSelectedCategory,
   setCategories,
+  getSubmissionColor,
+  handleOnBookmarkClick,
 }) => {
   const { inspect } = useInspect()
   const toast = useToast()
@@ -190,7 +214,6 @@ const SubmissionInspector: React.FC<{
     [inspect, toast],
   )
 
-  const [selectedCategory, setSelectedCategory] = useState<string>()
   const [carouselSubmissions, setCarouselSubmissions] = useState<
     SubmissionSsePayload[]
   >([])
@@ -198,9 +221,8 @@ const SubmissionInspector: React.FC<{
 
   const handleCategorySelection = (categoryKey: string) => {
     if (Object.keys(categories).length > 1)
-      setSelectedCategory((prev) =>
-        prev === categoryKey ? undefined : categoryKey,
-      )
+      setSelectedCategory((prev) => (prev === categoryKey ? null : categoryKey))
+    setLastDisplayedSubmissionId(categories[categoryKey].selectedIds[0])
   }
 
   const { categorize, isLoading } = useCategorize()
@@ -212,15 +234,6 @@ const SubmissionInspector: React.FC<{
       .map((s) => s.points)
 
     return selectedPoints.reduce((a, b) => a! + b!, 0)! / selectedPoints.length
-  }
-
-  const getSubmissionColor = (submissionId: number) => {
-    const foundColor = Object.values(categories).filter((category) =>
-      category.ids.includes(submissionId),
-    )
-
-    if (foundColor.length > 0) return foundColor[0].color
-    return "gray"
   }
 
   // Handle the fetching button
@@ -413,6 +426,10 @@ const SubmissionInspector: React.FC<{
       <SubmissionsCarousel
         submissions={carouselSubmissions}
         openInEditor={openInEditor}
+        handleOnBookmarkClick={handleOnBookmarkClick}
+        bookmarks={bookmarks}
+        lastDisplayedSubmissionId={lastDisplayedSubmissionId}
+        setLastDisplayedSubmissionId={setLastDisplayedSubmissionId}
         getSubmissionColor={getSubmissionColor}
       />
     </Flex>
@@ -662,11 +679,24 @@ export function PrivateDashboard() {
   const [exactMatch, setExactMatch] = useState<boolean>(false)
   const [exampleInformation, setExampleInformation] =
     useState<ExampleInformation | null>(null)
+  const { courseSlug, exampleSlug } = useParams()
+  const [bookmarks, setBookmarks] = useLocalStorage<Bookmark[] | null>(
+    `${courseSlug}-${exampleSlug}-bookmarks`,
+    null,
+  )
 
+  const [tabIndex, setTabIndex] = useLocalStorage<number>(
+    `${courseSlug}-${exampleSlug}-tabindex`,
+    0,
+  )
   const [testCaseSelection, setTestCaseSelection] = useState<Record<
     string,
     boolean
   > | null>(null)
+
+  const [lastDisplayedSubmissionId, setLastDisplayedSubmissionId] = useState<
+    number | null
+  >(null)
 
   const { i18n } = useTranslation()
   const currentLanguage = i18n.language
@@ -680,6 +710,15 @@ export function PrivateDashboard() {
     null,
   )
   const [categories, setCategories] = useState<CategoriesType>({})
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const getSubmissionColor = (submissionId: number) => {
+    const foundColor = Object.values(categories).filter((category) =>
+      category.ids.includes(submissionId),
+    )
+
+    if (foundColor.length > 0) return foundColor[0].color
+    return "gray"
+  }
 
   useSSE<SubmissionSsePayload>("student-submission", (data) => {
     setSubmissions((prev) => {
@@ -723,12 +762,52 @@ export function PrivateDashboard() {
       setExampleState("resetting")
       await resetExample()
       setExampleState("unpublished")
+      setBookmarks(null)
       refetchStudentSubmissions()
     } catch (e) {
       console.log("An error occured when resetting the example: ", e)
       setExampleState("finished")
     }
-  }, [refetchStudentSubmissions, resetExample])
+  }, [refetchStudentSubmissions, resetExample, setBookmarks])
+
+  const handleOnBookmarkClick = useCallback(
+    (submission: SubmissionSsePayload) => {
+      const submissionBookmark: Bookmark = {
+        submissionId: submission.submissionId,
+        studentId: submission.studentId,
+        testsPassed: submission.testsPassed,
+        filters: {
+          testCaseSelection,
+          exactMatch,
+          categorySelected: !!selectedCategory,
+        },
+      }
+
+      setBookmarks((prev) => {
+        if (!prev) {
+          return [submissionBookmark]
+        }
+
+        // check if bookmark already exists
+        const shouldRemove = prev.some(
+          (bookmark) => submission.submissionId === bookmark.submissionId,
+        )
+
+        if (shouldRemove) {
+          const idx = prev.findIndex(
+            (bookmark) => bookmark.submissionId === submission.submissionId,
+          )
+
+          if (idx !== -1) {
+            return [...prev.slice(0, idx), ...prev.slice(idx + 1)]
+          }
+        }
+
+        return [...prev, submissionBookmark]
+      })
+    },
+    [exactMatch, selectedCategory, setBookmarks, testCaseSelection],
+  )
 
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
     if (!example) {
@@ -745,6 +824,41 @@ export function PrivateDashboard() {
 
     return [Date.parse(example.start), Date.parse(example.end)]
   }, [example, timeFrameFromEvent])
+
+  const getCategoryKeyBySubmissionId = useCallback(
+    (submissionId: number) => {
+      for (const [key, value] of Object.entries(categories)) {
+        if (value.ids.includes(submissionId)) {
+          return key
+        }
+      }
+      return null
+    },
+    [categories],
+  )
+
+  const handleBookmarkSelection = useCallback(
+    (bookmark: Bookmark) => {
+      const { exactMatch, testCaseSelection } = bookmark.filters
+      setExactMatch(exactMatch)
+      setTestCaseSelection(testCaseSelection)
+      if (
+        Object.keys(categories).length >= 1 &&
+        bookmark.filters.categorySelected
+      ) {
+        const submissionCat = getCategoryKeyBySubmissionId(
+          bookmark.submissionId,
+        )
+        setSelectedCategory(submissionCat)
+      } else {
+        setSelectedCategory(null)
+      }
+
+      setLastDisplayedSubmissionId(bookmark.submissionId)
+    },
+
+    [categories, getCategoryKeyBySubmissionId],
+  )
 
   useEffect(() => {
     if (fetchedSubmissions) {
@@ -808,16 +922,43 @@ export function PrivateDashboard() {
         rowEnd={5}
         colStart={1}
         colEnd={2}
-        p={3}
+        p={1}
       >
-        <TestCaseBarChart
-          passRatePerTestCase={exampleInformation.passRatePerTestCase}
-          exactMatch={exactMatch}
-          setExactMatch={setExactMatch}
-          testCaseSelection={testCaseSelection}
-          setTestCaseSelection={setTestCaseSelection}
-        ></TestCaseBarChart>
-        {/* <Bookmarks></Bookmarks> */}
+        <Flex height={"full"}>
+          <Tabs
+            variant={"line"}
+            isFitted
+            display={"flex"}
+            flexDir={"column"}
+            flex={1}
+            colorScheme="purple"
+            index={tabIndex}
+            onChange={(index) => setTabIndex(index)}
+          >
+            <TabList>
+              <Tab>Test Cases</Tab>
+              <Tab> Bookmarks</Tab>
+            </TabList>
+            <TabPanels display={"flex"} flex={1}>
+              <TabPanel display={"flex"} flex={1} pb={1} pl={1} pr={1}>
+                <TestCaseBarChart
+                  passRatePerTestCase={exampleInformation.passRatePerTestCase}
+                  exactMatch={exactMatch}
+                  setExactMatch={setExactMatch}
+                  testCaseSelection={testCaseSelection}
+                  setTestCaseSelection={setTestCaseSelection}
+                ></TestCaseBarChart>
+              </TabPanel>
+              <TabPanel display={"flex"} flex={1}>
+                <BookmarkView
+                  bookmarks={bookmarks}
+                  handleBookmarkSelection={handleBookmarkSelection}
+                  getSubmissionColor={getSubmissionColor}
+                />
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
+        </Flex>
       </GridItem>
       <GridItem gap={4} colStart={2} colEnd={4} rowStart={1} rowEnd={4}>
         <Flex direction={"column"} h={"full"}>
@@ -831,8 +972,15 @@ export function PrivateDashboard() {
               submissions={submissions}
               testCaseSelection={testCaseSelection}
               exactMatch={exactMatch}
+              handleOnBookmarkClick={handleOnBookmarkClick}
+              bookmarks={bookmarks}
+              lastDisplayedSubmissionId={lastDisplayedSubmissionId}
+              setLastDisplayedSubmissionId={setLastDisplayedSubmissionId}
               categories={categories}
               setCategories={setCategories}
+              getSubmissionColor={getSubmissionColor}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
             />
           )}
         </Flex>

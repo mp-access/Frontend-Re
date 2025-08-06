@@ -8,10 +8,10 @@ import {
   Divider,
   Flex,
   Heading,
-  Image,
-  ImgProps,
   Link as Href,
   LinkProps as HrefProps,
+  Image,
+  ImgProps,
   ListIcon,
   ListItem,
   OrderedList,
@@ -22,6 +22,7 @@ import {
   TextProps,
   UnorderedList,
 } from "@chakra-ui/react"
+import { useWindowSize } from "@react-hook/window-size"
 import {
   AnimatePresence,
   AnimatePresenceProps,
@@ -29,15 +30,11 @@ import {
   useMotionValue,
   useTransform,
 } from "framer-motion"
+import "katex/dist/katex.min.css"
+import { toInt } from "radash"
 import React, { ReactNode } from "react"
-import { ReactMarkdownOptions } from "react-markdown/lib/react-markdown"
-import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm"
-import RemarkMathPlugin from "remark-math"
-import rehypeKatex from "rehype-katex"
-import SyntaxHighlighter from "react-syntax-highlighter"
-import { atomOneLight } from "react-syntax-highlighter/dist/cjs/styles/hljs"
 import { RxDotFilled } from "react-icons/rx"
+import ReactMarkdown from "react-markdown"
 import {
   CodeProps,
   HeadingProps,
@@ -45,10 +42,13 @@ import {
   OrderedListProps,
   UnorderedListProps,
 } from "react-markdown/lib/ast-to-react"
+import { ReactMarkdownOptions } from "react-markdown/lib/react-markdown"
 import { Link, LinkProps } from "react-router-dom"
-import { useWindowSize } from "@react-hook/window-size"
-import "katex/dist/katex.min.css"
-import { toInt } from "radash"
+import SyntaxHighlighter from "react-syntax-highlighter"
+import { atomOneLight } from "react-syntax-highlighter/dist/cjs/styles/hljs"
+import rehypeKatex from "rehype-katex"
+import remarkGfm from "remark-gfm"
+import RemarkMathPlugin from "remark-math"
 
 const MotionBox = motion(Box)
 const swap = (to: number) => (r: number) => ({
@@ -63,12 +63,12 @@ type TaskViewProps = {
 
 export const TaskView = ({ children }: TaskViewProps) => {
   const size = useWindowSize()
-  const x = useMotionValue(700)
+  const x = useMotionValue(400)
   const width = useTransform(x, (value) => size[0] - 224 - value)
 
   return (
     <Flex
-      w="full"
+      flex={1}
       pos="relative"
       overflow="hidden"
       bg="base"

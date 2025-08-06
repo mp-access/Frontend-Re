@@ -246,6 +246,17 @@ declare interface SubmissionSsePayload {
   content: string
 }
 
+declare interface Bookmark {
+  submissionId: number
+  studentId: string
+  testsPassed: number[]
+  filters: {
+    testCaseSelection: Record<string | boolean>
+    exactMatch: boolean
+    categorySelected: boolean
+  }
+}
+
 declare interface ExampleSubmissionsDTO {
   participantsOnline: number
   totalParticipants: number
