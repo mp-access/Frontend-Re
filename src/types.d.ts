@@ -245,3 +245,11 @@ declare interface SubmissionSsePayload {
   testsPassed: number[]
   content: string
 }
+
+declare interface ExampleSubmissionsDTO {
+  participantsOnline: number
+  totalParticipants: number
+  numberOfStudentsWhoSubmitted: number
+  passRatePerTestCase: Record<string, number>
+  submissions: SubmissionSsePayload[]
+}

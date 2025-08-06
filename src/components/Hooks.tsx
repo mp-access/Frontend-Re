@@ -126,6 +126,27 @@ export const useResetExample = () => {
   return { resetExample }
 }
 
+export const useCategorize = () => {
+  const { courseSlug, exampleSlug } = useParams()
+
+  const { mutateAsync: categorize, isLoading } = useMutation<
+    {
+      categories: Record<string, number[]>
+    },
+    AxiosError,
+    number[]
+  >({
+    mutationFn: (submissionIds) => {
+      const url = `/courses/${courseSlug}/examples/${exampleSlug}/categorize`
+      return axios.post(url, {
+        submissionIds,
+      })
+    },
+  })
+
+  return { categorize, isLoading }
+}
+
 export const useExamples = () => {
   const { courseSlug } = useParams()
 
@@ -374,7 +395,7 @@ export const useInspect = () => {
 export const useStudentSubmissions = () => {
   const { courseSlug, exampleSlug } = useParams()
 
-  return useQuery<SubmissionSsePayload[]>([
+  return useQuery<ExampleSubmissionsDTO>([
     "courses",
     courseSlug,
     "examples",
