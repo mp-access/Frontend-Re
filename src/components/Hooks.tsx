@@ -5,7 +5,7 @@ import axios, { AxiosError } from "axios"
 import { EventSource } from "extended-eventsource"
 import { compact, concat, flatten } from "lodash"
 import { Uri } from "monaco-editor"
-import { useEffect, useRef, useState } from "react"
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
 import { useParams } from "react-router-dom"
 import { useEventSource } from "../context/EventSourceContext"
 
@@ -126,6 +126,27 @@ export const useResetExample = () => {
   return { resetExample }
 }
 
+export const useCategorize = () => {
+  const { courseSlug, exampleSlug } = useParams()
+
+  const { mutateAsync: categorize, isLoading } = useMutation<
+    {
+      categories: Record<string, number[]>
+    },
+    AxiosError,
+    number[]
+  >({
+    mutationFn: (submissionIds) => {
+      const url = `/courses/${courseSlug}/examples/${exampleSlug}/categorize`
+      return axios.post(url, {
+        submissionIds,
+      })
+    },
+  })
+
+  return { categorize, isLoading }
+}
+
 export const useExamples = () => {
   const { courseSlug } = useParams()
 
@@ -237,35 +258,46 @@ export const useCountdown = (start: number | null, end: number | null) => {
     null,
   )
   const [circleValue, setCircleValue] = useState<number | null>(null)
-  const requestRef = useRef<number | null>(null)
+
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const cancelledRef = useRef(false)
 
   useEffect(() => {
-    if (start === null || end === null) {
+    if (start === null || end === null || end <= start) {
+      setTimeLeftInSeconds(null)
+      setCircleValue(null)
       return
     }
 
-    const update = () => {
-      const total = end - start
+    cancelledRef.current = false
+    const total = end - start
+
+    const tick = () => {
+      if (cancelledRef.current) return
+
       const now = Date.now()
       const timeLeft = Math.max(0, end - now)
 
-      setTimeLeftInSeconds(Math.floor(timeLeft / 1000))
+      setTimeLeftInSeconds((prev) => {
+        const current = Math.floor(timeLeft / 1000)
+        return prev !== current ? current : prev
+      })
 
       const progress = Math.max(0, (timeLeft / total) * 100)
       setCircleValue(progress)
+
       if (timeLeft > 0) {
-        requestRef.current = requestAnimationFrame(update)
-      } else {
-        requestRef.current = null
+        timeoutRef.current = setTimeout(tick, 100)
       }
     }
 
-    update() // only called initially or when startUnix or endUnix changes
+    tick()
 
     return () => {
-      if (requestRef.current) {
-        cancelAnimationFrame(requestRef.current)
-        requestRef.current = null
+      cancelledRef.current = true
+      if (timeoutRef.current !== null) {
+        clearTimeout(timeoutRef.current)
+        timeoutRef.current = null
       }
     }
   }, [start, end])
@@ -374,13 +406,26 @@ export const useInspect = () => {
 export const useStudentSubmissions = () => {
   const { courseSlug, exampleSlug } = useParams()
 
-  return useQuery<SubmissionSsePayload[]>([
+  return useQuery<ExampleSubmissionsDTO>([
     "courses",
     courseSlug,
     "examples",
     exampleSlug,
     "submissions",
   ])
+}
+
+export const useExamplePointDistribution = (
+  options: UseQueryOptions<PointDistribution> = {},
+) => {
+  const { courseSlug, exampleSlug } = useParams()
+  return useQuery<PointDistribution>(
+    ["courses", courseSlug, "examples", exampleSlug, "point-distribution"],
+    {
+      enabled: options.enabled,
+      ...options,
+    },
+  )
 }
 
 export const useHeartbeat = () => {
@@ -399,4 +444,25 @@ export const useHeartbeat = () => {
   const sendHeartbeat = (emitterId: string) => mutateAsync(emitterId)
 
   return { sendHeartbeat }
+}
+
+const getStorageValue = <T,>(key: string, defaultValue: T) => {
+  const saved = localStorage.getItem(key)
+  if (!saved) return defaultValue
+  return JSON.parse(saved)
+}
+
+export const useLocalStorage = <T,>(
+  key: string,
+  defaultValue: T,
+): [T, Dispatch<SetStateAction<T>>] => {
+  const [value, setValue] = useState<T>(() =>
+    getStorageValue(key, defaultValue),
+  )
+
+  useEffect(() => {
+    localStorage.setItem(key, JSON.stringify(value))
+  }, [key, value])
+
+  return [value, setValue]
 }

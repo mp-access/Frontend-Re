@@ -214,6 +214,7 @@ declare interface ParticipantProps {
   email: string
   points: number
   registrationId?: string
+  otherId?: string
   username?: string
 }
 
@@ -242,5 +243,35 @@ declare interface SubmissionSsePayload {
   date: string
   points: number | null
   testsPassed: number[]
-  content: string
+  content: Record<string, string>
+}
+
+declare interface Bookmark {
+  submissionId: number
+  studentId: string
+  testsPassed: number[]
+  selectedFileName: string | null
+  filters: {
+    testCaseSelection: Record<string | boolean>
+    exactMatch: boolean
+    categorySelected: boolean
+  }
+}
+
+declare interface DistributionBin {
+  lowerBoundary: number
+  upperBoundary: number
+  numberOfSubmissions: number
+}
+
+declare interface PointDistribution {
+  pointDistribution: DistributionBin[]
+}
+
+declare interface ExampleSubmissionsDTO {
+  participantsOnline: number
+  totalParticipants: number
+  numberOfStudentsWhoSubmitted: number
+  passRatePerTestCase: Record<string, number>
+  submissions: SubmissionSsePayload[]
 }
