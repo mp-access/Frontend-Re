@@ -181,6 +181,8 @@ const SubmissionInspector: React.FC<{
   lastDisplayedSubmissionId: number | null
   categories: CategoriesType
   selectedCategory: string | null
+  selectedFileName: string | null
+  setSelectedFileName: React.Dispatch<SetStateAction<string | null>>
   setLastDisplayedSubmissionId: React.Dispatch<SetStateAction<number | null>>
   setCategories: React.Dispatch<React.SetStateAction<CategoriesType>>
   setSelectedCategory: React.Dispatch<SetStateAction<string | null>>
@@ -194,6 +196,8 @@ const SubmissionInspector: React.FC<{
   lastDisplayedSubmissionId,
   categories,
   selectedCategory,
+  selectedFileName,
+  setSelectedFileName,
   setLastDisplayedSubmissionId,
   setSelectedCategory,
   setCategories,
@@ -431,6 +435,8 @@ const SubmissionInspector: React.FC<{
         lastDisplayedSubmissionId={lastDisplayedSubmissionId}
         setLastDisplayedSubmissionId={setLastDisplayedSubmissionId}
         getSubmissionColor={getSubmissionColor}
+        selectedFileName={selectedFileName}
+        setSelectedFileName={setSelectedFileName}
       />
     </Flex>
   )
@@ -711,6 +717,7 @@ export function PrivateDashboard() {
   )
   const [categories, setCategories] = useState<CategoriesType>({})
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [selectedFileName, setSelectedFileName] = useState<string | null>(null)
   const getSubmissionColor = (submissionId: number) => {
     const foundColor = Object.values(categories).filter((category) =>
       category.ids.includes(submissionId),
@@ -776,6 +783,7 @@ export function PrivateDashboard() {
         submissionId: submission.submissionId,
         studentId: submission.studentId,
         testsPassed: submission.testsPassed,
+        selectedFileName: selectedFileName,
         filters: {
           testCaseSelection,
           exactMatch,
@@ -806,7 +814,13 @@ export function PrivateDashboard() {
         return [...prev, submissionBookmark]
       })
     },
-    [exactMatch, selectedCategory, setBookmarks, testCaseSelection],
+    [
+      exactMatch,
+      selectedCategory,
+      selectedFileName,
+      setBookmarks,
+      testCaseSelection,
+    ],
   )
 
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
@@ -842,6 +856,7 @@ export function PrivateDashboard() {
       const { exactMatch, testCaseSelection } = bookmark.filters
       setExactMatch(exactMatch)
       setTestCaseSelection(testCaseSelection)
+      setSelectedFileName(bookmark.selectedFileName)
       if (
         Object.keys(categories).length >= 1 &&
         bookmark.filters.categorySelected
@@ -981,6 +996,8 @@ export function PrivateDashboard() {
               getSubmissionColor={getSubmissionColor}
               selectedCategory={selectedCategory}
               setSelectedCategory={setSelectedCategory}
+              selectedFileName={selectedFileName}
+              setSelectedFileName={setSelectedFileName}
             />
           )}
         </Flex>

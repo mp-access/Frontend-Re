@@ -5,6 +5,7 @@ import {
   Flex,
   Heading,
   HStack,
+  Select,
   Text,
 } from "@chakra-ui/react"
 import { MdOutlineScreenShare } from "react-icons/md"
@@ -20,6 +21,7 @@ import React, {
   useRef,
   useState,
 } from "react"
+import { detectType } from "./Util"
 
 export const getFilteredSubmissions = (
   testCaseSelection: Record<string, boolean> | null,
@@ -104,6 +106,9 @@ const Slide: React.FC<{
   currentIndex: number
   totalSubmissions: number
   bookmarked: boolean
+  fileNames: string[]
+  selectedFileName: string
+  setSelectedFileName: React.Dispatch<SetStateAction<string | null>>
   handleOnBookmarkClick: (submission: SubmissionSsePayload) => void
   openInEditor: (studentId: string) => Promise<void>
 }> = ({
@@ -112,9 +117,22 @@ const Slide: React.FC<{
   totalSubmissions,
   categoryColor,
   bookmarked,
+  fileNames,
+  selectedFileName,
+  setSelectedFileName,
   openInEditor,
   handleOnBookmarkClick,
 }) => {
+  const handleFileSelection = useCallback(
+    (event: React.ChangeEvent<HTMLSelectElement>) => {
+      setSelectedFileName(event.target.value)
+    },
+    [setSelectedFileName],
+  )
+  const derivedProgrammingLanguage = useMemo(() => {
+    return detectType(selectedFileName)
+  }, [selectedFileName])
+
   return (
     <Flex direction={"column"} borderRadius={"lg"}>
       <HStack
@@ -132,6 +150,18 @@ const Slide: React.FC<{
           </Text>
         </Heading>
         <Text>Points: {submission.points?.toFixed(2)}</Text>
+        {fileNames.length > 1 ? (
+          <Select
+            maxW={150}
+            overflow={"hidden"}
+            value={selectedFileName}
+            onChange={handleFileSelection}
+          >
+            {fileNames.map((name) => (
+              <option value={name}>{name}</option>
+            ))}
+          </Select>
+        ) : null}
         <BookmarkToggle
           onClick={() => handleOnBookmarkClick(submission)}
           bookmarked={bookmarked}
@@ -140,13 +170,13 @@ const Slide: React.FC<{
       <Divider />
       <Flex h={"full"} marginTop={4} direction={"column"} p={2}>
         <Editor
-          value={submission.content}
+          value={submission.content[selectedFileName]}
           options={{
             readOnly: true,
             minimap: { enabled: false },
             scrollBeyondLastLine: false,
           }}
-          language="python"
+          language={derivedProgrammingLanguage}
         ></Editor>
         <Flex direction={"row-reverse"}>
           <Button
@@ -171,6 +201,8 @@ export const SubmissionsCarousel: React.FC<{
   submissions: SubmissionSsePayload[]
   bookmarks: Bookmark[] | null
   lastDisplayedSubmissionId: number | null
+  selectedFileName: string | null
+  setSelectedFileName: React.Dispatch<SetStateAction<string | null>>
   setLastDisplayedSubmissionId: React.Dispatch<SetStateAction<number | null>>
   handleOnBookmarkClick: (submission: SubmissionSsePayload) => void
   openInEditor: (studentId: string) => Promise<void>
@@ -178,14 +210,21 @@ export const SubmissionsCarousel: React.FC<{
 }> = ({
   submissions,
   lastDisplayedSubmissionId,
+  bookmarks,
+  selectedFileName,
+  setSelectedFileName,
   setLastDisplayedSubmissionId,
   handleOnBookmarkClick,
   openInEditor,
-  bookmarks,
   getSubmissionColor,
 }) => {
   const sliderRef = useRef<HTMLDivElement | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
+
+  const fileNames = useMemo(() => {
+    if (!submissions || submissions.length === 0) return null
+    return Object.keys(submissions[0].content)
+  }, [submissions])
 
   const slideCount = useMemo(
     () => (submissions ? submissions?.length : 0),
@@ -193,6 +232,24 @@ export const SubmissionsCarousel: React.FC<{
   )
 
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const goToSlide = useCallback(
+    (index: number, behavior?: ScrollBehavior) => {
+      const slider = sliderRef.current
+
+      if (slider) {
+        const newIndex = Math.max(0, Math.min(index, slideCount - 1))
+        const slideWidth = slider.offsetWidth + SLIDES_GAP
+        slider.scrollTo({
+          left: newIndex * slideWidth,
+          behavior: behavior ?? "smooth",
+        })
+        setCurrentIndex(newIndex)
+        setLastDisplayedSubmissionId(submissions[newIndex].submissionId)
+      }
+    },
+    [setLastDisplayedSubmissionId, slideCount, submissions],
+  )
 
   useLayoutEffect(() => {
     const slider = sliderRef.current
@@ -221,23 +278,6 @@ export const SubmissionsCarousel: React.FC<{
     }
   }, [currentIndex, setLastDisplayedSubmissionId, submissions])
 
-  const goToSlide = useCallback(
-    (index: number, behavior?: ScrollBehavior) => {
-      const slider = sliderRef.current
-
-      if (slider) {
-        const newIndex = Math.max(0, Math.min(index, slideCount - 1))
-        const slideWidth = slider.offsetWidth + SLIDES_GAP
-        slider.scrollTo({
-          left: newIndex * slideWidth,
-          behavior: behavior ?? "smooth",
-        })
-        setCurrentIndex(newIndex)
-        setLastDisplayedSubmissionId(submissions[newIndex].submissionId)
-      }
-    },
-    [setLastDisplayedSubmissionId, slideCount, submissions],
-  )
   useEffect(() => {
     if (!lastDisplayedSubmissionId) return
 
@@ -255,6 +295,12 @@ export const SubmissionsCarousel: React.FC<{
     submissions,
   ])
 
+  useEffect(() => {
+    if (selectedFileName === null && fileNames) {
+      setSelectedFileName(fileNames[0])
+    }
+  }, [fileNames, selectedFileName, setSelectedFileName])
+
   const showPrevButton = currentIndex !== 0
   const showNextButton = currentIndex !== submissions.length - 1
 
@@ -268,7 +314,7 @@ export const SubmissionsCarousel: React.FC<{
     },
     [bookmarks],
   )
-
+  if (!fileNames || !selectedFileName) return null
   return (
     <Flex
       position={"relative"}
@@ -289,6 +335,9 @@ export const SubmissionsCarousel: React.FC<{
               handleOnBookmarkClick={handleOnBookmarkClick}
               key={submission.submissionId}
               bookmarked={bookmarked(submission.submissionId)}
+              fileNames={fileNames}
+              selectedFileName={selectedFileName}
+              setSelectedFileName={setSelectedFileName}
             ></Slide>
           ))}
         </Flex>
