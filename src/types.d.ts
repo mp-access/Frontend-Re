@@ -257,6 +257,16 @@ declare interface Bookmark {
   }
 }
 
+declare interface DistributionBin {
+  lowerBoundary: number
+  upperBoundary: number
+  numberOfSubmissions: number
+}
+
+declare interface PointDistribution {
+  pointDistribution: DistributionBin[]
+}
+
 declare interface ExampleSubmissionsDTO {
   participantsOnline: number
   totalParticipants: number
