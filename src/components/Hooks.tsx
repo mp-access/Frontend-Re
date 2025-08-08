@@ -5,7 +5,7 @@ import axios, { AxiosError } from "axios"
 import { EventSource } from "extended-eventsource"
 import { compact, concat, flatten } from "lodash"
 import { Uri } from "monaco-editor"
-import { useEffect, useRef, useState } from "react"
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
 import { useParams } from "react-router-dom"
 import { useEventSource } from "../context/EventSourceContext"
 
@@ -27,9 +27,9 @@ const usePath = (prefix: string): string[] => {
           "assignments",
           assignmentSlug,
           prefix !== "assignments" && ["tasks", taskSlug],
-        ]
-      )
-    )
+        ],
+      ),
+    ),
   )
 }
 
@@ -37,7 +37,7 @@ export const useCreate = (slug: string) => {
   const target = slug === "" ? "/create" : "/edit"
   const { mutate, isLoading } = useMutation<string, AxiosError, object>(
     (repository) => axios.post(target, repository),
-    { onSuccess: () => window.location.reload() }
+    { onSuccess: () => window.location.reload() },
   )
   return { mutate, isLoading }
 }
@@ -46,7 +46,7 @@ export const usePull = () => {
   const path = usePath("")
   const { mutate, isLoading } = useMutation(
     () => axios.post("/courses" + `/${path[1]}/pull`, {}),
-    { onSuccess: () => window.location.reload() }
+    { onSuccess: () => window.location.reload() },
   )
   return { mutate, isLoading }
 }
@@ -126,6 +126,27 @@ export const useResetExample = () => {
   return { resetExample }
 }
 
+export const useCategorize = () => {
+  const { courseSlug, exampleSlug } = useParams()
+
+  const { mutateAsync: categorize, isLoading } = useMutation<
+    {
+      categories: Record<string, number[]>
+    },
+    AxiosError,
+    number[]
+  >({
+    mutationFn: (submissionIds) => {
+      const url = `/courses/${courseSlug}/examples/${exampleSlug}/categorize`
+      return axios.post(url, {
+        submissionIds,
+      })
+    },
+  })
+
+  return { categorize, isLoading }
+}
+
 export const useExamples = () => {
   const { courseSlug } = useParams()
 
@@ -163,7 +184,7 @@ export const useAssignment = () => {
   const { courseSlug, assignmentSlug } = useParams()
   return useQuery<AssignmentProps>(
     ["courses", courseSlug, "assignments", assignmentSlug],
-    { enabled: !!assignmentSlug }
+    { enabled: !!assignmentSlug },
   )
 }
 
@@ -172,7 +193,7 @@ export const useExample = (userId: string) => {
   const { courseSlug, exampleSlug } = useParams()
   const query = useQuery<TaskProps>(
     ["courses", courseSlug, "examples", exampleSlug, "users", userId],
-    { enabled: !timer }
+    { enabled: !timer },
   )
   // eslint-disable-next-line
   const { mutateAsync } = useMutation<any, AxiosError, any[]>(
@@ -181,7 +202,7 @@ export const useExample = (userId: string) => {
       onMutate: () => setTimer(Date.now() + 30000),
       onSettled: () => setTimer(undefined),
       onSuccess: query.refetch,
-    }
+    },
   )
   const submit = (data: NewSubmissionProps) =>
     mutateAsync([
@@ -205,7 +226,7 @@ export const useTask = (userId: string) => {
       "users",
       userId,
     ],
-    { enabled: !timer }
+    { enabled: !timer },
   )
   // eslint-disable-next-line
   const { mutateAsync } = useMutation<any, AxiosError, any[]>(
@@ -214,7 +235,7 @@ export const useTask = (userId: string) => {
       onMutate: () => setTimer(Date.now() + 30000),
       onSettled: () => setTimer(undefined),
       onSuccess: query.refetch,
-    }
+    },
   )
   const submit = (data: NewSubmissionProps) =>
     mutateAsync([
@@ -234,38 +255,49 @@ export const useTask = (userId: string) => {
 
 export const useCountdown = (start: number | null, end: number | null) => {
   const [timeLeftInSeconds, setTimeLeftInSeconds] = useState<number | null>(
-    null
+    null,
   )
   const [circleValue, setCircleValue] = useState<number | null>(null)
-  const requestRef = useRef<number | null>(null)
+
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const cancelledRef = useRef(false)
 
   useEffect(() => {
-    if (start === null || end === null) {
+    if (start === null || end === null || end <= start) {
+      setTimeLeftInSeconds(null)
+      setCircleValue(null)
       return
     }
 
-    const update = () => {
-      const total = end - start
+    cancelledRef.current = false
+    const total = end - start
+
+    const tick = () => {
+      if (cancelledRef.current) return
+
       const now = Date.now()
       const timeLeft = Math.max(0, end - now)
 
-      setTimeLeftInSeconds(Math.floor(timeLeft / 1000))
+      setTimeLeftInSeconds((prev) => {
+        const current = Math.floor(timeLeft / 1000)
+        return prev !== current ? current : prev
+      })
 
       const progress = Math.max(0, (timeLeft / total) * 100)
       setCircleValue(progress)
+
       if (timeLeft > 0) {
-        requestRef.current = requestAnimationFrame(update)
-      } else {
-        requestRef.current = null
+        timeoutRef.current = setTimeout(tick, 100)
       }
     }
 
-    update() // only called initially or when startUnix or endUnix changes
+    tick()
 
     return () => {
-      if (requestRef.current) {
-        cancelAnimationFrame(requestRef.current)
-        requestRef.current = null
+      cancelledRef.current = true
+      if (timeoutRef.current !== null) {
+        clearTimeout(timeoutRef.current)
+        timeoutRef.current = null
       }
     }
   }, [start, end])
@@ -290,7 +322,7 @@ export const useTimeframeFromSSE = () => {
       {
         headers: { Authorization: `Bearer ${token}` },
         retry: 3000,
-      }
+      },
     )
 
     const onTimeEvent = (e: MessageEvent) => {
@@ -350,7 +382,7 @@ export const useInspect = () => {
 
   if (!courseSlug || !exampleSlug) {
     throw new Error(
-      `Course Slug ${courseSlug} or example slug ${exampleSlug} undefined`
+      `Course Slug ${courseSlug} or example slug ${exampleSlug} undefined`,
     )
   }
 
@@ -374,13 +406,26 @@ export const useInspect = () => {
 export const useStudentSubmissions = () => {
   const { courseSlug, exampleSlug } = useParams()
 
-  return useQuery<SubmissionSsePayload[]>([
+  return useQuery<ExampleSubmissionsDTO>([
     "courses",
     courseSlug,
     "examples",
     exampleSlug,
     "submissions",
   ])
+}
+
+export const useExamplePointDistribution = (
+  options: UseQueryOptions<PointDistribution> = {},
+) => {
+  const { courseSlug, exampleSlug } = useParams()
+  return useQuery<PointDistribution>(
+    ["courses", courseSlug, "examples", exampleSlug, "point-distribution"],
+    {
+      enabled: options.enabled,
+      ...options,
+    },
+  )
 }
 
 export const useHeartbeat = () => {
@@ -399,4 +444,25 @@ export const useHeartbeat = () => {
   const sendHeartbeat = (emitterId: string) => mutateAsync(emitterId)
 
   return { sendHeartbeat }
+}
+
+const getStorageValue = <T,>(key: string, defaultValue: T) => {
+  const saved = localStorage.getItem(key)
+  if (!saved) return defaultValue
+  return JSON.parse(saved)
+}
+
+export const useLocalStorage = <T,>(
+  key: string,
+  defaultValue: T,
+): [T, Dispatch<SetStateAction<T>>] => {
+  const [value, setValue] = useState<T>(() =>
+    getStorageValue(key, defaultValue),
+  )
+
+  useEffect(() => {
+    localStorage.setItem(key, JSON.stringify(value))
+  }, [key, value])
+
+  return [value, setValue]
 }

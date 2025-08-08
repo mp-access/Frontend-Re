@@ -90,10 +90,12 @@ export const TestCaseBarChart: React.FC<{
 }) => {
   const [sorting, setSorting] = useState<Sortings>("default")
 
-  const data = Object.entries(passRatePerTestCase).map(([name, value]) => ({
-    name,
-    value: Math.max(value * 100, 1),
-  }))
+  const data = useMemo(() => {
+    return Object.entries(passRatePerTestCase).map(([name, value]) => ({
+      name,
+      value: Math.max(value * 100, 1),
+    }))
+  }, [passRatePerTestCase])
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     // TODO: type this properly
@@ -168,13 +170,13 @@ export const TestCaseBarChart: React.FC<{
   ])
 
   return (
-    <VStack height={"100%"}>
+    <VStack display={"flex"} width={"full"} p={0}>
       <Flex
         width={"100%"}
         justifyContent={"space-between"}
         align={"center"}
-        pt={2}
-        height={"5%"}
+        p={1}
+        pt={0}
       >
         <Select maxW={150} onChange={handleChange} value={sorting} size={"md"}>
           <option value={"default"}>{t("Default")}</option>
@@ -191,24 +193,32 @@ export const TestCaseBarChart: React.FC<{
           />
         </HStack>
       </Flex>
-      <ResponsiveContainer width="100%" height="95%">
-        <BarChart
-          data={sortedData}
-          layout="vertical"
-          margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
-          barSize={BAR_HEIGHT}
-        >
-          <XAxis type="number" domain={[0, 100]} interval={0} />
-          <YAxis type="category" dataKey="name" hide={true} />
-          <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-          <Bar dataKey="value" radius={[6, 6, 6, 6]} animationDuration={0}>
-            {barCells}
-            <LabelList dataKey="name" content={CustomNameLabel} />
-            <LabelList dataKey="value" content={CustomValueLabel} />
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
-      <HStack justify={"space-around"} w={"full"} display={"flex"}>
+
+      <Flex flex={1} width={"100%"}>
+        <ResponsiveContainer>
+          <BarChart
+            style={{
+              width: "100%",
+              height: "100%",
+            }}
+            data={sortedData}
+            layout="vertical"
+            barSize={BAR_HEIGHT}
+            margin={{ top: 4, right: 14, left: 14, bottom: 0 }}
+          >
+            <XAxis type="number" domain={[0, 100]} interval={0} />
+            <YAxis type="category" dataKey="name" hide={true} />
+            <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+            <Bar dataKey="value" radius={[6, 6, 6, 6]} animationDuration={0}>
+              {barCells}
+              <LabelList dataKey="name" content={CustomNameLabel} />
+              <LabelList dataKey="value" content={CustomValueLabel} />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </Flex>
+
+      <HStack justify={"space-between"} w={"full"} display={"flex"}>
         <Button borderRadius={"lg"} onClick={handleWorstSolutionClick}>
           Failing All Tests
         </Button>
