@@ -158,16 +158,10 @@ export const TestCaseBarChart: React.FC<{
       <Cell
         key={`cell-${entry.name}`}
         fill={testCaseSelection[entry.name] ? selectedColor : unselectedColor}
-        onClick={() => handleOnBarClick(entry.name)}
+        // onClick={() => handleOnBarClick(entry.name)}
       />
     ))
-  }, [
-    testCaseSelection,
-    sortedData,
-    selectedColor,
-    unselectedColor,
-    handleOnBarClick,
-  ])
+  }, [testCaseSelection, sortedData, selectedColor, unselectedColor])
 
   return (
     <VStack display={"flex"} width={"full"} p={0}>
@@ -209,7 +203,15 @@ export const TestCaseBarChart: React.FC<{
             <XAxis type="number" domain={[0, 100]} interval={0} />
             <YAxis type="category" dataKey="name" hide={true} />
             <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-            <Bar dataKey="value" radius={[6, 6, 6, 6]} animationDuration={0}>
+            <Bar
+              dataKey="value"
+              radius={[6, 6, 6, 6]}
+              animationDuration={0}
+              onClick={(data) => handleOnBarClick(data.name)}
+              background={{
+                fill: "white",
+              }}
+            >
               {barCells}
               <LabelList dataKey="name" content={CustomNameLabel} />
               <LabelList dataKey="value" content={CustomValueLabel} />
