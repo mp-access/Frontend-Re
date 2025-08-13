@@ -1,9 +1,3 @@
-.slider {
-  width: 100%;
-  overflow: hidden;
-  height: 100%;
-}
-
 .slides {
   display: flex;
   overflow-x: auto;
@@ -37,4 +31,9 @@ body {
 
 body {
   display: flex;
+}
+
+.monaco-editor {
+  position: absolute !important;
+  inset: 0;
 }

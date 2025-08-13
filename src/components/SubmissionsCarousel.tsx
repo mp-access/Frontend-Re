@@ -134,7 +134,7 @@ const Slide: React.FC<{
   }, [selectedFileName])
 
   return (
-    <Flex direction={"column"} borderRadius={"lg"}>
+    <Flex direction={"column"} borderRadius={"lg"} flexGrow={0}>
       <HStack
         justify={"space-between"}
         px={3}
@@ -168,16 +168,27 @@ const Slide: React.FC<{
         ></BookmarkToggle>
       </HStack>
       <Divider />
-      <Flex h={"full"} marginTop={4} direction={"column"} p={2}>
-        <Editor
-          value={submission.content[selectedFileName]}
-          options={{
-            readOnly: true,
-            minimap: { enabled: false },
-            scrollBeyondLastLine: false,
-          }}
-          language={derivedProgrammingLanguage}
-        ></Editor>
+      <Flex
+        h={"full"}
+        marginTop={4}
+        direction={"column"}
+        p={2}
+        minH={0}
+        flex={1}
+      >
+        <Box flex={1} minH={0} position={"relative"}>
+          <Editor
+            value={submission.content[selectedFileName]}
+            options={{
+              readOnly: true,
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+              automaticLayout: true,
+            }}
+            height={"100%"}
+            language={derivedProgrammingLanguage}
+          ></Editor>
+        </Box>
         <Flex direction={"row-reverse"}>
           <Button
             position={"relative"}
@@ -326,10 +337,15 @@ export const SubmissionsCarousel: React.FC<{
       display={"flex"}
       p={0}
       background={"transparent"}
-      height={"full"}
+      flex={1}
     >
-      <Flex className="slider" width={"full"} borderRadius={"2xl"}>
-        <Flex className="slides" ref={sliderRef} gap={SLIDES_GAP}>
+      <Flex width={"full"} borderRadius={"2xl"} flex={1} flexGrow={0}>
+        <Flex
+          className="slides"
+          ref={sliderRef}
+          gap={SLIDES_GAP}
+          height={"auto"}
+        >
           {submissions.map((submission, i) => (
             <Slide
               submission={submission}
