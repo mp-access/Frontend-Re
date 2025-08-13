@@ -322,15 +322,21 @@ export const useTimeframeFromSSE = () => {
 export const useSSE = <T,>(eventType: string, handler: (data: T) => void) => {
   const { eventSource } = useEventSource()
 
+  const handlerRef = useRef(handler)
+
+  useEffect(() => {
+    handlerRef.current = handler
+  }, [handler])
+
   useEffect(() => {
     if (!eventSource) return
 
     const listener = (event: MessageEvent) => {
       try {
         const parsed = JSON.parse(event.data)
-        handler(parsed as T)
+        handlerRef.current(parsed as T)
       } catch {
-        handler(event.data as unknown as T)
+        handlerRef.current(event.data as unknown as T)
       }
     }
 
@@ -339,7 +345,7 @@ export const useSSE = <T,>(eventType: string, handler: (data: T) => void) => {
     return () => {
       eventSource.removeEventListener(eventType, listener)
     }
-  }, [eventSource, eventType, handler])
+  }, [eventSource, eventType])
 }
 
 export const useInspect = () => {
