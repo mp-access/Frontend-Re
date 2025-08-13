@@ -66,12 +66,13 @@ const CustomBarChart: React.FC<{
 }> = ({ data, testCaseSelection, handleOnBarClick }) => {
   return (
     <VStack width={"full"} overflow={"auto"}>
-      {data.map((entry) => (
+      {data.map((entry, i) => (
         <CustomBar
           name={entry.name}
           value={entry.value}
           testCaseSelection={testCaseSelection}
           handleOnBarClick={handleOnBarClick}
+          key={i}
         />
       ))}
     </VStack>
