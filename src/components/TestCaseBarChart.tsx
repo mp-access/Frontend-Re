@@ -31,7 +31,7 @@ const CustomBar: React.FC<{
       width={"100%"}
       onClick={() => handleOnBarClick(name)}
       position={"relative"}
-      background={"gray.200"}
+      background={"gray.100"}
       borderRadius={"lg"}
     >
       <Text justifyContent={"center"} pl={2} position={"absolute"} zIndex={1}>
