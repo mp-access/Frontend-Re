@@ -349,7 +349,7 @@ const SubmissionInspector: React.FC<{
   )
 
   return (
-    <Flex direction={"column"} h={"100hv"} gap={2} flex={1}>
+    <Flex direction={"column"} h={"full"} gap={2} flex={1}>
       <Flex layerStyle={"segment"} direction="row" p={3}>
         {Object.entries(categories).map(([categoryKey, category], i) => {
           const bgColor = bgColors[i]
