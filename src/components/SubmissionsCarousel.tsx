@@ -314,7 +314,12 @@ export const SubmissionsCarousel: React.FC<{
     },
     [bookmarks],
   )
-  if (!fileNames || !selectedFileName) return null
+  if (!fileNames || !selectedFileName)
+    return (
+      <Flex flex={1} layerStyle={"segment"} justify={"center"} align={"center"}>
+        <Text>No implementation matches the selected filters</Text>
+      </Flex>
+    )
   return (
     <Flex
       position={"relative"}

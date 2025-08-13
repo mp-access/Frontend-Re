@@ -191,10 +191,10 @@ export const TestCaseBarChart: React.FC<{
 
       <HStack justify={"space-between"} w={"full"} display={"flex"}>
         <Button borderRadius={"lg"} onClick={handleWorstSolutionClick}>
-          Failing All Tests
+          Select Fail All
         </Button>
         <Button borderRadius={"lg"} onClick={handlePerfectSolutionClick}>
-          Passing All Tests
+          Select Pass All
         </Button>
       </HStack>
     </VStack>

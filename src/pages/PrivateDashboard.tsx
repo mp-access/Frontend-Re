@@ -463,8 +463,8 @@ const CustomPieChart: React.FC<{ value: number }> = ({ value }) => {
   ]
 
   const COLORS = [
-    useToken("colors", "purple.600"),
-    useToken("colors", "gray.300"),
+    useToken("colors", "purple.500"),
+    useToken("colors", "gray.100"),
   ]
 
   const RADIUS = 16
