@@ -9,6 +9,9 @@ import {
   HStack,
   Icon,
   Spacer,
+  Spinner,
+  Text,
+  VStack,
 } from "@chakra-ui/react"
 import { t } from "i18next"
 import { useEffect, useMemo, useState } from "react"
@@ -35,9 +38,10 @@ import {
 } from "../components/Hooks"
 import { Markdown, Placeholder } from "../components/Panels"
 
-const PointsHistogram: React.FC<{ data: PointDistribution | undefined }> = ({
-  data,
-}) => {
+const PointsHistogram: React.FC<{
+  data: PointDistribution | undefined
+  isFetching: boolean
+}> = ({ data, isFetching }) => {
   const mappedPointDistribution = useMemo(() => {
     if (!data || !Array.isArray(data.pointDistribution)) return []
 
@@ -57,7 +61,14 @@ const PointsHistogram: React.FC<{ data: PointDistribution | undefined }> = ({
     })
   }, [data])
 
-  if (!data) return null
+  if (isFetching) {
+    return (
+      <VStack w={"full"} h={"full"} justify={"center"} align={"center"}>
+        <Text> Waiting for the evalutation to finalize...</Text>
+        <Spinner speed="1s" />
+      </VStack>
+    )
+  }
   return (
     <ResponsiveContainer width="100%">
       <BarChart
@@ -98,15 +109,18 @@ const PointsHistogram: React.FC<{ data: PointDistribution | undefined }> = ({
 
 export function PublicDashboard() {
   const { user } = useOutletContext<UserContext>()
-  const { data: example } = useExample(user.email)
+  const { data: example, refetch: refetchExample } = useExample(user.email)
   const { i18n } = useTranslation()
   const navigate = useNavigate()
   const currentLanguage = i18n.language
   const { timeFrameFromEvent } = useTimeframeFromSSE()
-  const { data: initialExampleInformation } = useGeneralExampleInformation()
+  const {
+    data: initialExampleInformation,
+    refetch: refetchInitialExampleInformation,
+  } = useGeneralExampleInformation()
   const [exampleInformation, setExampleInformation] =
     useState<ExampleInformation | null>(null)
-  const { data: pointsDistribution } = useExamplePointDistribution()
+
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
     if (!example) {
       return [null, null]
@@ -122,13 +136,19 @@ export function PublicDashboard() {
 
     return [Date.parse(example.start), Date.parse(example.end)]
   }, [example, timeFrameFromEvent])
-
   const { timeLeftInSeconds } = useCountdown(derivedStartDate, derivedEndDate)
-
+  const { data: pointsDistribution, isFetching: isFetchingDistrib } =
+    useExamplePointDistribution({
+      enabled: timeLeftInSeconds === 0,
+    })
   const showHistogram = useMemo(() => {
-    if (timeLeftInSeconds === null) return true
-    return !timeLeftInSeconds && pointsDistribution !== undefined
-  }, [pointsDistribution, timeLeftInSeconds])
+    if (
+      timeLeftInSeconds === null ||
+      exampleInformation?.numberOfStudentsWhoSubmitted == 0
+    )
+      return false
+    return !timeLeftInSeconds
+  }, [exampleInformation?.numberOfStudentsWhoSubmitted, timeLeftInSeconds])
 
   useSSE<string>("inspect", (editorURL) => {
     if (!editorURL) {
@@ -140,6 +160,11 @@ export function PublicDashboard() {
 
   useSSE<ExampleInformation>("example-information", (data) => {
     setExampleInformation(data)
+  })
+
+  useSSE<string>("example-reset", () => {
+    refetchInitialExampleInformation()
+    refetchExample()
   })
 
   useEffect(() => {
@@ -218,7 +243,10 @@ export function PublicDashboard() {
         </Flex>
         {showHistogram ? (
           <Flex flex={1} layerStyle={"segment"} direction={"column"}>
-            <PointsHistogram data={pointsDistribution} />
+            <PointsHistogram
+              data={pointsDistribution}
+              isFetching={isFetchingDistrib}
+            />
           </Flex>
         ) : null}
       </GridItem>
