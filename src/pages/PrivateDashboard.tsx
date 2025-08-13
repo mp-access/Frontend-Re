@@ -923,7 +923,6 @@ export function PrivateDashboard() {
     example?.information["en"]?.title
   return (
     <Flex layerStyle={"container"} gap={2} height={"full"}>
-      {/* side bar */}
       <Flex
         direction={"column"}
         layerStyle={"segment"}
@@ -968,7 +967,6 @@ export function PrivateDashboard() {
           </TabPanels>
         </Tabs>
       </Flex>
-      {/*  */}
       <Flex gap={2} flexDirection={"column"} minWidth={0} flex={2}>
         <Flex direction={"column"} flex={1}>
           {!submissions || submissions.length < 1 ? (
@@ -1010,7 +1008,7 @@ export function PrivateDashboard() {
 
           <ExampleTimeController
             handleTimeAdjustment={handleTimeAdjustment}
-            durationAsString={durationAsString} // will be some derived state once implemented properly
+            durationAsString={durationAsString}
             exampleState={exampleState}
             handleStart={handleStart}
             handleTermination={handleTermination}
