@@ -30,33 +30,26 @@ const CustomBar: React.FC<{
       justify={"start"}
       width={"100%"}
       onClick={() => handleOnBarClick(name)}
+      position={"relative"}
+      background={"gray.200"}
+      borderRadius={"lg"}
     >
+      <Text justifyContent={"center"} pl={2} position={"absolute"} zIndex={1}>
+        {name}
+      </Text>
+      <Text position={"absolute"} right={2} zIndex={1}>
+        {value.toFixed()}%
+      </Text>
       <Flex
-        flex={value}
+        flex={Math.max(value, 1)}
         height={7}
         borderRadius={"lg"}
         align={"center"}
         background={testCaseSelection[name] ? selectedColor : unselectedColor}
         position={"relative"}
-      >
-        <Text
-          justifyContent={"center"}
-          pl={2}
-          position={"absolute"}
-          color={testCaseSelection[name] ? "white" : "black"}
-        >
-          {name}
-        </Text>
-        <Text
-          position={"absolute"}
-          right={2}
-          color={testCaseSelection[name] ? "white" : "black"}
-        >
-          {value.toFixed()}%
-        </Text>
-      </Flex>
+      ></Flex>
 
-      <Flex flex={100 - value} />
+      <Flex flex={100 - Math.max(value, 1)} />
     </HStack>
   )
 }
@@ -107,7 +100,7 @@ export const TestCaseBarChart: React.FC<{
   const data = useMemo(() => {
     return Object.entries(passRatePerTestCase).map(([name, value]) => ({
       name,
-      value: Math.max(value * 100, 1),
+      value: value * 100,
     }))
   }, [passRatePerTestCase])
 
@@ -188,12 +181,7 @@ export const TestCaseBarChart: React.FC<{
         </HStack>
       </Flex>
 
-      <Box
-        flex={1} // Take remaining space in TabPanel
-        minH={0} // Allow shrinking inside flex
-        overflowY="auto"
-        width={"full"}
-      >
+      <Box flex={1} minH={0} overflowY="auto" width={"full"}>
         <CustomBarChart
           data={sortedData}
           testCaseSelection={testCaseSelection}
