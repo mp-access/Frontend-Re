@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   Flex,
   HStack,
@@ -10,64 +11,71 @@ import {
 } from "@chakra-ui/react"
 import { t } from "i18next"
 import React, { SetStateAction, useCallback, useMemo, useState } from "react"
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  LabelList,
-  LabelProps,
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-} from "recharts"
 
-const BAR_HEIGHT = 40
+const CustomBar: React.FC<{
+  name: string
+  value: number
+  testCaseSelection: Record<string, boolean> | null
+  handleOnBarClick: (name: string) => void
+}> = ({ name, value, testCaseSelection, handleOnBarClick }) => {
+  const [selectedColor] = useToken("colors", ["purple.500"])
+  const [unselectedColor] = useToken("colors", ["purple.200"])
 
-const CustomNameLabel = (props: LabelProps) => {
-  const { x, y, value } = props
-
-  if (typeof x !== "number" || typeof y !== "number") return null
+  if (!testCaseSelection) {
+    return null
+  }
 
   return (
-    // must use html <text>, as recharts LabelList does not support custom rendering
-    <text
-      x={x + 8}
-      y={y + BAR_HEIGHT / 2}
-      dominantBaseline="middle"
-      fill="#000"
-      fontWeight="500"
-      style={{ pointerEvents: "none", whiteSpace: "nowrap" }}
+    <HStack
+      justify={"start"}
+      width={"100%"}
+      onClick={() => handleOnBarClick(name)}
+      position={"relative"}
+      background={"gray.100"}
+      borderRadius={"lg"}
     >
-      {value}
-    </text>
+      <Text justifyContent={"center"} pl={2} position={"absolute"} zIndex={1}>
+        {name}
+      </Text>
+      <Text position={"absolute"} right={2} zIndex={1}>
+        {value.toFixed()}%
+      </Text>
+      <Flex
+        flex={Math.max(value, 1)}
+        height={7}
+        borderRadius={"lg"}
+        align={"center"}
+        background={testCaseSelection[name] ? selectedColor : unselectedColor}
+        position={"relative"}
+      ></Flex>
+
+      <Flex flex={100 - Math.max(value, 1)} />
+    </HStack>
   )
 }
 
-const CustomValueLabel = ({ x, y, width, value }: LabelProps) => {
-  const estimateTextWidth = (text: string) => text.length * 20
+type BarChartData = {
+  name: string
+  value: number
+}
 
-  const label = `${Math.round(Number(value))}%`
-  const padding = 16
-  const estimatedTextWidth = estimateTextWidth(label)
-  const shouldRender =
-    typeof width === "number" && width > estimatedTextWidth + padding
-
-  if (!shouldRender || typeof x !== "number" || typeof y !== "number")
-    return null
-
+const CustomBarChart: React.FC<{
+  data: BarChartData[]
+  testCaseSelection: Record<string, boolean> | null
+  handleOnBarClick: (name: string) => void
+}> = ({ data, testCaseSelection, handleOnBarClick }) => {
   return (
-    <text
-      x={x + width - 8}
-      y={y + BAR_HEIGHT / 2}
-      dominantBaseline="middle"
-      textAnchor="end"
-      fill="white"
-      fontWeight="bold"
-      style={{ pointerEvents: "none", whiteSpace: "nowrap" }}
-    >
-      {label}
-    </text>
+    <VStack width={"full"} overflow={"auto"}>
+      {data.map((entry, i) => (
+        <CustomBar
+          name={entry.name}
+          value={entry.value}
+          testCaseSelection={testCaseSelection}
+          handleOnBarClick={handleOnBarClick}
+          key={i}
+        />
+      ))}
+    </VStack>
   )
 }
 
@@ -93,7 +101,7 @@ export const TestCaseBarChart: React.FC<{
   const data = useMemo(() => {
     return Object.entries(passRatePerTestCase).map(([name, value]) => ({
       name,
-      value: Math.max(value * 100, 1),
+      value: value * 100,
     }))
   }, [passRatePerTestCase])
 
@@ -149,28 +157,8 @@ export const TestCaseBarChart: React.FC<{
     return data
   }, [data, sorting])
 
-  const [selectedColor] = useToken("colors", ["purple.500"])
-  const [unselectedColor] = useToken("colors", ["purple.200"])
-
-  const barCells = useMemo(() => {
-    if (!testCaseSelection) return
-    return sortedData.map((entry) => (
-      <Cell
-        key={`cell-${entry.name}`}
-        fill={testCaseSelection[entry.name] ? selectedColor : unselectedColor}
-        onClick={() => handleOnBarClick(entry.name)}
-      />
-    ))
-  }, [
-    testCaseSelection,
-    sortedData,
-    selectedColor,
-    unselectedColor,
-    handleOnBarClick,
-  ])
-
   return (
-    <VStack display={"flex"} width={"full"} p={0}>
+    <VStack display={"flex"} width={"full"} p={0} flex={1}>
       <Flex
         width={"100%"}
         justifyContent={"space-between"}
@@ -194,36 +182,20 @@ export const TestCaseBarChart: React.FC<{
         </HStack>
       </Flex>
 
-      <Flex flex={1} width={"100%"}>
-        <ResponsiveContainer>
-          <BarChart
-            style={{
-              width: "100%",
-              height: "100%",
-            }}
-            data={sortedData}
-            layout="vertical"
-            barSize={BAR_HEIGHT}
-            margin={{ top: 4, right: 14, left: 14, bottom: 0 }}
-          >
-            <XAxis type="number" domain={[0, 100]} interval={0} />
-            <YAxis type="category" dataKey="name" hide={true} />
-            <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-            <Bar dataKey="value" radius={[6, 6, 6, 6]} animationDuration={0}>
-              {barCells}
-              <LabelList dataKey="name" content={CustomNameLabel} />
-              <LabelList dataKey="value" content={CustomValueLabel} />
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </Flex>
+      <Box flex={1} minH={0} overflowY="auto" width={"full"}>
+        <CustomBarChart
+          data={sortedData}
+          testCaseSelection={testCaseSelection}
+          handleOnBarClick={handleOnBarClick}
+        ></CustomBarChart>
+      </Box>
 
       <HStack justify={"space-between"} w={"full"} display={"flex"}>
         <Button borderRadius={"lg"} onClick={handleWorstSolutionClick}>
-          Failing All Tests
+          Select Fail All
         </Button>
         <Button borderRadius={"lg"} onClick={handlePerfectSolutionClick}>
-          Passing All Tests
+          Select Pass All
         </Button>
       </HStack>
     </VStack>
