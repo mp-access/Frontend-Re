@@ -463,8 +463,8 @@ const CustomPieChart: React.FC<{ value: number }> = ({ value }) => {
   ]
 
   const COLORS = [
-    useToken("colors", "purple.600"),
-    useToken("colors", "gray.300"),
+    useToken("colors", "purple.500"),
+    useToken("colors", "gray.100"),
   ]
 
   const RADIUS = 16
@@ -939,41 +939,41 @@ export function PrivateDashboard() {
         colEnd={2}
         p={1}
       >
-        <Flex height={"full"}>
-          <Tabs
-            variant={"line"}
-            isFitted
-            display={"flex"}
-            flexDir={"column"}
-            flex={1}
-            colorScheme="purple"
-            index={tabIndex}
-            onChange={(index) => setTabIndex(index)}
-          >
-            <TabList>
-              <Tab>Test Cases</Tab>
-              <Tab> Bookmarks</Tab>
-            </TabList>
-            <TabPanels display={"flex"} flex={1}>
-              <TabPanel display={"flex"} flex={1} pb={1} pl={1} pr={1}>
-                <TestCaseBarChart
-                  passRatePerTestCase={exampleInformation.passRatePerTestCase}
-                  exactMatch={exactMatch}
-                  setExactMatch={setExactMatch}
-                  testCaseSelection={testCaseSelection}
-                  setTestCaseSelection={setTestCaseSelection}
-                ></TestCaseBarChart>
-              </TabPanel>
-              <TabPanel display={"flex"} flex={1}>
-                <BookmarkView
-                  bookmarks={bookmarks}
-                  handleBookmarkSelection={handleBookmarkSelection}
-                  getSubmissionColor={getSubmissionColor}
-                />
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
-        </Flex>
+        <Tabs
+          variant={"line"}
+          isFitted
+          display={"flex"}
+          flexDir={"column"}
+          flex={1}
+          colorScheme="purple"
+          index={tabIndex}
+          onChange={(index) => setTabIndex(index)}
+          h="100%"
+          minH={0}
+        >
+          <TabList>
+            <Tab>Test Cases</Tab>
+            <Tab> Bookmarks</Tab>
+          </TabList>
+          <TabPanels display={"flex"} flex={1} minH={0}>
+            <TabPanel display={"flex"} flex={1} pb={1} pl={1} pr={1} minH={0}>
+              <TestCaseBarChart
+                passRatePerTestCase={exampleInformation.passRatePerTestCase}
+                exactMatch={exactMatch}
+                setExactMatch={setExactMatch}
+                testCaseSelection={testCaseSelection}
+                setTestCaseSelection={setTestCaseSelection}
+              ></TestCaseBarChart>
+            </TabPanel>
+            <TabPanel display={"flex"} flex={1}>
+              <BookmarkView
+                bookmarks={bookmarks}
+                handleBookmarkSelection={handleBookmarkSelection}
+                getSubmissionColor={getSubmissionColor}
+              />
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
       </GridItem>
       <GridItem gap={4} colStart={2} colEnd={4} rowStart={1} rowEnd={4}>
         <Flex direction={"column"} h={"full"}>
