@@ -11,7 +11,6 @@ import {
   Divider,
   Flex,
   Grid,
-  GridItem,
   Heading,
   HStack,
   Icon,
@@ -350,7 +349,7 @@ const SubmissionInspector: React.FC<{
   )
 
   return (
-    <Flex direction={"column"} h={"full"} gap={2}>
+    <Flex direction={"column"} h={"full"} gap={2} flex={1}>
       <Flex layerStyle={"segment"} direction="row" p={3}>
         {Object.entries(categories).map(([categoryKey, category], i) => {
           const bgColor = bgColors[i]
@@ -923,21 +922,14 @@ export function PrivateDashboard() {
     example?.information[currentLanguage]?.title ||
     example?.information["en"]?.title
   return (
-    <Grid
-      layerStyle={"container"}
-      templateColumns="1fr 1fr 1fr"
-      templateRows={"5fr 1fr"}
-      gap={2}
-      height={"full"}
-    >
-      <GridItem
+    <Flex layerStyle={"container"} gap={2} height={"full"}>
+      <Flex
+        direction={"column"}
         layerStyle={"segment"}
         gap={4}
-        rowStart={1}
-        rowEnd={5}
-        colStart={1}
-        colEnd={2}
         p={1}
+        minWidth={0}
+        flex={1}
       >
         <Tabs
           variant={"line"}
@@ -974,9 +966,9 @@ export function PrivateDashboard() {
             </TabPanel>
           </TabPanels>
         </Tabs>
-      </GridItem>
-      <GridItem gap={4} colStart={2} colEnd={4} rowStart={1} rowEnd={4}>
-        <Flex direction={"column"} h={"full"}>
+      </Flex>
+      <Flex gap={2} flexDirection={"column"} minWidth={0} flex={2}>
+        <Flex direction={"column"} flex={1}>
           {!submissions || submissions.length < 1 ? (
             <TaskDescription
               instructionContent={instructionsContent}
@@ -1001,37 +993,33 @@ export function PrivateDashboard() {
             />
           )}
         </Flex>
-      </GridItem>
-      <GridItem
-        rowStart={4}
-        rowEnd={5}
-        colStart={2}
-        colEnd={-1}
-        display={"flex"}
-        flexDirection={"row"}
-        gap={3}
-        layerStyle={"segment"}
-        alignContent={"space-between"}
-        p={2}
-      >
-        <GeneralInformation
-          exampleState={exampleState}
-          generalInformation={exampleInformation}
-        ></GeneralInformation>
+        <Flex
+          display={"flex"}
+          flexDirection={"row"}
+          gap={3}
+          layerStyle={"segment"}
+          alignContent={"space-between"}
+          p={2}
+        >
+          <GeneralInformation
+            exampleState={exampleState}
+            generalInformation={exampleInformation}
+          ></GeneralInformation>
 
-        <ExampleTimeController
-          handleTimeAdjustment={handleTimeAdjustment}
-          durationAsString={durationAsString} // will be some derived state once implemented properly
-          exampleState={exampleState}
-          handleStart={handleStart}
-          handleTermination={handleTermination}
-          handleReset={handleReset}
-          setDurationInSeconds={setDurationInSeconds}
-          startTime={derivedStartDate}
-          endTime={derivedEndDate}
-          setExampleState={setExampleState}
-        ></ExampleTimeController>
-      </GridItem>
-    </Grid>
+          <ExampleTimeController
+            handleTimeAdjustment={handleTimeAdjustment}
+            durationAsString={durationAsString}
+            exampleState={exampleState}
+            handleStart={handleStart}
+            handleTermination={handleTermination}
+            handleReset={handleReset}
+            setDurationInSeconds={setDurationInSeconds}
+            startTime={derivedStartDate}
+            endTime={derivedEndDate}
+            setExampleState={setExampleState}
+          ></ExampleTimeController>
+        </Flex>
+      </Flex>
+    </Flex>
   )
 }

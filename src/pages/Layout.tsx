@@ -17,7 +17,7 @@ import {
 } from "@chakra-ui/react"
 import { useKeycloak } from "@react-keycloak/web"
 import { compact, join } from "lodash"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { AiOutlineLogout } from "react-icons/ai"
 import {
@@ -46,17 +46,9 @@ export default function Layout() {
   const { keycloak } = useKeycloak()
   const { courseSlug } = useParams()
   const { data: examples } = useExamples()
-  const [ongoingExamplePath, setOngoingExamplePath] = useState<string | null>(
-    null,
-  )
+
   const isSupervisor =
     !!courseSlug && keycloak.hasRealmRole(courseSlug + "-supervisor")
-
-  useEffect(() => {
-    if (ongoingExamplePath) {
-      navigate(ongoingExamplePath)
-    }
-  }, [navigate, ongoingExamplePath])
 
   useEffect(() => {
     if (!courseSlug || !examples || isSupervisor) return
@@ -77,7 +69,7 @@ export default function Layout() {
   }, [examples, courseSlug, navigate, isSupervisor, location.pathname])
 
   useSSE<string>("redirect", (data) => {
-    setOngoingExamplePath(data)
+    navigate(data)
     toast({
       title: t("redirect_toast"),
       status: "info",
