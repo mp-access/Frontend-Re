@@ -77,7 +77,7 @@ export default function Layout() {
   }, [examples, courseSlug, navigate, isSupervisor, location.pathname])
 
   useSSE<string>("redirect", (data) => {
-    setOngoingExamplePath(data)
+    navigate(data)
     toast({
       title: t("redirect_toast"),
       status: "info",
