@@ -50,11 +50,14 @@ const PointsHistogram: React.FC<{
       0,
     )
 
-    return data.pointDistribution.map((elem) => {
+    return data.pointDistribution.map((elem, idx) => {
+      const isLast = idx === data.pointDistribution.length - 1
       const count = elem.numberOfSubmissions
       const percentage = total > 0 ? ((count / total) * 100).toFixed(0) : "0"
       return {
-        bin: `${elem.lowerBoundary}-${elem.upperBoundary}`,
+        bin: !isLast
+          ? `[${elem.lowerBoundary}-${elem.upperBoundary})`
+          : `[${elem.lowerBoundary}-${elem.upperBoundary}]`,
         count,
         percentage,
       }
