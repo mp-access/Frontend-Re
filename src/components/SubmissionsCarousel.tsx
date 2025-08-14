@@ -227,16 +227,6 @@ const Slide: React.FC<{
   )
 }
 
-export const MemoizedSlide = React.memo(Slide, (prev, next) => {
-  // Only re-render if the submission ID or selected file changes
-  return (
-    prev.submission.submissionId === next.submission.submissionId &&
-    prev.categoryColor === next.categoryColor &&
-    prev.bookmarked === next.bookmarked &&
-    prev.selectedFileName === next.selectedFileName &&
-    prev.fileNames === next.fileNames // careful: this compares by ref, so ensure it's stable
-  )
-})
 const SLIDES_GAP = 50
 
 export const SubmissionsCarousel: React.FC<{
