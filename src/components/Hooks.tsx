@@ -1,8 +1,6 @@
 import { useMonaco } from "@monaco-editor/react"
-import { useKeycloak } from "@react-keycloak/web"
 import { useMutation, useQuery, UseQueryOptions } from "@tanstack/react-query"
 import axios, { AxiosError } from "axios"
-import { EventSource } from "extended-eventsource"
 import { compact, concat, flatten } from "lodash"
 import { Uri } from "monaco-editor"
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
@@ -306,56 +304,29 @@ export const useCountdown = (start: number | null, end: number | null) => {
 }
 
 export const useTimeframeFromSSE = () => {
-  const { keycloak } = useKeycloak()
-  const { courseSlug } = useParams()
-  const token = keycloak.token
-
   const [timeFrameFromEvent, setTimeFrameFromEvent] = useState<
     [number, number] | null
   >(null)
-  const [error, setError] = useState<Error | null>(null)
 
-  useEffect(() => {
-    if (!token || !courseSlug) return
-    const eventSource = new EventSource(
-      `/api/courses/${courseSlug}/subscribe`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        retry: 3000,
-      },
-    )
+  useSSE<string>("timer-update", (data) => {
+    const [startTimeString, endTimeString] = data.split("/")
+    setTimeFrameFromEvent([
+      Date.parse(startTimeString),
+      Date.parse(endTimeString),
+    ])
+  })
 
-    const onTimeEvent = (e: MessageEvent) => {
-      const [startTimeString, endTimeString] = (e.data as string).split("/")
-      setTimeFrameFromEvent([
-        Date.parse(startTimeString),
-        Date.parse(endTimeString),
-      ])
-    }
-
-    eventSource.addEventListener("timer-update", onTimeEvent)
-    eventSource.onerror = (error) => {
-      console.error("SSE error", error)
-      setError(new Error("SSE connection error"))
-    }
-
-    const cleanup = () => {
-      eventSource.removeEventListener("timer-update", onTimeEvent)
-      eventSource.close()
-    }
-    window.addEventListener("beforeunload", cleanup)
-    return () => {
-      window.removeEventListener("beforeunload", cleanup)
-      cleanup()
-    }
-  }, [courseSlug, token])
-
-  return { timeFrameFromEvent, error }
+  return { timeFrameFromEvent }
 }
 
-// properly define eventType
 export const useSSE = <T,>(eventType: string, handler: (data: T) => void) => {
   const { eventSource } = useEventSource()
+
+  const handlerRef = useRef(handler)
+
+  useEffect(() => {
+    handlerRef.current = handler
+  }, [handler])
 
   useEffect(() => {
     if (!eventSource) return
@@ -363,9 +334,9 @@ export const useSSE = <T,>(eventType: string, handler: (data: T) => void) => {
     const listener = (event: MessageEvent) => {
       try {
         const parsed = JSON.parse(event.data)
-        handler(parsed as T)
+        handlerRef.current(parsed as T)
       } catch {
-        handler(event.data as unknown as T)
+        handlerRef.current(event.data as unknown as T)
       }
     }
 
@@ -374,7 +345,7 @@ export const useSSE = <T,>(eventType: string, handler: (data: T) => void) => {
     return () => {
       eventSource.removeEventListener(eventType, listener)
     }
-  }, [eventSource, eventType, handler])
+  }, [eventSource, eventType])
 }
 
 export const useInspect = () => {

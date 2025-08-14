@@ -32,22 +32,26 @@ export const EventSourceProvider: React.FC<{ children: React.ReactNode }> = ({
       `/api/courses/${courseSlug}/subscribe`,
       {
         headers: {
-          Authorization: `Bearer ${keycloak.token}`,
+          Authorization: `Bearer ${token}`,
         },
         retry: 3000,
       },
     )
-    eventSource.addEventListener("emitter-id", (event: MessageEvent) => {
-      setEmitterId(event.data)
-    })
 
+    const emitterListener = (event: MessageEvent) => {
+      setEmitterId(event.data)
+    }
+
+    eventSource.addEventListener("emitter-id", emitterListener)
     eventSourceRef.current = eventSource
     setTick((t) => t + 1) // force re-render so context provider updates value
 
     return () => {
+      eventSource.removeEventListener("emitter-id", emitterListener)
       eventSource.close()
+      eventSourceRef.current = null
     }
-  }, [courseSlug, keycloak.token, token])
+  }, [courseSlug, eventSourceRef, token])
 
   useEffect(() => {
     if (!emitterId || !courseSlug) return
@@ -63,11 +67,11 @@ export const EventSourceProvider: React.FC<{ children: React.ReactNode }> = ({
           })
         }
       },
-      60000, // 1 minute heartbeat
+      15000, // 15 sec heartbeat
     )
 
     return () => clearInterval(interval)
-  }, [emitterId, courseSlug, keycloak.token, sendHeartbeat, toast])
+  }, [courseSlug, emitterId, sendHeartbeat, toast])
 
   return (
     <EventSourceContext.Provider
