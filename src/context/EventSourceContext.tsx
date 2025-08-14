@@ -67,7 +67,7 @@ export const EventSourceProvider: React.FC<{ children: React.ReactNode }> = ({
           })
         }
       },
-      60000, // 1 minute heartbeat
+      15000, // 15 sec heartbeat
     )
 
     return () => clearInterval(interval)
