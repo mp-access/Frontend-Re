@@ -539,7 +539,7 @@ const GeneralInformation: React.FC<{
             <CustomPieChart value={submissionsProgress}></CustomPieChart>
           </HStack>
 
-          <HStack>
+          <HStack overflow={"auto"}>
             <Text color={"gray.500"} display={"flex"}>
               Test Pass Rate {avgTestPassRate}%
             </Text>
@@ -556,6 +556,7 @@ const ExampleTimeController: React.FC<{
   handleStart: () => void
   handleTermination: () => void
   handleReset: () => void
+  durationInSeconds: number
   durationAsString: string
   setDurationInSeconds: React.Dispatch<React.SetStateAction<number>>
   exampleState: ExampleState
@@ -564,6 +565,7 @@ const ExampleTimeController: React.FC<{
   endTime: number | null
 }> = ({
   handleTimeAdjustment,
+  durationInSeconds,
   durationAsString,
   exampleState,
   setExampleState,
@@ -575,11 +577,10 @@ const ExampleTimeController: React.FC<{
   endTime,
 }) => {
   const { extendExampleDuration } = useExtendExample()
-
+  console.log(durationInSeconds)
   const handleExtendTime = useCallback(
     async (duration: number) => {
       try {
-        // TODO: make sure new time feteched properly once clock is implemented
         await extendExampleDuration(duration)
         setDurationInSeconds((oldVal) => oldVal + duration)
       } catch (e) {
@@ -597,15 +598,24 @@ const ExampleTimeController: React.FC<{
 
   if (exampleState === "unpublished" || exampleState === "publishing") {
     return (
-      <HStack w={"full"} justify={"space-between"}>
+      <HStack w={"full"} justify={"space-between"} overflow={"auto"}>
         <HStack gap={3}>
-          <Button variant={"outline"} onClick={() => handleTimeAdjustment(-30)}>
+          <Button
+            isDisabled={
+              durationInSeconds <= 30 || exampleState === "publishing"
+            }
+            variant={"outline"}
+            onClick={() => handleTimeAdjustment(-30)}
+          >
             -30
           </Button>
           <Button
             variant={"outline"}
             borderRadius={"full"}
             onClick={() => handleTimeAdjustment(-15)}
+            isDisabled={
+              durationInSeconds <= 15 || exampleState === "publishing"
+            }
           >
             -15
           </Button>
@@ -616,6 +626,7 @@ const ExampleTimeController: React.FC<{
             variant={"outline"}
             borderRadius={"full"}
             onClick={() => handleTimeAdjustment(15)}
+            isDisabled={exampleState === "publishing"}
           >
             +15
           </Button>
@@ -623,6 +634,7 @@ const ExampleTimeController: React.FC<{
             variant={"outline"}
             borderRadius={"full"}
             onClick={() => handleTimeAdjustment(30)}
+            isDisabled={exampleState === "publishing"}
           >
             +30
           </Button>
@@ -741,7 +753,7 @@ export function PrivateDashboard() {
 
   const handleTimeAdjustment = useCallback(
     (value: number) => {
-      setDurationInSeconds((oldVal) => Math.max(0, oldVal + value))
+      setDurationInSeconds((oldVal) => Math.max(15, oldVal + value))
     },
     [setDurationInSeconds],
   )
@@ -930,6 +942,7 @@ export function PrivateDashboard() {
         p={1}
         minWidth={0}
         flex={1}
+        overflow={"auto"}
       >
         <Tabs
           variant={"line"}
@@ -1000,6 +1013,7 @@ export function PrivateDashboard() {
           layerStyle={"segment"}
           alignContent={"space-between"}
           p={2}
+          overflow={"auto"}
         >
           <GeneralInformation
             exampleState={exampleState}
@@ -1009,6 +1023,7 @@ export function PrivateDashboard() {
           <ExampleTimeController
             handleTimeAdjustment={handleTimeAdjustment}
             durationAsString={durationAsString}
+            durationInSeconds={durationInSeconds}
             exampleState={exampleState}
             handleStart={handleStart}
             handleTermination={handleTermination}
