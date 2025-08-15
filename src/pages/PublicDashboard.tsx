@@ -17,7 +17,7 @@ import { t } from "i18next"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { FcAlarmClock, FcDocument } from "react-icons/fc"
-import { useNavigate, useOutletContext } from "react-router-dom"
+import { useNavigate, useOutletContext, useParams } from "react-router-dom"
 import {
   Bar,
   BarChart,
@@ -117,6 +117,7 @@ export function PublicDashboard() {
   const navigate = useNavigate()
   const currentLanguage = i18n.language
   const { timeFrameFromEvent } = useTimeframeFromSSE()
+  const { exampleSlug } = useParams()
   const {
     data: initialExampleInformation,
     refetch: refetchInitialExampleInformation,
@@ -158,7 +159,15 @@ export function PublicDashboard() {
       return
     }
 
-    navigate(editorURL)
+    const splitUrl = editorURL.split("/")
+    const idxOfExamples = splitUrl.indexOf("examples")
+    const urlExampleSlug =
+      idxOfExamples !== -1 ? splitUrl[idxOfExamples + 1] : null
+
+    // only navigate if event comes from same example
+    if (urlExampleSlug && urlExampleSlug === exampleSlug) {
+      navigate(editorURL)
+    }
   })
 
   useSSE<ExampleInformation>("example-information", (data) => {
