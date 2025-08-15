@@ -280,20 +280,29 @@ const SubmissionInspector: React.FC<{
       .map((key) => categories[key].ids)
       .flat()
 
-    const noCatIds = submissions
-      .map((s) => s.submissionId)
-      .filter((f) => !withCatIds.includes(f))
+    const noCatSubmissions = submissions.filter(
+      (f) => !withCatIds.includes(f.submissionId),
+    )
 
-    if (noCatIds.length > 0)
+    if (noCatSubmissions.length > 0) {
+      const filteredSubmissionIds = getFilteredSubmissions(
+        testCaseSelection,
+        noCatSubmissions,
+        exactMatch,
+      ).map((f) => f.submissionId)
+
       setCategories((prev) => ({
         ...prev,
         [LEFTOVER_CATEGORY_KEY]: {
           color: "gray",
-          ids: noCatIds,
-          selectedIds: noCatIds,
-          avgScore: getSubmissionsAvgScore(noCatIds),
+          ids: noCatSubmissions.map((f) => f.submissionId),
+          selectedIds: filteredSubmissionIds,
+          avgScore: getSubmissionsAvgScore(
+            noCatSubmissions.map((f) => f.submissionId),
+          ),
         },
       }))
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [submissions])
 
