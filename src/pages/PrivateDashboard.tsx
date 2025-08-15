@@ -421,6 +421,7 @@ const SubmissionInspector: React.FC<{
           ml={3}
           onClick={handleFetchCategories}
           disabled={submissions.length < 5 || isLoading}
+          isLoading={isLoading}
         >
           Re-categorize
         </Button>

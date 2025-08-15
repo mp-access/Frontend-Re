@@ -100,6 +100,31 @@ const BookmarkToggle: React.FC<{
   )
 }
 
+const EditorContainer: React.FC<{
+  submissionContent: string
+  selectedFileName: string
+}> = ({ submissionContent, selectedFileName }) => {
+  const derivedProgrammingLanguage = useMemo(
+    () => detectType(selectedFileName),
+    [selectedFileName],
+  )
+  return (
+    <Editor
+      value={submissionContent}
+      options={{
+        readOnly: true,
+        minimap: { enabled: false },
+        scrollBeyondLastLine: false,
+        automaticLayout: true,
+      }}
+      height={"100%"}
+      language={derivedProgrammingLanguage}
+    ></Editor>
+  )
+}
+
+const MemoizedEditor = React.memo(EditorContainer)
+
 const Slide: React.FC<{
   submission: SubmissionSsePayload
   categoryColor: string
@@ -108,6 +133,7 @@ const Slide: React.FC<{
   bookmarked: boolean
   fileNames: string[]
   selectedFileName: string
+  isVisible: boolean
   setSelectedFileName: React.Dispatch<SetStateAction<string | null>>
   handleOnBookmarkClick: (submission: SubmissionSsePayload) => void
   openInEditor: (studentId: string) => Promise<void>
@@ -122,6 +148,7 @@ const Slide: React.FC<{
   setSelectedFileName,
   openInEditor,
   handleOnBookmarkClick,
+  isVisible,
 }) => {
   const handleFileSelection = useCallback(
     (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -129,9 +156,6 @@ const Slide: React.FC<{
     },
     [setSelectedFileName],
   )
-  const derivedProgrammingLanguage = useMemo(() => {
-    return detectType(selectedFileName)
-  }, [selectedFileName])
 
   return (
     <Flex direction={"column"} borderRadius={"lg"} flexGrow={0}>
@@ -177,17 +201,14 @@ const Slide: React.FC<{
         flex={1}
       >
         <Box flex={1} minH={0} position={"relative"}>
-          <Editor
-            value={submission.content[selectedFileName]}
-            options={{
-              readOnly: true,
-              minimap: { enabled: false },
-              scrollBeyondLastLine: false,
-              automaticLayout: true,
-            }}
-            height={"100%"}
-            language={derivedProgrammingLanguage}
-          ></Editor>
+          {isVisible ? (
+            <MemoizedEditor
+              submissionContent={submission.content[selectedFileName]}
+              selectedFileName={selectedFileName}
+            ></MemoizedEditor>
+          ) : (
+            <Text></Text>
+          )}
         </Box>
         <Flex direction={"row-reverse"}>
           <Button
@@ -346,21 +367,32 @@ export const SubmissionsCarousel: React.FC<{
           gap={SLIDES_GAP}
           height={"auto"}
         >
-          {submissions.map((submission, i) => (
-            <Slide
-              submission={submission}
-              categoryColor={getSubmissionColor(submission.submissionId)}
-              currentIndex={i}
-              totalSubmissions={submissions.length}
-              openInEditor={openInEditor}
-              handleOnBookmarkClick={handleOnBookmarkClick}
-              key={submission.submissionId}
-              bookmarked={bookmarked(submission.submissionId)}
-              fileNames={fileNames}
-              selectedFileName={selectedFileName}
-              setSelectedFileName={setSelectedFileName}
-            ></Slide>
-          ))}
+          {submissions.map((submission, i) => {
+            const VISIBLE_RANGE = 3
+            const isVisible =
+              Math.abs(i - currentIndex) <= VISIBLE_RANGE ||
+              (i < VISIBLE_RANGE &&
+                currentIndex > submissions.length - VISIBLE_RANGE) ||
+              (i > submissions.length - VISIBLE_RANGE &&
+                currentIndex < VISIBLE_RANGE)
+
+            return (
+              <Slide
+                submission={submission}
+                categoryColor={getSubmissionColor(submission.submissionId)}
+                currentIndex={i}
+                totalSubmissions={submissions.length}
+                openInEditor={openInEditor}
+                handleOnBookmarkClick={handleOnBookmarkClick}
+                key={submission.submissionId}
+                bookmarked={bookmarked(submission.submissionId)}
+                fileNames={fileNames}
+                selectedFileName={selectedFileName}
+                setSelectedFileName={setSelectedFileName}
+                isVisible={isVisible}
+              ></Slide>
+            )
+          })}
         </Flex>
       </Flex>
       {showPrevButton ? (
