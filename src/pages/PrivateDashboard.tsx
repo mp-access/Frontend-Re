@@ -577,7 +577,6 @@ const ExampleTimeController: React.FC<{
   endTime,
 }) => {
   const { extendExampleDuration } = useExtendExample()
-  console.log(durationInSeconds)
   const handleExtendTime = useCallback(
     async (duration: number) => {
       try {
