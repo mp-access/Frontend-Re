@@ -339,7 +339,7 @@ export const SubmissionsCarousel: React.FC<{
       background={"transparent"}
       flex={1}
     >
-      <Flex width={"full"} borderRadius={"2xl"} flex={1} flexGrow={0}>
+      <Flex width={"100%"} borderRadius={"2xl"} flex={1}>
         <Flex
           className="slides"
           ref={sliderRef}
