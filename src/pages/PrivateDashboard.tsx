@@ -459,7 +459,7 @@ const TaskDescription: React.FC<{
     <Flex layerStyle={"segment"} direction={"column"} grow={1} p={3}>
       <Heading fontSize="xl">{title}</Heading>
       <Divider />
-      <Markdown children={instructionContent}></Markdown>
+      <Markdown children={instructionContent} />
     </Flex>
   )
 }
@@ -546,7 +546,7 @@ const GeneralInformation: React.FC<{
                 ? `${numberOfStudentsWhoSubmitted}/${Math.max(numberOfStudentsWhoSubmitted, participantsOnline)}` // if participants online not correctly updated, UI should not break
                 : numberOfStudentsWhoSubmitted}
             </Text>
-            <CustomPieChart value={submissionsProgress}></CustomPieChart>
+            <CustomPieChart value={submissionsProgress} />
           </HStack>
 
           <HStack overflow={"auto"}>
@@ -670,26 +670,21 @@ const ExampleTimeController: React.FC<{
           size={"large"}
           onTimeIsUp={handleTimeIsUp}
           variant="number-only"
-        ></CountdownTimer>
+        />
         <Button variant={"outline"} onClick={() => handleExtendTime(30)}>
           +30
         </Button>
         <Button variant={"outline"} onClick={() => handleExtendTime(60)}>
           +60
         </Button>
-        <TerminationDialog
-          handleTermination={handleTermination}
-        ></TerminationDialog>
+        <TerminationDialog handleTermination={handleTermination} />
       </Flex>
     )
   }
 
   return (
     <Flex flex={1} justify={"end"}>
-      <ResetDialog
-        handleReset={handleReset}
-        exampleState={exampleState}
-      ></ResetDialog>
+      <ResetDialog handleReset={handleReset} exampleState={exampleState} />
     </Flex>
   )
 }
@@ -977,7 +972,7 @@ export function PrivateDashboard() {
                 setExactMatch={setExactMatch}
                 testCaseSelection={testCaseSelection}
                 setTestCaseSelection={setTestCaseSelection}
-              ></TestCaseBarChart>
+              />
             </TabPanel>
             <TabPanel display={"flex"} flex={1}>
               <BookmarkView
@@ -1027,7 +1022,7 @@ export function PrivateDashboard() {
           <GeneralInformation
             exampleState={exampleState}
             generalInformation={exampleInformation}
-          ></GeneralInformation>
+          />
 
           <ExampleTimeController
             handleTimeAdjustment={handleTimeAdjustment}
@@ -1041,7 +1036,7 @@ export function PrivateDashboard() {
             startTime={derivedStartDate}
             endTime={derivedEndDate}
             setExampleState={setExampleState}
-          ></ExampleTimeController>
+          />
         </Flex>
       </Flex>
     </Flex>

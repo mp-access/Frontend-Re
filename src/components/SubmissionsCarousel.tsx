@@ -119,7 +119,7 @@ const EditorContainer: React.FC<{
       }}
       height={"100%"}
       language={derivedProgrammingLanguage}
-    ></Editor>
+    />
   )
 }
 
@@ -189,7 +189,7 @@ const Slide: React.FC<{
         <BookmarkToggle
           onClick={() => handleOnBookmarkClick(submission)}
           bookmarked={bookmarked}
-        ></BookmarkToggle>
+        />
       </HStack>
       <Divider />
       <Flex
@@ -205,7 +205,7 @@ const Slide: React.FC<{
             <MemoizedEditor
               submissionContent={submission.content[selectedFileName]}
               selectedFileName={selectedFileName}
-            ></MemoizedEditor>
+            />
           ) : (
             <Text></Text>
           )}
@@ -393,7 +393,7 @@ export const SubmissionsCarousel: React.FC<{
                 selectedFileName={selectedFileName}
                 setSelectedFileName={setSelectedFileName}
                 isVisible={isVisible}
-              ></Slide>
+              />
             )
           })}
         </Flex>

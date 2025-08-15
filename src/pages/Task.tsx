@@ -104,6 +104,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
     submit,
     refetch,
     timer,
+    // eslint-disable-next-line react-hooks/rules-of-hooks
   } = type == "task" ? useTask(userId) : useExample(userId)
   useSSE<string>("example-reset", (data) => {
     toast({ title: data, duration: 3000 })
@@ -633,7 +634,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
                 endTime={derivedEndDate}
                 size="large"
                 variant="circular"
-              ></CountdownTimer>
+              />
             </VStack>
           ) : null}
           {!isPrivileged &&

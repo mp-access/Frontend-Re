@@ -250,7 +250,7 @@ export function PublicDashboard() {
           <Heading fontSize="xl">{title}</Heading>
           <Divider />
           <Flex pt={2} direction={"column"}>
-            <Markdown children={instructionsContent}></Markdown>
+            <Markdown children={instructionsContent} />
           </Flex>
         </Flex>
         {showHistogram ? (
