@@ -49,8 +49,7 @@ const CustomBar: React.FC<{
         background={testCaseSelection[name] ? selectedColor : unselectedColor}
         position={"relative"}
       ></Flex>
-
-      <Flex flex={100 - Math.max(value, 1)} />
+      {value < 100 && <Flex flex={100 - Math.max(value, 1)} />}
     </HStack>
   )
 }
