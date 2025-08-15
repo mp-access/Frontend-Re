@@ -334,7 +334,10 @@ export const SubmissionsCarousel: React.FC<{
   }, [fileNames, selectedFileName, setSelectedFileName])
 
   const showPrevButton = currentIndex !== 0
+  const showJumpToEndButton = currentIndex === 0 && submissions.length > 1
   const showNextButton = currentIndex !== submissions.length - 1
+  const showJumpToStartButton =
+    currentIndex === submissions.length - 1 && submissions.length > 1
 
   const bookmarked = useCallback(
     (submissionId: number) => {
@@ -410,6 +413,23 @@ export const SubmissionsCarousel: React.FC<{
         >
           Prev
         </Button>
+      ) : showJumpToEndButton ? (
+        <Button
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: 5,
+          }}
+          onClick={() => goToSlide(submissions.length - 1)}
+          variant={"outline"}
+          borderRadius={"full"}
+          height={"65px"}
+          opacity={0.5}
+        >
+          Jump to
+          <br />
+          Last
+        </Button>
       ) : null}
       {showNextButton ? (
         <Button
@@ -425,6 +445,23 @@ export const SubmissionsCarousel: React.FC<{
           opacity={0.5}
         >
           Next
+        </Button>
+      ) : showJumpToStartButton ? (
+        <Button
+          style={{
+            position: "absolute",
+            top: "50%",
+            right: 5,
+          }}
+          onClick={() => goToSlide(0)}
+          variant={"outline"}
+          borderRadius={"full"}
+          height={"65px"}
+          opacity={0.5}
+        >
+          Jump to
+          <br />
+          First
         </Button>
       ) : null}
     </Flex>
