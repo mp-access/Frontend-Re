@@ -17,7 +17,7 @@ import { t } from "i18next"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { FcAlarmClock, FcDocument } from "react-icons/fc"
-import { useNavigate, useOutletContext } from "react-router-dom"
+import { useNavigate, useOutletContext, useParams } from "react-router-dom"
 import {
   Bar,
   BarChart,
@@ -50,11 +50,14 @@ const PointsHistogram: React.FC<{
       0,
     )
 
-    return data.pointDistribution.map((elem) => {
+    return data.pointDistribution.map((elem, idx) => {
+      const isLast = idx === data.pointDistribution.length - 1
       const count = elem.numberOfSubmissions
       const percentage = total > 0 ? ((count / total) * 100).toFixed(0) : "0"
       return {
-        bin: `${elem.lowerBoundary}-${elem.upperBoundary}`,
+        bin: !isLast
+          ? `[${elem.lowerBoundary}-${elem.upperBoundary})`
+          : `[${elem.lowerBoundary}-${elem.upperBoundary}]`,
         count,
         percentage,
       }
@@ -114,6 +117,7 @@ export function PublicDashboard() {
   const navigate = useNavigate()
   const currentLanguage = i18n.language
   const { timeFrameFromEvent } = useTimeframeFromSSE()
+  const { exampleSlug } = useParams()
   const {
     data: initialExampleInformation,
     refetch: refetchInitialExampleInformation,
@@ -155,7 +159,15 @@ export function PublicDashboard() {
       return
     }
 
-    navigate(editorURL)
+    const splitUrl = editorURL.split("/")
+    const idxOfExamples = splitUrl.indexOf("examples")
+    const urlExampleSlug =
+      idxOfExamples !== -1 ? splitUrl[idxOfExamples + 1] : null
+
+    // only navigate if event comes from same example
+    if (urlExampleSlug && urlExampleSlug === exampleSlug) {
+      navigate(editorURL)
+    }
   })
 
   useSSE<ExampleInformation>("example-information", (data) => {
@@ -238,7 +250,7 @@ export function PublicDashboard() {
           <Heading fontSize="xl">{title}</Heading>
           <Divider />
           <Flex pt={2} direction={"column"}>
-            <Markdown children={instructionsContent}></Markdown>
+            <Markdown children={instructionsContent} />
           </Flex>
         </Flex>
         {showHistogram ? (
