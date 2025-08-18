@@ -170,6 +170,13 @@ export default function Task({ type }: { type: "task" | "example" }) {
     return task.runCommandAvailable
   }, [task])
 
+  const enableSubmitCommand = useMemo(() => {
+    if (!task) return false
+    if (!task.nextAttemptAt) return true // no submissions yet, so enabled
+
+    return Date.parse(task.nextAttemptAt) < Date.now()
+  }, [task])
+
   useEffect(() => {
     if (!task || !derivedEndDate || derivedEndDate < Date.now()) return
 
@@ -352,7 +359,11 @@ export default function Task({ type }: { type: "task" | "example" }) {
           leftIcon={<FcInspection />}
           onClick={onOpen}
           children={t("Submit")}
-          isDisabled={!!timer || (!isAssistant && task.remainingAttempts <= 0)}
+          isDisabled={
+            !!timer ||
+            (!isAssistant &&
+              (task.remainingAttempts <= 0 || !enableSubmitCommand))
+          }
         />
         <Modal
           size="sm"
@@ -651,7 +662,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
             </VStack>
           ) : null}
           {!isPrivileged &&
-            task.remainingAttempts <= 0 &&
+            (task.remainingAttempts <= 0 || !enableSubmitCommand) &&
             task.nextAttemptAt && (
               <NextAttemptAt date={task.nextAttemptAt} onComplete={refill} />
             )}
