@@ -172,7 +172,13 @@ export default function Task({ type }: { type: "task" | "example" }) {
 
   const enableSubmitCommand = useMemo(() => {
     if (!task) return false
-    if (!task.nextAttemptAt) return true // no submissions yet, so enabled
+
+    if (
+      task.nextAttemptAt === null &&
+      derivedEndDate &&
+      Date.now() < derivedEndDate
+    )
+      return true // no submissions yet & time not up, so enabled
 
     return Date.parse(task.nextAttemptAt) < Date.now()
   }, [task])
