@@ -13,10 +13,10 @@ import {
   Thead,
   Tr,
 } from "@chakra-ui/react"
-import { Select } from "chakra-react-select"
-import { take } from "lodash"
-import { Link } from "react-router-dom"
 import { usePoints } from "../components/Hooks"
+import { Link } from "react-router-dom"
+import { take } from "lodash"
+import { Select } from "chakra-react-select"
 
 export function SupervisorZone() {
   const { data: participants } = usePoints()
@@ -63,14 +63,14 @@ interface TaskControllerProps {
   value: string
   defaultValue: string
   onChange: (value: string) => void
-  obfuscateUserId: boolean
+  hideStudentName: boolean
 }
 
 export function TaskController({
   value,
   defaultValue,
   onChange,
-  obfuscateUserId,
+  hideStudentName,
 }: TaskControllerProps) {
   const { data: participants } = usePoints()
   return (
@@ -81,7 +81,7 @@ export function TaskController({
           value={{ email: value }}
           getOptionValue={(data) => data?.email}
           getOptionLabel={(data) =>
-            obfuscateUserId ? `User ${btoa(data?.email)}` : data?.email
+            hideStudentName ? "Anonymous Student" : data?.email
           }
           options={participants}
           size="sm"

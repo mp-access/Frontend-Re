@@ -6,6 +6,7 @@ import {
   Select,
   Switch,
   Text,
+  useToken,
   VStack,
 } from "@chakra-ui/react"
 import { t } from "i18next"
@@ -17,8 +18,8 @@ const CustomBar: React.FC<{
   testCaseSelection: Record<string, boolean> | null
   handleOnBarClick: (name: string) => void
 }> = ({ name, value, testCaseSelection, handleOnBarClick }) => {
-  const selectedColor = "purple.500"
-  const unselectedColor = "purple.200"
+  const [selectedColor] = useToken("colors", ["purple.500"])
+  const [unselectedColor] = useToken("colors", ["purple.200"])
 
   if (!testCaseSelection) {
     return null
@@ -32,8 +33,6 @@ const CustomBar: React.FC<{
       position={"relative"}
       background={"gray.100"}
       borderRadius={"lg"}
-      cursor={"pointer"}
-      _hover={{ background: "gray.200" }}
     >
       <Text justifyContent={"center"} pl={2} position={"absolute"} zIndex={1}>
         {name}
@@ -43,13 +42,14 @@ const CustomBar: React.FC<{
       </Text>
       <Flex
         flex={Math.max(value, 1)}
-        height={10}
+        height={7}
         borderRadius={"lg"}
         align={"center"}
         background={testCaseSelection[name] ? selectedColor : unselectedColor}
         position={"relative"}
-      />
-      {value < 100 && <Flex flex={100 - Math.max(value, 1)} />}
+      ></Flex>
+
+      <Flex flex={100 - Math.max(value, 1)} />
     </HStack>
   )
 }
@@ -65,7 +65,7 @@ const CustomBarChart: React.FC<{
   handleOnBarClick: (name: string) => void
 }> = ({ data, testCaseSelection, handleOnBarClick }) => {
   return (
-    <VStack width={"full"} overflow={"auto"} align={"space-around"} gap={3}>
+    <VStack width={"full"} overflow={"auto"}>
       {data.map((entry, i) => (
         <CustomBar
           name={entry.name}
@@ -187,7 +187,7 @@ export const TestCaseBarChart: React.FC<{
           data={sortedData}
           testCaseSelection={testCaseSelection}
           handleOnBarClick={handleOnBarClick}
-        />
+        ></CustomBarChart>
       </Box>
 
       <HStack justify={"space-between"} w={"full"} display={"flex"}>

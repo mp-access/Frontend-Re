@@ -49,21 +49,21 @@ import JSZip from "jszip"
 import { compact, find, range, unionBy } from "lodash"
 import React, { useEffect, useMemo, useState } from "react"
 import Countdown from "react-countdown"
-import { useTranslation } from "react-i18next"
 import { AiOutlineBulb, AiOutlineCode, AiOutlineReload } from "react-icons/ai"
 import { BsCircleFill } from "react-icons/bs"
-import { FcFile, FcInspection, FcTimeline, FcTodoList } from "react-icons/fc"
 import { HiDownload } from "react-icons/hi"
 import { useNavigate, useOutletContext, useParams } from "react-router-dom"
+import { FileTabs } from "../components/FileTab"
+import { FileTree } from "../components/FileTree"
+import { Markdown, Placeholder, TaskIO, TaskView } from "../components/Panels"
+import { ScoreBar, ScorePie } from "../components/Statistics"
+import { FcFile, FcInspection, FcTimeline, FcTodoList } from "react-icons/fc"
 import {
   ActionButton,
   ActionTab,
   NextAttemptAt,
   TooltipIconButton,
 } from "../components/Buttons"
-import { CountdownTimer } from "../components/CountdownTimer"
-import { FileTabs } from "../components/FileTab"
-import { FileTree } from "../components/FileTree"
 import {
   useCodeEditor,
   useExample,
@@ -71,10 +71,10 @@ import {
   useTask,
   useTimeframeFromSSE,
 } from "../components/Hooks"
-import { Markdown, Placeholder, TaskIO, TaskView } from "../components/Panels"
-import { ScoreBar, ScorePie } from "../components/Statistics"
-import { createDownloadHref, detectType } from "../components/Util"
 import { TaskController } from "./Supervisor"
+import { detectType, createDownloadHref } from "../components/Util"
+import { useTranslation } from "react-i18next"
+import { CountdownTimer } from "../components/CountdownTimer"
 
 export default function Task({ type }: { type: "task" | "example" }) {
   const { i18n, t } = useTranslation()
@@ -98,34 +98,17 @@ export default function Task({ type }: { type: "task" | "example" }) {
     : null
   const [userId, setUserId] = useState(inspectionUserId ?? user.email)
   const { timeFrameFromEvent } = useTimeframeFromSSE()
-  const { exampleSlug } = useParams()
+
   const {
     data: task,
     submit,
     refetch,
     timer,
-    // eslint-disable-next-line react-hooks/rules-of-hooks
   } = type == "task" ? useTask(userId) : useExample(userId)
+
   useSSE<string>("example-reset", (data) => {
     toast({ title: data, duration: 3000 })
     navigate(`/courses/${courseSlug}/examples`)
-  })
-
-  useSSE<string>("inspect", (editorURL) => {
-    if (!editorURL) {
-      return
-    }
-    const splitUrl = editorURL.split("/")
-    const id = splitUrl[splitUrl.length - 1]
-
-    const idxOfExamples = splitUrl.indexOf("examples")
-    const urlExampleSlug =
-      idxOfExamples !== -1 ? splitUrl[idxOfExamples + 1] : null
-
-    // only set user id sent from SSE if event comes from example currently inspected
-    if (urlExampleSlug && urlExampleSlug === exampleSlug) {
-      setUserId(atob(id))
-    }
   })
 
   const getUpdate = (file: TaskFileProps, submission?: WorkspaceProps) =>
@@ -170,39 +153,9 @@ export default function Task({ type }: { type: "task" | "example" }) {
     return task.runCommandAvailable
   }, [task])
 
-  const enableSubmitCommand = useMemo(() => {
-    if (!task) return false
-
-    if (
-      task.nextAttemptAt === null &&
-      derivedEndDate &&
-      Date.now() < derivedEndDate
-    )
-      return true // no submissions yet & time not up, so enabled
-
-    return Date.parse(task.nextAttemptAt) < Date.now()
-  }, [task])
-
-  useEffect(() => {
-    if (!task || !derivedEndDate || derivedEndDate < Date.now()) return
-
-    const interval = setInterval(() => {
-      if (derivedEndDate < Date.now()) {
-        refetch()
-        clearInterval(interval)
-      }
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, [derivedEndDate])
-
   useEffect(() => {
     if (task) {
-      if (
-        taskId < 0 ||
-        taskId != task.id ||
-        submissionId !== task.submissions[0]?.id
-      ) {
+      if (taskId < 0 || taskId != task.id) {
         const defaultFiles = task.files.filter((file) => file.editable)
         const submission = task.submissions[0]
         if (submission) {
@@ -219,6 +172,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
       }
     }
   }, [task, userId])
+
   useEffect(() => {
     if (task) {
       if (submissionId == -1 || submissionId == null) {
@@ -231,7 +185,6 @@ export default function Task({ type }: { type: "task" | "example" }) {
           ...file,
           content: getUpdate(file, submission),
         }))
-
         setEditableFiles(updatedFiles)
       }
     }
@@ -269,7 +222,6 @@ export default function Task({ type }: { type: "task" | "example" }) {
     "grade",
   ])
   const isPrivileged = isAssistant && userId === user.email
-
   const getPath = (id: number) => `${id}/${user.email}/${submissionId}`
   const getTemplate = (name: string) => {
     if (!name.startsWith("/")) {
@@ -279,10 +231,8 @@ export default function Task({ type }: { type: "task" | "example" }) {
     if (!file) return ""
     return `data:${file.mimeType};base64,` + file.templateBinary
   }
-
   const getContent = (file: TaskFileProps) =>
     editor.getContent(getPath(file.id)) || file.template
-
   const onSubmit = (command: string) => () =>
     submit({
       restricted: !isAssistant,
@@ -365,11 +315,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
           leftIcon={<FcInspection />}
           onClick={onOpen}
           children={t("Submit")}
-          isDisabled={
-            !!timer ||
-            (!isAssistant &&
-              (task.remainingAttempts <= 0 || !enableSubmitCommand))
-          }
+          isDisabled={!!timer || (!isAssistant && task.remainingAttempts <= 0)}
         />
         <Modal
           size="sm"
@@ -432,7 +378,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
               value={userId}
               defaultValue={user.email}
               onChange={setUserId}
-              obfuscateUserId={!!inspectionUserId}
+              hideStudentName={!!inspectionUserId}
             />
           )}
           <Accordion
@@ -664,11 +610,11 @@ export default function Task({ type }: { type: "task" | "example" }) {
                 endTime={derivedEndDate}
                 size="large"
                 variant="circular"
-              />
+              ></CountdownTimer>
             </VStack>
           ) : null}
           {!isPrivileged &&
-            (task.remainingAttempts <= 0 || !enableSubmitCommand) &&
+            task.remainingAttempts <= 0 &&
             task.nextAttemptAt && (
               <NextAttemptAt date={task.nextAttemptAt} onComplete={refill} />
             )}
