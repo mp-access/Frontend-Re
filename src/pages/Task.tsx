@@ -171,6 +171,19 @@ export default function Task({ type }: { type: "task" | "example" }) {
   }, [task])
 
   useEffect(() => {
+    if (!task || !derivedEndDate || derivedEndDate < Date.now()) return
+
+    const interval = setInterval(() => {
+      if (derivedEndDate < Date.now()) {
+        refetch()
+        clearInterval(interval)
+      }
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [derivedEndDate])
+
+  useEffect(() => {
     if (task) {
       if (
         taskId < 0 ||
