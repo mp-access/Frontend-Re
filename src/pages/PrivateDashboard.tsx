@@ -1021,7 +1021,13 @@ export function PrivateDashboard() {
         >
           <GeneralInformation
             exampleState={exampleState}
-            generalInformation={exampleInformation}
+            generalInformation={{
+              ...exampleInformation,
+              numberOfStudentsWhoSubmitted: Math.max(
+                exampleInformation.numberOfStudentsWhoSubmitted,
+                submissions?.length || 0,
+              ),
+            }}
           />
 
           <ExampleTimeController
