@@ -63,7 +63,7 @@ export default function Course() {
     (a) => a.published,
   )
 
-  const [activeExamples, inactiveExamples] = fork(
+  const [activeExamples] = fork(
     course.examples,
     (e) => e.status === "Active" || e.status === "Interactive",
   )

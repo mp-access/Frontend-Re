@@ -48,9 +48,8 @@ const CustomBar: React.FC<{
         align={"center"}
         background={testCaseSelection[name] ? selectedColor : unselectedColor}
         position={"relative"}
-      ></Flex>
-
-      <Flex flex={100 - Math.max(value, 1)} />
+      />
+      {value < 100 && <Flex flex={100 - Math.max(value, 1)} />}
     </HStack>
   )
 }
@@ -188,7 +187,7 @@ export const TestCaseBarChart: React.FC<{
           data={sortedData}
           testCaseSelection={testCaseSelection}
           handleOnBarClick={handleOnBarClick}
-        ></CustomBarChart>
+        />
       </Box>
 
       <HStack justify={"space-between"} w={"full"} display={"flex"}>

@@ -104,6 +104,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
     submit,
     refetch,
     timer,
+    // eslint-disable-next-line react-hooks/rules-of-hooks
   } = type == "task" ? useTask(userId) : useExample(userId)
   useSSE<string>("example-reset", (data) => {
     toast({ title: data, duration: 3000 })
@@ -168,6 +169,32 @@ export default function Task({ type }: { type: "task" | "example" }) {
 
     return task.runCommandAvailable
   }, [task])
+
+  const enableSubmitCommand = useMemo(() => {
+    if (!task) return false
+
+    if (
+      task.nextAttemptAt === null &&
+      derivedEndDate &&
+      Date.now() < derivedEndDate
+    )
+      return true // no submissions yet & time not up, so enabled
+
+    return Date.parse(task.nextAttemptAt) < Date.now()
+  }, [task])
+
+  useEffect(() => {
+    if (!task || !derivedEndDate || derivedEndDate < Date.now()) return
+
+    const interval = setInterval(() => {
+      if (derivedEndDate < Date.now()) {
+        refetch()
+        clearInterval(interval)
+      }
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [derivedEndDate])
 
   useEffect(() => {
     if (task) {
@@ -338,7 +365,11 @@ export default function Task({ type }: { type: "task" | "example" }) {
           leftIcon={<FcInspection />}
           onClick={onOpen}
           children={t("Submit")}
-          isDisabled={!!timer || (!isAssistant && task.remainingAttempts <= 0)}
+          isDisabled={
+            !!timer ||
+            (!isAssistant &&
+              (task.remainingAttempts <= 0 || !enableSubmitCommand))
+          }
         />
         <Modal
           size="sm"
@@ -633,11 +664,11 @@ export default function Task({ type }: { type: "task" | "example" }) {
                 endTime={derivedEndDate}
                 size="large"
                 variant="circular"
-              ></CountdownTimer>
+              />
             </VStack>
           ) : null}
           {!isPrivileged &&
-            task.remainingAttempts <= 0 &&
+            (task.remainingAttempts <= 0 || !enableSubmitCommand) &&
             task.nextAttemptAt && (
               <NextAttemptAt date={task.nextAttemptAt} onComplete={refill} />
             )}
