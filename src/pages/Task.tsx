@@ -10,6 +10,8 @@ import {
   Button,
   ButtonGroup,
   Center,
+  CircularProgress,
+  CircularProgressLabel,
   Code,
   Divider,
   Flex,
@@ -672,7 +674,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
             task.nextAttemptAt && (
               <NextAttemptAt date={task.nextAttemptAt} onComplete={refill} />
             )}
-          {task.status !== "Interactive" ? (
+          {task.status !== "Interactive" && type === "task" ? (
             <SimpleGrid columns={2} w="full" fontSize="sm">
               <VStack borderRightWidth={1} spacing={0} h={32} pb={2}>
                 <ScorePie value={task.points} max={task.maxPoints} />
@@ -721,7 +723,27 @@ export default function Task({ type }: { type: "task" | "example" }) {
                 </Tag>
               </VStack>
             </SimpleGrid>
-          ) : null}
+          ) : (
+            <VStack borderRightWidth={1} spacing={0} p={2}>
+              {task.status === "Active" ? (
+                <>
+                  <CircularProgress
+                    value={(task.points / task.maxPoints) * 100}
+                    size={120}
+                    color="green.500"
+                  >
+                    <CircularProgressLabel
+                      fontFamily={"monospace"}
+                      fontSize={"3xl"}
+                    >
+                      {`${(task.points / task.maxPoints) * 100}%`}
+                    </CircularProgressLabel>
+                  </CircularProgress>
+                  <Text>Correctnes</Text>
+                </>
+              ) : null}
+            </VStack>
+          )}
           {derivedStartDate == null ||
           derivedEndDate == null ||
           derivedEndDate < Date.now() ? (
