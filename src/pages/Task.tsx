@@ -564,9 +564,12 @@ export default function Task({ type }: { type: "task" | "example" }) {
                   <ActionTab name="Test Output" />
                 </Tab>
               )}
-              <Tab>
-                <ActionTab name="Run Output" />
-              </Tab>
+              {task.runCommandAvailable ? (
+                <Tab>
+                  <ActionTab name="Run Output" />
+                </Tab>
+              ) : null}
+
               <Tab>
                 <HStack>
                   <FcInspection />
