@@ -244,6 +244,11 @@ const SubmissionInspector: React.FC<{
     categorize(submissions.map((s) => s.submissionId)).then((res) => {
       const rawColors = ["purple", "green", "yellow", "blue", "orange"]
       const newCategories: CategoriesType = {}
+      const filteredIds = getFilteredSubmissions(
+        testCaseSelection,
+        submissions,
+        exactMatch,
+      ).map((f) => f.submissionId)
 
       Object.keys(res.categories)
         .sort((a, b) => res.categories[b].length - res.categories[a].length)
@@ -251,7 +256,9 @@ const SubmissionInspector: React.FC<{
           newCategories[`cat-${i}`] = {
             color: rawColors[i],
             ids: res.categories[key],
-            selectedIds: res.categories[key],
+            selectedIds: filteredIds.filter((f) =>
+              res.categories[key].includes(f),
+            ),
             avgScore: getSubmissionsAvgScore(res.categories[key]),
           }
         })
@@ -264,7 +271,7 @@ const SubmissionInspector: React.FC<{
         newCategories[LEFTOVER_CATEGORY_KEY] = {
           color: "gray",
           ids: noCatIds,
-          selectedIds: noCatIds,
+          selectedIds: filteredIds.filter((f) => noCatIds.includes(f)),
           avgScore: getSubmissionsAvgScore(noCatIds),
         }
       }
@@ -787,6 +794,7 @@ export function PrivateDashboard() {
       setExampleState("unpublished")
       setBookmarks(null)
       refetchStudentSubmissions()
+      setCategories({})
     } catch (e) {
       console.log("An error occured when resetting the example: ", e)
       setExampleState("finished")
