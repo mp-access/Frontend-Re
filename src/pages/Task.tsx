@@ -108,6 +108,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
     timer,
     // eslint-disable-next-line react-hooks/rules-of-hooks
   } = type == "task" ? useTask(userId) : useExample(userId)
+
   useSSE<string>("example-reset", (data) => {
     toast({ title: data, duration: 3000 })
     navigate(`/courses/${courseSlug}/examples`)
@@ -133,12 +134,6 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const getUpdate = (file: TaskFileProps, submission?: WorkspaceProps) =>
     submission?.files?.find((s) => s.taskFileId === file.id)?.content ||
     file.template
-
-  useEffect(() => {
-    if (!isAssistant && task && task.status === "Planned") {
-      navigate("../")
-    }
-  }, [task, isAssistant, navigate])
 
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
     if (!task) {
@@ -186,6 +181,12 @@ export default function Task({ type }: { type: "task" | "example" }) {
   }, [task])
 
   useEffect(() => {
+    if (!isAssistant && task && task.status === "Planned") {
+      navigate("../")
+    }
+  }, [task, isAssistant, navigate])
+
+  useEffect(() => {
     if (!task || !derivedEndDate || derivedEndDate < Date.now()) return
 
     const interval = setInterval(() => {
@@ -196,7 +197,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [derivedEndDate])
+  }, [derivedEndDate, task])
 
   useEffect(() => {
     if (task) {
@@ -742,7 +743,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
                       {`${(task.points / task.maxPoints) * 100}%`}
                     </CircularProgressLabel>
                   </CircularProgress>
-                  <Text>Correctnes</Text>
+                  <Text>{t("Correctness")}</Text>
                 </>
               ) : null}
             </VStack>
@@ -898,6 +899,13 @@ export default function Task({ type }: { type: "task" | "example" }) {
                 </AccordionPanel>
               </AccordionItem>
             </Accordion>
+          ) : null}
+          {task.nextAttemptAt !== null &&
+          derivedEndDate &&
+          derivedEndDate > Date.now() ? (
+            <VStack>
+              <Text>{t("Submission Successful")}</Text>
+            </VStack>
           ) : null}
         </Stack>
       </TaskView>

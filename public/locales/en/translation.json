@@ -56,5 +56,7 @@
   "Ascending": "Ascending",
   "Descending": "Descending",
   "Default": "Default",
-  "redirect_toast": "Redirected to published example"
+  "redirect_toast": "Redirected to published example",
+  "Submission Successful": "Submission Successful",
+  "Correctness": "Correctness"
 }
