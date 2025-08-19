@@ -315,6 +315,14 @@ export default function Task({ type }: { type: "task" | "example" }) {
     })
       .then(() => setCurrentTab(commands.indexOf(command)))
       .then(onClose)
+      .then(() => {
+        if (type === "example" && task?.status === "Interactive") {
+          toast({
+            title: "Submission received",
+            duration: 3000,
+          })
+        }
+      })
 
   const refill = () =>
     toast({
