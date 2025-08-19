@@ -135,6 +135,8 @@ export default function Task({ type }: { type: "task" | "example" }) {
     submission?.files?.find((s) => s.taskFileId === file.id)?.content ||
     file.template
 
+  const isPrivileged = isAssistant && userId === user.email
+
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
     if (!task) {
       return [null, null]
@@ -170,6 +172,13 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const enableSubmitCommand = useMemo(() => {
     if (!task) return false
 
+    if (isPrivileged) return true
+
+    if (type === "task") {
+      return task.remainingAttempts >= 0
+    }
+
+    // only concerns lecture examples, not tasks
     if (
       task.nextAttemptAt === null &&
       derivedEndDate &&
@@ -186,6 +195,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
     }
   }, [task, isAssistant, navigate])
 
+  // handle case where time runs out but user hasn't submitted (no automatic refetch happens)
   useEffect(() => {
     if (!task || !derivedEndDate || derivedEndDate < Date.now()) return
 
@@ -198,6 +208,15 @@ export default function Task({ type }: { type: "task" | "example" }) {
 
     return () => clearInterval(interval)
   }, [derivedEndDate, task])
+
+  useEffect(() => {
+    if (!task || !timeFrameFromEvent) return
+
+    // handles refetching after manual termination
+    if (timeFrameFromEvent[1] < Date.now()) {
+      refetch()
+    }
+  }, [timeFrameFromEvent, task])
 
   useEffect(() => {
     if (task) {
@@ -271,7 +290,6 @@ export default function Task({ type }: { type: "task" | "example" }) {
     "run",
     "grade",
   ])
-  const isPrivileged = isAssistant && userId === user.email
 
   const getPath = (id: number) => `${id}/${user.email}/${submissionId}`
   const getTemplate = (name: string) => {
@@ -368,11 +386,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
           leftIcon={<FcInspection />}
           onClick={onOpen}
           children={t("Submit")}
-          isDisabled={
-            !!timer ||
-            (!isAssistant &&
-              (task.remainingAttempts <= 0 || !enableSubmitCommand))
-          }
+          isDisabled={!!timer || !enableSubmitCommand}
         />
         <Modal
           size="sm"
@@ -673,9 +687,9 @@ export default function Task({ type }: { type: "task" | "example" }) {
               />
             </VStack>
           ) : null}
-          {!isPrivileged &&
-            (task.remainingAttempts <= 0 || !enableSubmitCommand) &&
-            task.nextAttemptAt && (
+          {!enableSubmitCommand &&
+            task.nextAttemptAt &&
+            !(task.status === "Interactive") && (
               <NextAttemptAt date={task.nextAttemptAt} onComplete={refill} />
             )}
           {task.status !== "Interactive" && type === "task" ? (
@@ -740,7 +754,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
                       fontFamily={"monospace"}
                       fontSize={"3xl"}
                     >
-                      {`${(task.points / task.maxPoints) * 100}%`}
+                      {`${((task.points / task.maxPoints) * 100).toFixed(0)}%`}
                     </CircularProgressLabel>
                   </CircularProgress>
                   <Text>{t("Correctness")}</Text>
@@ -904,7 +918,9 @@ export default function Task({ type }: { type: "task" | "example" }) {
           derivedEndDate &&
           derivedEndDate > Date.now() ? (
             <VStack>
-              <Text>{t("Submission Successful")}</Text>
+              <Divider />
+              <Text color={"purple.600"}>{t("Submission Received")}</Text>
+              <Divider />
             </VStack>
           ) : null}
         </Stack>
