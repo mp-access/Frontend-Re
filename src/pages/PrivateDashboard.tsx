@@ -380,11 +380,12 @@ const SubmissionInspector: React.FC<{
               <Box
                 position={"absolute"}
                 h={"full"}
-                w={
-                  category.selectedIds.length === category.ids.length
-                    ? "full"
-                    : category.selectedIds.length / category.ids.length
-                }
+                style={{
+                  width: `${(
+                    (category.selectedIds.length * 100) /
+                    category.ids.length
+                  ).toFixed(0)}%`,
+                }}
                 bgColor={selectedColor}
                 border={"1px solid black"}
                 roundedLeft={i === 0 ? 8 : 0}
