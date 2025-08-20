@@ -699,6 +699,7 @@ const ExampleTimeController: React.FC<{
 
 export function PrivateDashboard() {
   const { publish } = usePublish()
+  const toast = useToast()
   const { terminate } = useTerminate()
   const { data: fetchedSubmissions, refetch: refetchStudentSubmissions } =
     useStudentSubmissions()
