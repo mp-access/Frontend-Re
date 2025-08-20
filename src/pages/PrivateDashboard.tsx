@@ -769,7 +769,6 @@ export function PrivateDashboard() {
     },
     [setDurationInSeconds],
   )
-
   const handleStart = useCallback(async () => {
     try {
       await publish(durationInSeconds)
@@ -791,16 +790,29 @@ export function PrivateDashboard() {
     try {
       setExampleState("resetting")
       await resetExample()
+      const submissionsData = await refetchStudentSubmissions()
+
+      if (
+        submissionsData.data === undefined ||
+        submissionsData.data?.submissions?.length > 0
+      ) {
+        setExampleState("finished")
+        toast({
+          title: "Resetting the example failed. Please try again.",
+          status: "error",
+          duration: 3000,
+        })
+      }
+
+      setSubmissions(null)
+      setCategories({})
       setExampleState("unpublished")
       setBookmarks(null)
-      refetchStudentSubmissions()
-      setCategories({})
     } catch (e) {
       console.log("An error occured when resetting the example: ", e)
       setExampleState("finished")
     }
-  }, [refetchStudentSubmissions, resetExample, setBookmarks])
-
+  }, [refetchStudentSubmissions, resetExample, setBookmarks, toast])
   const handleOnBookmarkClick = useCallback(
     (submission: SubmissionSsePayload) => {
       const submissionBookmark: Bookmark = {

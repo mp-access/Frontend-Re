@@ -174,9 +174,11 @@ export function PublicDashboard() {
     setExampleInformation(data)
   })
 
-  useSSE<string>("example-reset", () => {
-    refetchInitialExampleInformation()
-    refetchExample()
+  useSSE<string>("example-reset", async () => {
+    const refetchedInfo = await refetchInitialExampleInformation()
+    if (refetchedInfo.data !== undefined) {
+      setExampleInformation(refetchedInfo.data)
+    }
   })
 
   useEffect(() => {
