@@ -126,7 +126,7 @@ export function PublicDashboard() {
     useState<ExampleInformation | null>(null)
 
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
-    if (!example) {
+    if (!example || example === undefined) {
       return [null, null]
     }
 
@@ -137,9 +137,9 @@ export function PublicDashboard() {
     if (!example.start || !example.end) {
       return [null, null]
     }
-
     return [Date.parse(example.start), Date.parse(example.end)]
   }, [example, timeFrameFromEvent])
+
   const { timeLeftInSeconds } = useCountdown(derivedStartDate, derivedEndDate)
   const { data: pointsDistribution, isFetching: isFetchingDistrib } =
     useExamplePointDistribution({
