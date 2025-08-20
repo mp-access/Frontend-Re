@@ -137,9 +137,9 @@ export function PublicDashboard() {
     if (!example.start || !example.end) {
       return [null, null]
     }
-
     return [Date.parse(example.start), Date.parse(example.end)]
   }, [example, timeFrameFromEvent])
+
   const { timeLeftInSeconds } = useCountdown(derivedStartDate, derivedEndDate)
   const { data: pointsDistribution, isFetching: isFetchingDistrib } =
     useExamplePointDistribution({
@@ -174,9 +174,11 @@ export function PublicDashboard() {
     setExampleInformation(data)
   })
 
-  useSSE<string>("example-reset", () => {
-    refetchInitialExampleInformation()
-    refetchExample()
+  useSSE<string>("example-reset", async () => {
+    const refetchedInfo = await refetchInitialExampleInformation()
+    if (refetchedInfo.data !== undefined) {
+      setExampleInformation(refetchedInfo.data)
+    }
   })
 
   useEffect(() => {
