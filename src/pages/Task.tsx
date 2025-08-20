@@ -10,6 +10,8 @@ import {
   Button,
   ButtonGroup,
   Center,
+  CircularProgress,
+  CircularProgressLabel,
   Code,
   Divider,
   Flex,
@@ -106,6 +108,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
     timer,
     // eslint-disable-next-line react-hooks/rules-of-hooks
   } = type == "task" ? useTask(userId) : useExample(userId)
+
   useSSE<string>("example-reset", (data) => {
     toast({ title: data, duration: 3000 })
     navigate(`/courses/${courseSlug}/examples`)
@@ -132,11 +135,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
     submission?.files?.find((s) => s.taskFileId === file.id)?.content ||
     file.template
 
-  useEffect(() => {
-    if (!isAssistant && task && task.status === "Planned") {
-      navigate("../")
-    }
-  }, [task, isAssistant, navigate])
+  const isPrivileged = isAssistant && userId === user.email
 
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
     if (!task) {
@@ -173,6 +172,13 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const enableSubmitCommand = useMemo(() => {
     if (!task) return false
 
+    if (isPrivileged) return true
+
+    if (type === "task") {
+      return task.remainingAttempts >= 0
+    }
+
+    // only concerns lecture examples, not tasks
     if (
       task.nextAttemptAt === null &&
       derivedEndDate &&
@@ -184,6 +190,13 @@ export default function Task({ type }: { type: "task" | "example" }) {
   }, [task])
 
   useEffect(() => {
+    if (!isAssistant && task && task.status === "Planned") {
+      navigate("../")
+    }
+  }, [task, isAssistant, navigate])
+
+  // handle case where time runs out but user hasn't submitted (no automatic refetch happens)
+  useEffect(() => {
     if (!task || !derivedEndDate || derivedEndDate < Date.now()) return
 
     const interval = setInterval(() => {
@@ -194,7 +207,16 @@ export default function Task({ type }: { type: "task" | "example" }) {
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [derivedEndDate])
+  }, [derivedEndDate, task])
+
+  useEffect(() => {
+    if (!task || !timeFrameFromEvent) return
+
+    // handles refetching after manual termination
+    if (timeFrameFromEvent[1] < Date.now()) {
+      refetch()
+    }
+  }, [timeFrameFromEvent, task])
 
   useEffect(() => {
     if (task) {
@@ -268,7 +290,6 @@ export default function Task({ type }: { type: "task" | "example" }) {
     "run",
     "grade",
   ])
-  const isPrivileged = isAssistant && userId === user.email
 
   const getPath = (id: number) => `${id}/${user.email}/${submissionId}`
   const getTemplate = (name: string) => {
@@ -294,6 +315,14 @@ export default function Task({ type }: { type: "task" | "example" }) {
     })
       .then(() => setCurrentTab(commands.indexOf(command)))
       .then(onClose)
+      .then(() => {
+        if (type === "example" && task?.status === "Interactive") {
+          toast({
+            title: "Submission received",
+            duration: 3000,
+          })
+        }
+      })
 
   const refill = () =>
     toast({
@@ -365,11 +394,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
           leftIcon={<FcInspection />}
           onClick={onOpen}
           children={t("Submit")}
-          isDisabled={
-            !!timer ||
-            (!isAssistant &&
-              (task.remainingAttempts <= 0 || !enableSubmitCommand))
-          }
+          isDisabled={!!timer || !enableSubmitCommand}
         />
         <Modal
           size="sm"
@@ -562,9 +587,12 @@ export default function Task({ type }: { type: "task" | "example" }) {
                   <ActionTab name="Test Output" />
                 </Tab>
               )}
-              <Tab>
-                <ActionTab name="Run Output" />
-              </Tab>
+              {task.runCommandAvailable ? (
+                <Tab>
+                  <ActionTab name="Run Output" />
+                </Tab>
+              ) : null}
+
               <Tab>
                 <HStack>
                   <FcInspection />
@@ -667,12 +695,12 @@ export default function Task({ type }: { type: "task" | "example" }) {
               />
             </VStack>
           ) : null}
-          {!isPrivileged &&
-            (task.remainingAttempts <= 0 || !enableSubmitCommand) &&
-            task.nextAttemptAt && (
+          {!enableSubmitCommand &&
+            task.nextAttemptAt &&
+            !(task.status === "Interactive") && (
               <NextAttemptAt date={task.nextAttemptAt} onComplete={refill} />
             )}
-          {task.status !== "Interactive" ? (
+          {task.status !== "Interactive" && type === "task" ? (
             <SimpleGrid columns={2} w="full" fontSize="sm">
               <VStack borderRightWidth={1} spacing={0} h={32} pb={2}>
                 <ScorePie value={task.points} max={task.maxPoints} />
@@ -721,7 +749,27 @@ export default function Task({ type }: { type: "task" | "example" }) {
                 </Tag>
               </VStack>
             </SimpleGrid>
-          ) : null}
+          ) : (
+            <VStack borderRightWidth={1} spacing={0} p={2}>
+              {task.status === "Active" ? (
+                <>
+                  <CircularProgress
+                    value={(task.points / task.maxPoints) * 100}
+                    size={120}
+                    color="green.500"
+                  >
+                    <CircularProgressLabel
+                      fontFamily={"monospace"}
+                      fontSize={"3xl"}
+                    >
+                      {`${((task.points / task.maxPoints) * 100).toFixed(0)}%`}
+                    </CircularProgressLabel>
+                  </CircularProgress>
+                  <Text>{t("Correctness")}</Text>
+                </>
+              ) : null}
+            </VStack>
+          )}
           {derivedStartDate == null ||
           derivedEndDate == null ||
           derivedEndDate < Date.now() ? (
@@ -873,6 +921,15 @@ export default function Task({ type }: { type: "task" | "example" }) {
                 </AccordionPanel>
               </AccordionItem>
             </Accordion>
+          ) : null}
+          {task.nextAttemptAt !== null &&
+          derivedEndDate &&
+          derivedEndDate > Date.now() ? (
+            <VStack>
+              <Divider />
+              <Text color={"purple.600"}>{t("Submission Received")}</Text>
+              <Divider />
+            </VStack>
           ) : null}
         </Stack>
       </TaskView>
