@@ -512,9 +512,8 @@ const GeneralInformation: React.FC<{
     participantsOnline,
     totalParticipants,
     numberOfStudentsWhoSubmitted,
-    passRatePerTestCase,
+    avgPoints,
   } = generalInformation
-
   const submissionsProgress = useMemo(() => {
     if (participantsOnline <= 0 && numberOfStudentsWhoSubmitted <= 0) {
       return 0
@@ -530,13 +529,6 @@ const GeneralInformation: React.FC<{
     }
   }, [numberOfStudentsWhoSubmitted, participantsOnline])
 
-  const avgTestPassRate = useMemo(() => {
-    const passRates = Object.values(passRatePerTestCase)
-
-    return Math.round(
-      (passRates.reduce((sum, rate) => sum + rate, 0) / passRates.length) * 100,
-    )
-  }, [passRatePerTestCase])
   return (
     <HStack p={0} minW={200} gap={5}>
       <Tag color="green.600" bg="green.50">
@@ -559,9 +551,9 @@ const GeneralInformation: React.FC<{
 
           <HStack overflow={"auto"}>
             <Text color={"gray.500"} display={"flex"}>
-              Test Pass Rate {avgTestPassRate}%
+              Avg. Points: {avgPoints ?? "-"}
             </Text>
-            <CustomPieChart value={avgTestPassRate} />
+            <CustomPieChart value={avgPoints * 100} />
           </HStack>
         </>
       ) : null}
