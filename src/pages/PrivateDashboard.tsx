@@ -551,7 +551,7 @@ const GeneralInformation: React.FC<{
 
           <HStack overflow={"auto"}>
             <Text color={"gray.500"} display={"flex"}>
-              Avg. Points: {avgPoints ?? "-"}
+              Avg. Points: {avgPoints.toFixed(2) ?? "-"}
             </Text>
             <CustomPieChart value={avgPoints * 100} />
           </HStack>
