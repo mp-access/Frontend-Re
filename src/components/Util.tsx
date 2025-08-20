@@ -21,7 +21,7 @@ export function formatPoints(num: number): string {
   const rounded = Math.round(num * 100) / 100
   return rounded === Math.floor(rounded)
     ? `${Math.floor(rounded)}`
-    : rounded.toFixed(1)
+    : rounded.toFixed(2)
 }
 
 export function detectType(fileName: string): string | undefined {
