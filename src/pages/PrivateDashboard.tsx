@@ -803,6 +803,7 @@ export function PrivateDashboard() {
           status: "error",
           duration: 3000,
         })
+        return
       }
 
       setSubmissions(null)
