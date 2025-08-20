@@ -126,7 +126,7 @@ export function PublicDashboard() {
     useState<ExampleInformation | null>(null)
 
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
-    if (!example || example === undefined) {
+    if (!example) {
       return [null, null]
     }
 
