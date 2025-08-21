@@ -176,7 +176,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const enableSubmitCommand = useMemo(() => {
     if (!task) return false
 
-    if (isPrivileged) return true
+    if (isAssistant) return true
 
     if (type === "task") {
       return task.remainingAttempts >= 0
@@ -345,7 +345,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const getContent = (file: TaskFileProps) =>
     editor.getContent(getPath(file.id)) || file.template
 
-  const onSubmit = (command: string) => () =>
+  const onSubmit = (command: string) => () => {
     submit({
       restricted: !isAssistant,
       command,
@@ -370,6 +370,12 @@ export default function Task({ type }: { type: "task" | "example" }) {
           await refetch()
         }
       })
+      .then(() => {
+        if (isAssistant && userId !== user.email) {
+          setUserId(user.email)
+        }
+      })
+  }
 
   const refill = () =>
     toast({
@@ -377,7 +383,6 @@ export default function Task({ type }: { type: "task" | "example" }) {
       duration: 3000,
       onCloseComplete: refetch,
     })
-
   const submissionName = (command: string, ordinalNum: number) => {
     const commandMap = {
       grade: "Submission_n",
@@ -408,6 +413,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const instructionsContent = task.files.filter(
     (file) => file.path === `/${instructionFile}`,
   )[0]?.template
+
   return (
     <Flex boxSize="full">
       <ButtonGroup
@@ -801,7 +807,11 @@ export default function Task({ type }: { type: "task" | "example" }) {
               {task.status === "Active" ? (
                 <>
                   <CircularProgress
-                    value={(task.points / task.maxPoints) * 100}
+                    value={
+                      (task.submissions[task.submissions.length - 1].points /
+                        task.maxPoints) *
+                      100
+                    }
                     size={120}
                     color="green.500"
                   >
@@ -809,7 +819,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
                       fontFamily={"monospace"}
                       fontSize={"3xl"}
                     >
-                      {`${((task.points / task.maxPoints) * 100).toFixed(0)}%`}
+                      {`${((task.submissions[task.submissions.length - 1].points / task.maxPoints) * 100).toFixed(0)}%`}
                     </CircularProgressLabel>
                   </CircularProgress>
                   <Text>{t("Correctness")}</Text>
