@@ -145,11 +145,13 @@ export const useCategorize = () => {
   return { categorize, isLoading }
 }
 
-export const useExamples = () => {
+export const useExamples = (
+  options: UseQueryOptions<PointDistribution> = {},
+) => {
   const { courseSlug } = useParams()
 
   return useQuery<TaskOverview[]>(["courses", courseSlug, "examples"], {
-    enabled: !!courseSlug,
+    enabled: options.enabled,
   })
 }
 

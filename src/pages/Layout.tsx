@@ -44,8 +44,10 @@ export default function Layout() {
   const toast = useToast()
 
   const { keycloak } = useKeycloak()
-  const { courseSlug } = useParams()
-  const { data: examples } = useExamples()
+  const { courseSlug, exampleSlug } = useParams()
+  const { data: examples } = useExamples({
+    enabled: !!courseSlug && !!exampleSlug,
+  })
 
   const isSupervisor =
     !!courseSlug && keycloak.hasRealmRole(courseSlug + "-supervisor")
