@@ -49,7 +49,7 @@ import { format, parseISO } from "date-fns"
 import fileDownload from "js-file-download"
 import JSZip from "jszip"
 import { compact, find, range, unionBy } from "lodash"
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useContext, useEffect, useMemo, useState } from "react"
 import Countdown from "react-countdown"
 import { useTranslation } from "react-i18next"
 import { AiOutlineBulb, AiOutlineCode, AiOutlineReload } from "react-icons/ai"
@@ -77,6 +77,7 @@ import {
 import { Markdown, Placeholder, TaskIO, TaskView } from "../components/Panels"
 import { ScoreBar, ScorePie } from "../components/Statistics"
 import { createDownloadHref, detectType } from "../components/Util"
+import { ExampleStatusContext } from "../context/ExampleStatusContext"
 import { TaskController } from "./Supervisor"
 
 export default function Task({ type }: { type: "task" | "example" }) {
@@ -102,6 +103,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const [userId, setUserId] = useState(inspectionUserId ?? user.email)
   const { timeFrameFromEvent } = useTimeframeFromSSE()
   const { exampleSlug } = useParams()
+  const { clearInteractive } = useContext(ExampleStatusContext)
   const {
     data: task,
     submit,
@@ -119,6 +121,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
         title: `Example ${data.exampleSlug} has been reset by the Lecturer. `,
         duration: 3000,
       })
+      clearInteractive()
       navigate(`/courses/${courseSlug}/examples`)
     }
   })

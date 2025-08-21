@@ -28,6 +28,7 @@ import { GoChecklist } from "react-icons/go"
 import { IconType } from "react-icons/lib"
 import { Link, useOutletContext, useParams } from "react-router-dom"
 import { useExamples, useSSE } from "../components/Hooks"
+import { Placeholder } from "../components/Panels"
 import { HScores } from "../components/Statistics"
 import { formatDate } from "../components/Util"
 
@@ -198,13 +199,13 @@ export default function Examples() {
   const { i18n, t } = useTranslation()
   const currentLanguage = i18n.language
   const { isAssistant } = useOutletContext<UserContext>()
-  const { data: examples, refetch } = useExamples() //  TODO: only get TaskOverview, not TaskProps, once related backend problem is fixed
+  const { data: examples, refetch, isFetching } = useExamples() //  TODO: only get TaskOverview, not TaskProps, once related backend problem is fixed
 
   useSSE<ExampleResetSsePayload>("example-reset", () => {
     refetch()
   })
 
-  if (!examples) return <></>
+  if (!examples || isFetching) return <Placeholder />
 
   const [unpublishedExaples, publishedExamples] = fork(
     examples,
