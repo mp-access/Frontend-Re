@@ -11,7 +11,14 @@ export const useCodeEditor = () => {
   const monaco = useMonaco()
   const getContent = (path: string) =>
     monaco?.editor.getModel(Uri.file(path))?.getValue()
-  return { getContent }
+
+  const resetModel = (path: string) => {
+    if (!monaco) return
+    const model = monaco.editor.getModel(Uri.file(path))
+    if (model) model.dispose()
+  }
+
+  return { getContent, resetModel }
 }
 
 const usePath = (prefix: string): string[] => {
@@ -172,6 +179,7 @@ export const usePendingSubmissions = (
     ],
     {
       enabled: options.enabled,
+      refetchOnMount: "always",
     },
   )
 }
@@ -214,7 +222,7 @@ export const useExample = (userId: string) => {
   const { courseSlug, exampleSlug } = useParams()
   const query = useQuery<TaskProps>(
     ["courses", courseSlug, "examples", exampleSlug, "users", userId],
-    { enabled: !timer },
+    { enabled: !timer, refetchOnMount: "always" },
   )
   // eslint-disable-next-line
   const { mutateAsync } = useMutation<any, AxiosError, any[]>(

@@ -45,6 +45,7 @@ import {
   VStack,
 } from "@chakra-ui/react"
 import Editor from "@monaco-editor/react"
+import { useQueryClient } from "@tanstack/react-query"
 import { format, parseISO } from "date-fns"
 import fileDownload from "js-file-download"
 import JSZip from "jszip"
@@ -104,19 +105,35 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const { timeFrameFromEvent } = useTimeframeFromSSE()
   const { exampleSlug } = useParams()
   const { clearInteractive } = useContext(ExampleStatusContext)
+  const queryClient = useQueryClient()
   const {
     data: task,
     submit,
     refetch,
     timer,
+
     // eslint-disable-next-line react-hooks/rules-of-hooks
   } = type == "task" ? useTask(userId) : useExample(userId)
-
   const { data: pendingSubmissions, refetch: refetchPendingSubmissions } =
     usePendingSubmissions(user.email, { enabled: type === "example" })
 
   useSSE<ExampleResetSsePayload>("example-reset", (data) => {
     if (type === "example" && exampleSlug === data.exampleSlug) {
+      if (currentFile) {
+        editor.resetModel(getPath(currentFile.id))
+        setEditorReload((prev) => prev + 1)
+      }
+      queryClient.removeQueries({
+        queryKey: [
+          "courses",
+          courseSlug,
+          "examples",
+          exampleSlug,
+          "users",
+          user.email,
+        ],
+      })
+
       toast({
         title: `Example ${data.exampleSlug} has been reset by the Lecturer. `,
         duration: 3000,
@@ -227,12 +244,18 @@ export default function Task({ type }: { type: "task" | "example" }) {
   }, [pendingSubmissions, task, currentFile, type])
 
   useEffect(() => {
+    if (task && derivedEditorContent) {
+      setEditorReload((prev) => prev + 1)
+    }
+  }, [task, derivedEditorContent])
+
+  useEffect(() => {
     if (
       type === "example" &&
       task?.submissions.length === 0 &&
       pendingSubmissions &&
       pendingSubmissions.length > 0 &&
-      derivedEditorContent !== currentFile?.template
+      !submissionId
     ) {
       setEditorReload((prev) => prev + 1)
     }
@@ -423,7 +446,6 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const instructionsContent = task.files.filter(
     (file) => file.path === `/${instructionFile}`,
   )[0]?.template
-
   return (
     <Flex boxSize="full">
       <ButtonGroup
