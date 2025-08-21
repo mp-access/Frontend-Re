@@ -145,12 +145,35 @@ export const useCategorize = () => {
   return { categorize, isLoading }
 }
 
-export const useExamples = () => {
+export const useExamples = (
+  options: UseQueryOptions<PointDistribution> = {},
+) => {
   const { courseSlug } = useParams()
 
   return useQuery<TaskOverview[]>(["courses", courseSlug, "examples"], {
-    enabled: !!courseSlug,
+    enabled: options.enabled,
   })
+}
+
+export const usePendingSubmissions = (
+  userId: string,
+  options: UseQueryOptions<PointDistribution> = {},
+) => {
+  const { courseSlug, exampleSlug } = useParams()
+  return useQuery<NewSubmissionProps[]>(
+    [
+      "courses",
+      courseSlug,
+      "examples",
+      exampleSlug,
+      "users",
+      userId,
+      "pending-submissions",
+    ],
+    {
+      enabled: options.enabled,
+    },
+  )
 }
 
 export const useGeneralExampleInformation = () => {
@@ -199,7 +222,6 @@ export const useExample = (userId: string) => {
     {
       onMutate: () => setTimer(Date.now() + 30000),
       onSettled: () => setTimer(undefined),
-      onSuccess: query.refetch,
     },
   )
   const submit = (data: NewSubmissionProps) =>
