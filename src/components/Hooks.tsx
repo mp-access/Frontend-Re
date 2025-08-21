@@ -155,7 +155,7 @@ export const useExamples = (
   })
 }
 
-export const usePendingSubmission = (
+export const usePendingSubmissions = (
   userId: string,
   options: UseQueryOptions<PointDistribution> = {},
 ) => {

@@ -69,7 +69,7 @@ import { FileTree } from "../components/FileTree"
 import {
   useCodeEditor,
   useExample,
-  usePendingSubmission,
+  usePendingSubmissions,
   useSSE,
   useTask,
   useTimeframeFromSSE,
@@ -110,8 +110,8 @@ export default function Task({ type }: { type: "task" | "example" }) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
   } = type == "task" ? useTask(userId) : useExample(userId)
 
-  const { data: pendingSubmission, refetch: refetchPendingSubmission } =
-    usePendingSubmission(user.email, { enabled: type === "example" })
+  const { data: pendingSubmissions, refetch: refetchPendingSubmissions } =
+    usePendingSubmissions(user.email, { enabled: type === "example" })
 
   useSSE<string>("example-reset", (data) => {
     toast({ title: data, duration: 3000 })
@@ -198,11 +198,11 @@ export default function Task({ type }: { type: "task" | "example" }) {
     if (
       type === "example" &&
       task?.submissions.length === 0 &&
-      pendingSubmission &&
-      pendingSubmission.length > 0 &&
+      pendingSubmissions &&
+      pendingSubmissions.length > 0 &&
       currentFile
     ) {
-      const matchingSubmission = pendingSubmission.find((submission) =>
+      const matchingSubmission = pendingSubmissions.find((submission) =>
         submission.files.some((file) => file.taskFileId === currentFile.id),
       )
 
@@ -216,19 +216,19 @@ export default function Task({ type }: { type: "task" | "example" }) {
     }
 
     return currentFile?.content || currentFile?.template
-  }, [pendingSubmission, task, currentFile, type])
+  }, [pendingSubmissions, task, currentFile, type])
 
   useEffect(() => {
     if (
       type === "example" &&
       task?.submissions.length === 0 &&
-      pendingSubmission &&
-      pendingSubmission.length > 0 &&
+      pendingSubmissions &&
+      pendingSubmissions.length > 0 &&
       derivedEditorContent !== currentFile?.template
     ) {
       setEditorReload((prev) => prev + 1)
     }
-  }, [type, task, pendingSubmission, derivedEditorContent, currentFile])
+  }, [type, task, pendingSubmissions, derivedEditorContent, currentFile])
 
   useEffect(() => {
     if (!isAssistant && task && task.status === "Planned") {
@@ -366,7 +366,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
       })
       .then(async () => {
         if (type === "example") {
-          await refetchPendingSubmission()
+          await refetchPendingSubmissions()
           await refetch()
         }
       })
