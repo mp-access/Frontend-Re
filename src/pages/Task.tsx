@@ -251,6 +251,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
     const interval = setInterval(() => {
       if (derivedEndDate < Date.now()) {
         refetch()
+        clearInteractive()
         clearInterval(interval)
       }
     }, 1000)
@@ -263,6 +264,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
 
     // handles refetching after manual termination
     if (timeFrameFromEvent[1] < Date.now()) {
+      clearInteractive()
       refetch()
     }
   }, [timeFrameFromEvent, task])
