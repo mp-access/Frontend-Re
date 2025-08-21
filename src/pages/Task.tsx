@@ -176,7 +176,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const enableSubmitCommand = useMemo(() => {
     if (!task) return false
 
-    if (isPrivileged) return true
+    if (isAssistant) return true
 
     if (type === "task") {
       return task.remainingAttempts >= 0
@@ -345,7 +345,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const getContent = (file: TaskFileProps) =>
     editor.getContent(getPath(file.id)) || file.template
 
-  const onSubmit = (command: string) => () =>
+  const onSubmit = (command: string) => () => {
     submit({
       restricted: !isAssistant,
       command,
@@ -370,6 +370,12 @@ export default function Task({ type }: { type: "task" | "example" }) {
           await refetch()
         }
       })
+      .then(() => {
+        if (isAssistant && userId !== user.email) {
+          setUserId(user.email)
+        }
+      })
+  }
 
   const refill = () =>
     toast({
@@ -377,7 +383,6 @@ export default function Task({ type }: { type: "task" | "example" }) {
       duration: 3000,
       onCloseComplete: refetch,
     })
-
   const submissionName = (command: string, ordinalNum: number) => {
     const commandMap = {
       grade: "Submission_n",
@@ -408,6 +413,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const instructionsContent = task.files.filter(
     (file) => file.path === `/${instructionFile}`,
   )[0]?.template
+
   return (
     <Flex boxSize="full">
       <ButtonGroup
@@ -747,7 +753,10 @@ export default function Task({ type }: { type: "task" | "example" }) {
             !(task.status === "Interactive") && (
               <NextAttemptAt date={task.nextAttemptAt} onComplete={refill} />
             )}
-          {task.status !== "Interactive" && type === "task" ? (
+          {type === "task" ||
+          isAssistant ||
+          (derivedEndDate &&
+            derivedEndDate + 60 * 60 * 2 * 1000 <= Date.now()) ? (
             <SimpleGrid columns={2} w="full" fontSize="sm">
               <VStack borderRightWidth={1} spacing={0} h={32} pb={2}>
                 <ScorePie value={task.points} max={task.maxPoints} />
@@ -799,9 +808,13 @@ export default function Task({ type }: { type: "task" | "example" }) {
           ) : (
             <VStack borderRightWidth={1} spacing={0} p={2}>
               {task.status === "Active" ? (
+                // shown in the first two hours after an example is finished
                 <>
                   <CircularProgress
-                    value={(task.points / task.maxPoints) * 100}
+                    value={
+                      (task.submissions[task.submissions.length - 1]?.points ??
+                        0 / task.maxPoints) * 100
+                    }
                     size={120}
                     color="green.500"
                   >
@@ -809,7 +822,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
                       fontFamily={"monospace"}
                       fontSize={"3xl"}
                     >
-                      {`${((task.points / task.maxPoints) * 100).toFixed(0)}%`}
+                      {`${((task.submissions[task.submissions.length - 1]?.points ?? 0 / task.maxPoints) * 100).toFixed(0)}%`}
                     </CircularProgressLabel>
                   </CircularProgress>
                   <Text>{t("Correctness")}</Text>
@@ -817,7 +830,8 @@ export default function Task({ type }: { type: "task" | "example" }) {
               ) : null}
             </VStack>
           )}
-          {derivedStartDate == null ||
+          {isAssistant ||
+          derivedStartDate == null ||
           derivedEndDate == null ||
           derivedEndDate < Date.now() ? (
             <Accordion
