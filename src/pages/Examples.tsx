@@ -200,7 +200,7 @@ export default function Examples() {
   const { isAssistant } = useOutletContext<UserContext>()
   const { data: examples, refetch } = useExamples() //  TODO: only get TaskOverview, not TaskProps, once related backend problem is fixed
 
-  useSSE<string>("example-reset", () => {
+  useSSE<ExampleResetSsePayload>("example-reset", () => {
     refetch()
   })
 

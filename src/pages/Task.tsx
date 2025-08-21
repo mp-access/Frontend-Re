@@ -113,9 +113,14 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const { data: pendingSubmissions, refetch: refetchPendingSubmissions } =
     usePendingSubmissions(user.email, { enabled: type === "example" })
 
-  useSSE<string>("example-reset", (data) => {
-    toast({ title: data, duration: 3000 })
-    navigate(`/courses/${courseSlug}/examples`)
+  useSSE<ExampleResetSsePayload>("example-reset", (data) => {
+    if (type === "example" && exampleSlug === data.exampleSlug) {
+      toast({
+        title: `Example ${data.exampleSlug} has been reset by the Lecturer. `,
+        duration: 3000,
+      })
+      navigate(`/courses/${courseSlug}/examples`)
+    }
   })
 
   useSSE<string>("inspect", (editorURL) => {
