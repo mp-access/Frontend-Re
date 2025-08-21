@@ -153,6 +153,27 @@ export const useExamples = () => {
   })
 }
 
+export const usePendingSubmission = (
+  userId: string,
+  options: UseQueryOptions<PointDistribution> = {},
+) => {
+  const { courseSlug, exampleSlug } = useParams()
+  return useQuery<NewSubmissionProps[]>(
+    [
+      "courses",
+      courseSlug,
+      "examples",
+      exampleSlug,
+      "users",
+      userId,
+      "pending-submissions",
+    ],
+    {
+      enabled: options.enabled,
+    },
+  )
+}
+
 export const useGeneralExampleInformation = () => {
   const { courseSlug, exampleSlug } = useParams()
   return useQuery<ExampleInformation>([
@@ -199,7 +220,6 @@ export const useExample = (userId: string) => {
     {
       onMutate: () => setTimer(Date.now() + 30000),
       onSettled: () => setTimer(undefined),
-      onSuccess: query.refetch,
     },
   )
   const submit = (data: NewSubmissionProps) =>

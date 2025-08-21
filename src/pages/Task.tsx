@@ -69,6 +69,7 @@ import { FileTree } from "../components/FileTree"
 import {
   useCodeEditor,
   useExample,
+  usePendingSubmission,
   useSSE,
   useTask,
   useTimeframeFromSSE,
@@ -108,6 +109,9 @@ export default function Task({ type }: { type: "task" | "example" }) {
     timer,
     // eslint-disable-next-line react-hooks/rules-of-hooks
   } = type == "task" ? useTask(userId) : useExample(userId)
+
+  const { data: pendingSubmission, refetch: refetchPendingSubmission } =
+    usePendingSubmission(user.email, { enabled: type === "example" })
 
   useSSE<string>("example-reset", (data) => {
     toast({ title: data, duration: 3000 })
@@ -188,6 +192,43 @@ export default function Task({ type }: { type: "task" | "example" }) {
 
     return Date.parse(task.nextAttemptAt) < Date.now()
   }, [task])
+
+  const derivedEditorContent = useMemo(() => {
+    // example case: submission not yet fully processed, so content only available from pending subnmission
+    if (
+      type === "example" &&
+      task?.submissions.length === 0 &&
+      pendingSubmission &&
+      pendingSubmission.length > 0 &&
+      currentFile
+    ) {
+      const matchingSubmission = pendingSubmission.find((submission) =>
+        submission.files.some((file) => file.taskFileId === currentFile.id),
+      )
+
+      const matchingFile = matchingSubmission?.files.find(
+        (file) => file.taskFileId === currentFile.id,
+      )
+
+      if (matchingFile) {
+        return matchingFile.content
+      }
+    }
+
+    return currentFile?.content || currentFile?.template
+  }, [pendingSubmission, task, currentFile, type])
+
+  useEffect(() => {
+    if (
+      type === "example" &&
+      task?.submissions.length === 0 &&
+      pendingSubmission &&
+      pendingSubmission.length > 0 &&
+      derivedEditorContent !== currentFile?.template
+    ) {
+      setEditorReload((prev) => prev + 1)
+    }
+  }, [type, task, pendingSubmission, derivedEditorContent, currentFile])
 
   useEffect(() => {
     if (!isAssistant && task && task.status === "Planned") {
@@ -274,7 +315,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
         setCurrentFile((file) => file && find(editableFiles, { id: file.id }))
       }
       setTaskId(task.id)
-      setEditorReload(editorReload + 1)
+      setEditorReload((prev) => prev + 1)
     }
   }, [editableFiles])
 
@@ -321,6 +362,12 @@ export default function Task({ type }: { type: "task" | "example" }) {
             title: "Submission received",
             duration: 3000,
           })
+        }
+      })
+      .then(async () => {
+        if (type === "example") {
+          await refetchPendingSubmission()
+          await refetch()
         }
       })
 
@@ -546,7 +593,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
               key={editorReload}
               path={getPath(currentFile.id)}
               language={detectType(currentFile.name)}
-              defaultValue={currentFile.content || currentFile.template}
+              defaultValue={derivedEditorContent}
               options={{
                 minimap: { enabled: false },
                 readOnly: !currentFile.editable,
