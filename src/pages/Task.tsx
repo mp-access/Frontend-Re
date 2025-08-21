@@ -754,6 +754,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
               <NextAttemptAt date={task.nextAttemptAt} onComplete={refill} />
             )}
           {type === "task" ||
+          isAssistant ||
           (derivedEndDate &&
             derivedEndDate + 60 * 60 * 2 * 1000 <= Date.now()) ? (
             <SimpleGrid columns={2} w="full" fontSize="sm">
@@ -829,7 +830,8 @@ export default function Task({ type }: { type: "task" | "example" }) {
               ) : null}
             </VStack>
           )}
-          {derivedStartDate == null ||
+          {isAssistant ||
+          derivedStartDate == null ||
           derivedEndDate == null ||
           derivedEndDate < Date.now() ? (
             <Accordion
