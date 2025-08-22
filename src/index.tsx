@@ -1,37 +1,37 @@
 import { ChakraProvider, ColorModeScript, useToast } from "@chakra-ui/react"
-import "@fontsource/courier-prime/700.css"
 import "@fontsource/courier-prime/400.css"
-import "@fontsource/manrope/600.css"
-import "@fontsource/manrope/400.css"
-import "@fontsource/dm-sans/700.css"
-import "@fontsource/dm-sans/500.css"
+import "@fontsource/courier-prime/700.css"
 import "@fontsource/dm-sans/400.css"
+import "@fontsource/dm-sans/500.css"
+import "@fontsource/dm-sans/700.css"
+import "@fontsource/manrope/400.css"
+import "@fontsource/manrope/600.css"
 import { ReactKeycloakProvider } from "@react-keycloak/web"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import axios from "axios"
-import { AxiosError } from "axios"
+import axios, { AxiosError } from "axios"
+import i18n from "i18next"
+import HttpBackend from "i18next-http-backend"
 import Keycloak from "keycloak-js"
 import { compact, flattenDeep, join } from "lodash"
 import "react-day-picker/dist/style.css"
 import { createRoot } from "react-dom/client"
+import { initReactI18next, useTranslation } from "react-i18next"
 import { createBrowserRouter, RouterProvider } from "react-router-dom"
+import { EventSourceProvider } from "./context/EventSourceContext"
+import { ExampleStatusProvider } from "./context/ExampleStatusContext"
 import Assignment from "./pages/Assignment"
 import Course from "./pages/Course"
 import CourseCreator from "./pages/CourseCreator"
 import Courses from "./pages/Courses"
 import ErrorPage from "./pages/ErrorPage"
+import Examples from "./pages/Examples"
 import { Landing } from "./pages/Landing"
+import Layout from "./pages/Layout"
 import Participants from "./pages/Participants"
+import { PrivateDashboard } from "./pages/PrivateDashboard"
+import { PublicDashboard } from "./pages/PublicDashboard"
 import Task from "./pages/Task"
 import theme from "./Theme"
-import Layout from "./pages/Layout"
-import i18n from "i18next"
-import { useTranslation, initReactI18next } from "react-i18next"
-import HttpBackend from "i18next-http-backend"
-import Examples from "./pages/Examples"
-import { PublicDashboard } from "./pages/PublicDashboard"
-import { PrivateDashboard } from "./pages/PrivateDashboard"
-import { EventSourceProvider } from "./context/EventSourceContext"
 
 const authClient = new Keycloak({
   url: import.meta.env.VITE_AUTH_SERVER_URL || window.location.origin + ":8443",
@@ -103,7 +103,9 @@ function App() {
           path: "courses",
           element: (
             <EventSourceProvider>
-              <Layout />
+              <ExampleStatusProvider>
+                <Layout />
+              </ExampleStatusProvider>
             </EventSourceProvider>
           ),
           children: [

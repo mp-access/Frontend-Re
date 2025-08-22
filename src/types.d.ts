@@ -272,3 +272,7 @@ declare interface PointDistribution {
 declare interface ExampleSubmissionsDTO extends ExampleInformation {
   submissions: SubmissionSsePayload[]
 }
+
+declare interface ExampleResetSsePayload {
+  exampleSlug: string
+}

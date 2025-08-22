@@ -45,11 +45,12 @@ import {
   VStack,
 } from "@chakra-ui/react"
 import Editor from "@monaco-editor/react"
+import { useQueryClient } from "@tanstack/react-query"
 import { format, parseISO } from "date-fns"
 import fileDownload from "js-file-download"
 import JSZip from "jszip"
 import { compact, find, range, unionBy } from "lodash"
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useContext, useEffect, useMemo, useState } from "react"
 import Countdown from "react-countdown"
 import { useTranslation } from "react-i18next"
 import { AiOutlineBulb, AiOutlineCode, AiOutlineReload } from "react-icons/ai"
@@ -77,6 +78,7 @@ import {
 import { Markdown, Placeholder, TaskIO, TaskView } from "../components/Panels"
 import { ScoreBar, ScorePie } from "../components/Statistics"
 import { createDownloadHref, detectType } from "../components/Util"
+import { ExampleStatusContext } from "../context/ExampleStatusContext"
 import { TaskController } from "./Supervisor"
 
 export default function Task({ type }: { type: "task" | "example" }) {
@@ -102,20 +104,43 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const [userId, setUserId] = useState(inspectionUserId ?? user.email)
   const { timeFrameFromEvent } = useTimeframeFromSSE()
   const { exampleSlug } = useParams()
+  const { clearInteractive } = useContext(ExampleStatusContext)
+  const queryClient = useQueryClient()
   const {
     data: task,
     submit,
     refetch,
     timer,
+
     // eslint-disable-next-line react-hooks/rules-of-hooks
   } = type == "task" ? useTask(userId) : useExample(userId)
-
   const { data: pendingSubmissions, refetch: refetchPendingSubmissions } =
     usePendingSubmissions(user.email, { enabled: type === "example" })
 
-  useSSE<string>("example-reset", (data) => {
-    toast({ title: data, duration: 3000 })
-    navigate(`/courses/${courseSlug}/examples`)
+  useSSE<ExampleResetSsePayload>("example-reset", (data) => {
+    if (type === "example" && exampleSlug === data.exampleSlug) {
+      if (currentFile) {
+        editor.resetModel(getPath(currentFile.id))
+        setEditorReload((prev) => prev + 1)
+      }
+      queryClient.removeQueries({
+        queryKey: [
+          "courses",
+          courseSlug,
+          "examples",
+          exampleSlug,
+          "users",
+          user.email,
+        ],
+      })
+
+      toast({
+        title: `Example ${data.exampleSlug} has been reset by the Lecturer. `,
+        duration: 3000,
+      })
+      clearInteractive()
+      navigate(`/courses/${courseSlug}/examples`)
+    }
   })
 
   useSSE<string>("inspect", (editorURL) => {
@@ -219,12 +244,18 @@ export default function Task({ type }: { type: "task" | "example" }) {
   }, [pendingSubmissions, task, currentFile, type])
 
   useEffect(() => {
+    if (task && derivedEditorContent) {
+      setEditorReload((prev) => prev + 1)
+    }
+  }, [task, derivedEditorContent])
+
+  useEffect(() => {
     if (
       type === "example" &&
       task?.submissions.length === 0 &&
       pendingSubmissions &&
       pendingSubmissions.length > 0 &&
-      derivedEditorContent !== currentFile?.template
+      !submissionId
     ) {
       setEditorReload((prev) => prev + 1)
     }
@@ -243,6 +274,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
     const interval = setInterval(() => {
       if (derivedEndDate < Date.now()) {
         refetch()
+        clearInteractive()
         clearInterval(interval)
       }
     }, 1000)
@@ -255,6 +287,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
 
     // handles refetching after manual termination
     if (timeFrameFromEvent[1] < Date.now()) {
+      clearInteractive()
       refetch()
     }
   }, [timeFrameFromEvent, task])
@@ -413,7 +446,6 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const instructionsContent = task.files.filter(
     (file) => file.path === `/${instructionFile}`,
   )[0]?.template
-
   return (
     <Flex boxSize="full">
       <ButtonGroup
