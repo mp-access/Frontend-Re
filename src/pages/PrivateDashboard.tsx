@@ -244,6 +244,11 @@ const SubmissionInspector: React.FC<{
     categorize(submissions.map((s) => s.submissionId)).then((res) => {
       const rawColors = ["purple", "green", "yellow", "blue", "orange"]
       const newCategories: CategoriesType = {}
+      const filteredIds = getFilteredSubmissions(
+        testCaseSelection,
+        submissions,
+        exactMatch,
+      ).map((f) => f.submissionId)
 
       Object.keys(res.categories)
         .sort((a, b) => res.categories[b].length - res.categories[a].length)
@@ -251,7 +256,9 @@ const SubmissionInspector: React.FC<{
           newCategories[`cat-${i}`] = {
             color: rawColors[i],
             ids: res.categories[key],
-            selectedIds: res.categories[key],
+            selectedIds: filteredIds.filter((f) =>
+              res.categories[key].includes(f),
+            ),
             avgScore: getSubmissionsAvgScore(res.categories[key]),
           }
         })
@@ -264,7 +271,7 @@ const SubmissionInspector: React.FC<{
         newCategories[LEFTOVER_CATEGORY_KEY] = {
           color: "gray",
           ids: noCatIds,
-          selectedIds: noCatIds,
+          selectedIds: filteredIds.filter((f) => noCatIds.includes(f)),
           avgScore: getSubmissionsAvgScore(noCatIds),
         }
       }
@@ -280,20 +287,29 @@ const SubmissionInspector: React.FC<{
       .map((key) => categories[key].ids)
       .flat()
 
-    const noCatIds = submissions
-      .map((s) => s.submissionId)
-      .filter((f) => !withCatIds.includes(f))
+    const noCatSubmissions = submissions.filter(
+      (f) => !withCatIds.includes(f.submissionId),
+    )
 
-    if (noCatIds.length > 0)
+    if (noCatSubmissions.length > 0) {
+      const filteredSubmissionIds = getFilteredSubmissions(
+        testCaseSelection,
+        noCatSubmissions,
+        exactMatch,
+      ).map((f) => f.submissionId)
+
       setCategories((prev) => ({
         ...prev,
         [LEFTOVER_CATEGORY_KEY]: {
           color: "gray",
-          ids: noCatIds,
-          selectedIds: noCatIds,
-          avgScore: getSubmissionsAvgScore(noCatIds),
+          ids: noCatSubmissions.map((f) => f.submissionId),
+          selectedIds: filteredSubmissionIds,
+          avgScore: getSubmissionsAvgScore(
+            noCatSubmissions.map((f) => f.submissionId),
+          ),
         },
       }))
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [submissions])
 
@@ -371,11 +387,12 @@ const SubmissionInspector: React.FC<{
               <Box
                 position={"absolute"}
                 h={"full"}
-                w={
-                  category.selectedIds.length === category.ids.length
-                    ? "full"
-                    : category.selectedIds.length / category.ids.length
-                }
+                style={{
+                  width: `${(
+                    (category.selectedIds.length * 100) /
+                    category.ids.length
+                  ).toFixed(0)}%`,
+                }}
                 bgColor={selectedColor}
                 border={"1px solid black"}
                 roundedLeft={i === 0 ? 8 : 0}
@@ -421,6 +438,7 @@ const SubmissionInspector: React.FC<{
           ml={3}
           onClick={handleFetchCategories}
           disabled={submissions.length < 5 || isLoading}
+          isLoading={isLoading}
         >
           Re-categorize
         </Button>
@@ -449,7 +467,7 @@ const TaskDescription: React.FC<{
     <Flex layerStyle={"segment"} direction={"column"} grow={1} p={3}>
       <Heading fontSize="xl">{title}</Heading>
       <Divider />
-      <Markdown children={instructionContent}></Markdown>
+      <Markdown children={instructionContent} />
     </Flex>
   )
 }
@@ -494,9 +512,8 @@ const GeneralInformation: React.FC<{
     participantsOnline,
     totalParticipants,
     numberOfStudentsWhoSubmitted,
-    passRatePerTestCase,
+    avgPoints,
   } = generalInformation
-
   const submissionsProgress = useMemo(() => {
     if (participantsOnline <= 0 && numberOfStudentsWhoSubmitted <= 0) {
       return 0
@@ -512,13 +529,6 @@ const GeneralInformation: React.FC<{
     }
   }, [numberOfStudentsWhoSubmitted, participantsOnline])
 
-  const avgTestPassRate = useMemo(() => {
-    const passRates = Object.values(passRatePerTestCase)
-
-    return Math.round(
-      (passRates.reduce((sum, rate) => sum + rate, 0) / passRates.length) * 100,
-    )
-  }, [passRatePerTestCase])
   return (
     <HStack p={0} minW={200} gap={5}>
       <Tag color="green.600" bg="green.50">
@@ -536,14 +546,14 @@ const GeneralInformation: React.FC<{
                 ? `${numberOfStudentsWhoSubmitted}/${Math.max(numberOfStudentsWhoSubmitted, participantsOnline)}` // if participants online not correctly updated, UI should not break
                 : numberOfStudentsWhoSubmitted}
             </Text>
-            <CustomPieChart value={submissionsProgress}></CustomPieChart>
+            <CustomPieChart value={submissionsProgress} />
           </HStack>
 
-          <HStack>
+          <HStack overflow={"auto"}>
             <Text color={"gray.500"} display={"flex"}>
-              Test Pass Rate {avgTestPassRate}%
+              Avg. Points: {avgPoints.toFixed(2) ?? "-"}
             </Text>
-            <CustomPieChart value={avgTestPassRate} />
+            <CustomPieChart value={avgPoints * 100} />
           </HStack>
         </>
       ) : null}
@@ -556,6 +566,7 @@ const ExampleTimeController: React.FC<{
   handleStart: () => void
   handleTermination: () => void
   handleReset: () => void
+  durationInSeconds: number
   durationAsString: string
   setDurationInSeconds: React.Dispatch<React.SetStateAction<number>>
   exampleState: ExampleState
@@ -564,6 +575,7 @@ const ExampleTimeController: React.FC<{
   endTime: number | null
 }> = ({
   handleTimeAdjustment,
+  durationInSeconds,
   durationAsString,
   exampleState,
   setExampleState,
@@ -575,11 +587,9 @@ const ExampleTimeController: React.FC<{
   endTime,
 }) => {
   const { extendExampleDuration } = useExtendExample()
-
   const handleExtendTime = useCallback(
     async (duration: number) => {
       try {
-        // TODO: make sure new time feteched properly once clock is implemented
         await extendExampleDuration(duration)
         setDurationInSeconds((oldVal) => oldVal + duration)
       } catch (e) {
@@ -597,15 +607,24 @@ const ExampleTimeController: React.FC<{
 
   if (exampleState === "unpublished" || exampleState === "publishing") {
     return (
-      <HStack w={"full"} justify={"space-between"}>
+      <HStack w={"full"} justify={"space-between"} overflow={"auto"}>
         <HStack gap={3}>
-          <Button variant={"outline"} onClick={() => handleTimeAdjustment(-30)}>
+          <Button
+            isDisabled={
+              durationInSeconds <= 30 || exampleState === "publishing"
+            }
+            variant={"outline"}
+            onClick={() => handleTimeAdjustment(-30)}
+          >
             -30
           </Button>
           <Button
             variant={"outline"}
             borderRadius={"full"}
             onClick={() => handleTimeAdjustment(-15)}
+            isDisabled={
+              durationInSeconds <= 15 || exampleState === "publishing"
+            }
           >
             -15
           </Button>
@@ -616,6 +635,7 @@ const ExampleTimeController: React.FC<{
             variant={"outline"}
             borderRadius={"full"}
             onClick={() => handleTimeAdjustment(15)}
+            isDisabled={exampleState === "publishing"}
           >
             +15
           </Button>
@@ -623,6 +643,7 @@ const ExampleTimeController: React.FC<{
             variant={"outline"}
             borderRadius={"full"}
             onClick={() => handleTimeAdjustment(30)}
+            isDisabled={exampleState === "publishing"}
           >
             +30
           </Button>
@@ -649,32 +670,28 @@ const ExampleTimeController: React.FC<{
           size={"large"}
           onTimeIsUp={handleTimeIsUp}
           variant="number-only"
-        ></CountdownTimer>
+        />
         <Button variant={"outline"} onClick={() => handleExtendTime(30)}>
           +30
         </Button>
         <Button variant={"outline"} onClick={() => handleExtendTime(60)}>
           +60
         </Button>
-        <TerminationDialog
-          handleTermination={handleTermination}
-        ></TerminationDialog>
+        <TerminationDialog handleTermination={handleTermination} />
       </Flex>
     )
   }
 
   return (
     <Flex flex={1} justify={"end"}>
-      <ResetDialog
-        handleReset={handleReset}
-        exampleState={exampleState}
-      ></ResetDialog>
+      <ResetDialog handleReset={handleReset} exampleState={exampleState} />
     </Flex>
   )
 }
 
 export function PrivateDashboard() {
   const { publish } = usePublish()
+  const toast = useToast()
   const { terminate } = useTerminate()
   const { data: fetchedSubmissions, refetch: refetchStudentSubmissions } =
     useStudentSubmissions()
@@ -741,11 +758,10 @@ export function PrivateDashboard() {
 
   const handleTimeAdjustment = useCallback(
     (value: number) => {
-      setDurationInSeconds((oldVal) => Math.max(0, oldVal + value))
+      setDurationInSeconds((oldVal) => Math.max(15, oldVal + value))
     },
     [setDurationInSeconds],
   )
-
   const handleStart = useCallback(async () => {
     try {
       await publish(durationInSeconds)
@@ -767,15 +783,30 @@ export function PrivateDashboard() {
     try {
       setExampleState("resetting")
       await resetExample()
+      const submissionsData = await refetchStudentSubmissions()
+
+      if (
+        submissionsData.data === undefined ||
+        submissionsData.data?.submissions?.length > 0
+      ) {
+        setExampleState("finished")
+        toast({
+          title: "Resetting the example failed. Please try again.",
+          status: "error",
+          duration: 3000,
+        })
+        return
+      }
+
+      setSubmissions(null)
+      setCategories({})
       setExampleState("unpublished")
       setBookmarks(null)
-      refetchStudentSubmissions()
     } catch (e) {
       console.log("An error occured when resetting the example: ", e)
       setExampleState("finished")
     }
-  }, [refetchStudentSubmissions, resetExample, setBookmarks])
-
+  }, [refetchStudentSubmissions, resetExample, setBookmarks, toast])
   const handleOnBookmarkClick = useCallback(
     (submission: SubmissionSsePayload) => {
       const submissionBookmark: Bookmark = {
@@ -930,6 +961,7 @@ export function PrivateDashboard() {
         p={1}
         minWidth={0}
         flex={1}
+        overflow={"auto"}
       >
         <Tabs
           variant={"line"}
@@ -955,7 +987,7 @@ export function PrivateDashboard() {
                 setExactMatch={setExactMatch}
                 testCaseSelection={testCaseSelection}
                 setTestCaseSelection={setTestCaseSelection}
-              ></TestCaseBarChart>
+              />
             </TabPanel>
             <TabPanel display={"flex"} flex={1}>
               <BookmarkView
@@ -1000,15 +1032,23 @@ export function PrivateDashboard() {
           layerStyle={"segment"}
           alignContent={"space-between"}
           p={2}
+          overflow={"auto"}
         >
           <GeneralInformation
             exampleState={exampleState}
-            generalInformation={exampleInformation}
-          ></GeneralInformation>
+            generalInformation={{
+              ...exampleInformation,
+              numberOfStudentsWhoSubmitted: Math.max(
+                exampleInformation.numberOfStudentsWhoSubmitted,
+                submissions?.length || 0,
+              ),
+            }}
+          />
 
           <ExampleTimeController
             handleTimeAdjustment={handleTimeAdjustment}
             durationAsString={durationAsString}
+            durationInSeconds={durationInSeconds}
             exampleState={exampleState}
             handleStart={handleStart}
             handleTermination={handleTermination}
@@ -1017,7 +1057,7 @@ export function PrivateDashboard() {
             startTime={derivedStartDate}
             endTime={derivedEndDate}
             setExampleState={setExampleState}
-          ></ExampleTimeController>
+          />
         </Flex>
       </Flex>
     </Flex>

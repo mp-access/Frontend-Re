@@ -17,7 +17,7 @@ import {
 } from "@chakra-ui/react"
 import { useKeycloak } from "@react-keycloak/web"
 import { compact, join } from "lodash"
-import { useEffect } from "react"
+import { useContext, useEffect, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { AiOutlineLogout } from "react-icons/ai"
 import {
@@ -29,14 +29,10 @@ import {
   useParams,
 } from "react-router-dom"
 import { LogoButton } from "../components/Buttons"
-import {
-  useAssignment,
-  useCourse,
-  useExamples,
-  useSSE,
-} from "../components/Hooks"
+import { useAssignment, useCourse, useSSE } from "../components/Hooks"
 import { LanguageSwitcher } from "../components/LanguageSwitcher"
 import { Placeholder } from "../components/Panels"
+import { ExampleStatusContext } from "../context/ExampleStatusContext"
 
 export default function Layout() {
   const { t } = useTranslation()
@@ -45,30 +41,31 @@ export default function Layout() {
 
   const { keycloak } = useKeycloak()
   const { courseSlug } = useParams()
-  const { data: examples } = useExamples()
+
+  const { status: exampleStatusContext, setInteractive } =
+    useContext(ExampleStatusContext)
 
   const isSupervisor =
     !!courseSlug && keycloak.hasRealmRole(courseSlug + "-supervisor")
 
   useEffect(() => {
-    if (!courseSlug || !examples || isSupervisor) return
-
-    const interactiveExample = examples.find(
-      (example) => example.status === "Interactive",
-    )
-
-    if (interactiveExample) {
-      const interactiveExamplePath = `/courses/${courseSlug}/examples/${interactiveExample.slug}`
-
+    if (!isSupervisor && exampleStatusContext.hasInteractive) {
+      const interactiveExamplePath = `/courses/${courseSlug}/examples/${exampleStatusContext.exampleSlug}`
       if (interactiveExamplePath !== location.pathname) {
         navigate(interactiveExamplePath)
       }
     }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [examples, courseSlug, navigate, isSupervisor, location.pathname])
+  }, [courseSlug, exampleStatusContext, isSupervisor, navigate])
 
   useSSE<string>("redirect", (data) => {
+    const arr = data.split("/")
+    const index = arr.indexOf("examples")
+    if (index + 1 >= arr.length) {
+      throw Error("Index out of bound. There seens to be no exampleSlug")
+    }
+
+    const exampleSlug = arr[index + 1]
+    setInteractive(exampleSlug)
     navigate(data)
     toast({
       title: t("redirect_toast"),
@@ -119,7 +116,7 @@ export default function Layout() {
       >
         <HStack p={3}>
           <LogoButton />
-          {courseSlug && <CourseNav />}
+          {courseSlug && <CourseNav isAssistant={context.isAssistant} />}
         </HStack>
         <HStack>
           <LanguageSwitcher />
@@ -155,7 +152,9 @@ export default function Layout() {
   )
 }
 
-function CourseNav() {
+export const CourseNav: React.FC<{
+  isAssistant: boolean
+}> = ({ isAssistant }) => {
   const { i18n, t } = useTranslation()
   const currentLanguage = i18n.language
   const matches = useMatches()
@@ -164,6 +163,12 @@ function CourseNav() {
   const { data: assignment } = useAssignment()
   const task = assignment?.tasks.find((task) => task.slug === taskSlug)
   const example = course?.examples.find((e) => e.slug === exampleSlug)
+
+  const { status: exampleStatusContext } = useContext(ExampleStatusContext)
+
+  const disableNavigation = useMemo(() => {
+    return exampleStatusContext.hasInteractive && !isAssistant
+  }, [exampleStatusContext.hasInteractive, isAssistant])
 
   if (!course) return <></>
 
@@ -181,6 +186,8 @@ function CourseNav() {
       layerStyle="float"
       separator={<ChevronRightIcon color="gray.500" />}
       pr={3}
+      pointerEvents={disableNavigation ? "none" : "auto"}
+      opacity={disableNavigation ? 0.5 : 1}
     >
       <BreadcrumbItem>
         <Button
@@ -191,6 +198,7 @@ function CourseNav() {
             course.information[currentLanguage]?.title ||
             course.information["en"].title
           }
+          isDisabled={disableNavigation}
         />
       </BreadcrumbItem>
       {matches
@@ -203,6 +211,7 @@ function CourseNav() {
               variant="link"
               colorScheme="gray"
               children={toNav(match.handle)}
+              isDisabled={disableNavigation}
             />
             {match.handle === "Task" &&
               task &&
@@ -217,6 +226,7 @@ function CourseNav() {
                   boxSize={8}
                   isActive={t.id === task?.id}
                   to={resolvePath(`../${t.slug}`, match.pathname)}
+                  isDisabled={disableNavigation}
                 />
               ))}
           </BreadcrumbItem>

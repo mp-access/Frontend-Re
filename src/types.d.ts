@@ -236,6 +236,7 @@ declare interface ExampleInformation {
   totalParticipants: number
   numberOfStudentsWhoSubmitted: number
   passRatePerTestCase: Record<string, number>
+  avgPoints: number
 }
 
 declare interface SubmissionSsePayload {
@@ -269,10 +270,10 @@ declare interface PointDistribution {
   pointDistribution: DistributionBin[]
 }
 
-declare interface ExampleSubmissionsDTO {
-  participantsOnline: number
-  totalParticipants: number
-  numberOfStudentsWhoSubmitted: number
-  passRatePerTestCase: Record<string, number>
+declare interface ExampleSubmissionsDTO extends ExampleInformation {
   submissions: SubmissionSsePayload[]
+}
+
+declare interface ExampleResetSsePayload {
+  exampleSlug: string
 }

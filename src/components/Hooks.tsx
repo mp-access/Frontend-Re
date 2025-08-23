@@ -11,7 +11,14 @@ export const useCodeEditor = () => {
   const monaco = useMonaco()
   const getContent = (path: string) =>
     monaco?.editor.getModel(Uri.file(path))?.getValue()
-  return { getContent }
+
+  const resetModel = (path: string) => {
+    if (!monaco) return
+    const model = monaco.editor.getModel(Uri.file(path))
+    if (model) model.dispose()
+  }
+
+  return { getContent, resetModel }
 }
 
 const usePath = (prefix: string): string[] => {
@@ -145,12 +152,36 @@ export const useCategorize = () => {
   return { categorize, isLoading }
 }
 
-export const useExamples = () => {
+export const useExamples = (
+  options: UseQueryOptions<PointDistribution> = {},
+) => {
   const { courseSlug } = useParams()
 
   return useQuery<TaskOverview[]>(["courses", courseSlug, "examples"], {
-    enabled: !!courseSlug,
+    enabled: options.enabled,
   })
+}
+
+export const usePendingSubmissions = (
+  userId: string,
+  options: UseQueryOptions<PointDistribution> = {},
+) => {
+  const { courseSlug, exampleSlug } = useParams()
+  return useQuery<NewSubmissionProps[]>(
+    [
+      "courses",
+      courseSlug,
+      "examples",
+      exampleSlug,
+      "users",
+      userId,
+      "pending-submissions",
+    ],
+    {
+      enabled: options.enabled,
+      refetchOnMount: "always",
+    },
+  )
 }
 
 export const useGeneralExampleInformation = () => {
@@ -191,7 +222,7 @@ export const useExample = (userId: string) => {
   const { courseSlug, exampleSlug } = useParams()
   const query = useQuery<TaskProps>(
     ["courses", courseSlug, "examples", exampleSlug, "users", userId],
-    { enabled: !timer },
+    { enabled: !timer, refetchOnMount: "always" },
   )
   // eslint-disable-next-line
   const { mutateAsync } = useMutation<any, AxiosError, any[]>(
@@ -199,7 +230,6 @@ export const useExample = (userId: string) => {
     {
       onMutate: () => setTimer(Date.now() + 30000),
       onSettled: () => setTimer(undefined),
-      onSuccess: query.refetch,
     },
   )
   const submit = (data: NewSubmissionProps) =>

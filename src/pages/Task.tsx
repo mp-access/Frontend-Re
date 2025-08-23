@@ -10,6 +10,8 @@ import {
   Button,
   ButtonGroup,
   Center,
+  CircularProgress,
+  CircularProgressLabel,
   Code,
   Divider,
   Flex,
@@ -43,38 +45,41 @@ import {
   VStack,
 } from "@chakra-ui/react"
 import Editor from "@monaco-editor/react"
+import { useQueryClient } from "@tanstack/react-query"
 import { format, parseISO } from "date-fns"
 import fileDownload from "js-file-download"
 import JSZip from "jszip"
 import { compact, find, range, unionBy } from "lodash"
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useContext, useEffect, useMemo, useState } from "react"
 import Countdown from "react-countdown"
+import { useTranslation } from "react-i18next"
 import { AiOutlineBulb, AiOutlineCode, AiOutlineReload } from "react-icons/ai"
 import { BsCircleFill } from "react-icons/bs"
+import { FcFile, FcInspection, FcTimeline, FcTodoList } from "react-icons/fc"
 import { HiDownload } from "react-icons/hi"
 import { useNavigate, useOutletContext, useParams } from "react-router-dom"
-import { FileTabs } from "../components/FileTab"
-import { FileTree } from "../components/FileTree"
-import { Markdown, Placeholder, TaskIO, TaskView } from "../components/Panels"
-import { ScoreBar, ScorePie } from "../components/Statistics"
-import { FcFile, FcInspection, FcTimeline, FcTodoList } from "react-icons/fc"
 import {
   ActionButton,
   ActionTab,
   NextAttemptAt,
   TooltipIconButton,
 } from "../components/Buttons"
+import { CountdownTimer } from "../components/CountdownTimer"
+import { FileTabs } from "../components/FileTab"
+import { FileTree } from "../components/FileTree"
 import {
   useCodeEditor,
   useExample,
+  usePendingSubmissions,
   useSSE,
   useTask,
   useTimeframeFromSSE,
 } from "../components/Hooks"
+import { Markdown, Placeholder, TaskIO, TaskView } from "../components/Panels"
+import { ScoreBar, ScorePie } from "../components/Statistics"
+import { createDownloadHref, detectType } from "../components/Util"
+import { ExampleStatusContext } from "../context/ExampleStatusContext"
 import { TaskController } from "./Supervisor"
-import { detectType, createDownloadHref } from "../components/Util"
-import { useTranslation } from "react-i18next"
-import { CountdownTimer } from "../components/CountdownTimer"
 
 export default function Task({ type }: { type: "task" | "example" }) {
   const { i18n, t } = useTranslation()
@@ -98,28 +103,68 @@ export default function Task({ type }: { type: "task" | "example" }) {
     : null
   const [userId, setUserId] = useState(inspectionUserId ?? user.email)
   const { timeFrameFromEvent } = useTimeframeFromSSE()
-
+  const { exampleSlug } = useParams()
+  const { clearInteractive } = useContext(ExampleStatusContext)
+  const queryClient = useQueryClient()
   const {
     data: task,
     submit,
     refetch,
     timer,
-  } = type == "task" ? useTask(userId) : useExample(userId)
 
-  useSSE<string>("example-reset", (data) => {
-    toast({ title: data, duration: 3000 })
-    navigate(`/courses/${courseSlug}/examples`)
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+  } = type == "task" ? useTask(userId) : useExample(userId)
+  const { data: pendingSubmissions, refetch: refetchPendingSubmissions } =
+    usePendingSubmissions(user.email, { enabled: type === "example" })
+
+  useSSE<ExampleResetSsePayload>("example-reset", (data) => {
+    if (type === "example" && exampleSlug === data.exampleSlug) {
+      if (currentFile) {
+        editor.resetModel(getPath(currentFile.id))
+        setEditorReload((prev) => prev + 1)
+      }
+      queryClient.removeQueries({
+        queryKey: [
+          "courses",
+          courseSlug,
+          "examples",
+          exampleSlug,
+          "users",
+          user.email,
+        ],
+      })
+
+      toast({
+        title: `Example ${data.exampleSlug} has been reset by the Lecturer. `,
+        duration: 3000,
+      })
+      clearInteractive()
+      navigate(`/courses/${courseSlug}/examples`)
+    }
+  })
+
+  useSSE<string>("inspect", (editorURL) => {
+    if (!editorURL) {
+      return
+    }
+    const splitUrl = editorURL.split("/")
+    const id = splitUrl[splitUrl.length - 1]
+
+    const idxOfExamples = splitUrl.indexOf("examples")
+    const urlExampleSlug =
+      idxOfExamples !== -1 ? splitUrl[idxOfExamples + 1] : null
+
+    // only set user id sent from SSE if event comes from example currently inspected
+    if (urlExampleSlug && urlExampleSlug === exampleSlug) {
+      setUserId(atob(id))
+    }
   })
 
   const getUpdate = (file: TaskFileProps, submission?: WorkspaceProps) =>
     submission?.files?.find((s) => s.taskFileId === file.id)?.content ||
     file.template
 
-  useEffect(() => {
-    if (!isAssistant && task && task.status === "Planned") {
-      navigate("../")
-    }
-  }, [task, isAssistant, navigate])
+  const isPrivileged = isAssistant && userId === user.email
 
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
     if (!task) {
@@ -153,9 +198,107 @@ export default function Task({ type }: { type: "task" | "example" }) {
     return task.runCommandAvailable
   }, [task])
 
+  const enableSubmitCommand = useMemo(() => {
+    if (!task) return false
+
+    if (isAssistant) return true
+
+    if (type === "task") {
+      return task.remainingAttempts >= 0
+    }
+
+    // only concerns lecture examples, not tasks
+    if (
+      task.nextAttemptAt === null &&
+      derivedEndDate &&
+      Date.now() < derivedEndDate
+    )
+      return true // no submissions yet & time not up, so enabled
+
+    return Date.parse(task.nextAttemptAt) < Date.now()
+  }, [task])
+
+  const derivedEditorContent = useMemo(() => {
+    // example case: submission not yet fully processed, so content only available from pending subnmission
+    if (
+      type === "example" &&
+      task?.submissions.length === 0 &&
+      pendingSubmissions &&
+      pendingSubmissions.length > 0 &&
+      currentFile
+    ) {
+      const matchingSubmission = pendingSubmissions.find((submission) =>
+        submission.files.some((file) => file.taskFileId === currentFile.id),
+      )
+
+      const matchingFile = matchingSubmission?.files.find(
+        (file) => file.taskFileId === currentFile.id,
+      )
+
+      if (matchingFile) {
+        return matchingFile.content
+      }
+    }
+
+    return currentFile?.content || currentFile?.template
+  }, [pendingSubmissions, task, currentFile, type])
+
+  useEffect(() => {
+    if (task && derivedEditorContent) {
+      setEditorReload((prev) => prev + 1)
+    }
+  }, [task, derivedEditorContent])
+
+  useEffect(() => {
+    if (
+      type === "example" &&
+      task?.submissions.length === 0 &&
+      pendingSubmissions &&
+      pendingSubmissions.length > 0 &&
+      !submissionId
+    ) {
+      setEditorReload((prev) => prev + 1)
+    }
+  }, [type, task, pendingSubmissions, derivedEditorContent, currentFile])
+
+  useEffect(() => {
+    if (!isAssistant && task && task.status === "Planned") {
+      navigate("../")
+    }
+  }, [task, isAssistant, navigate])
+
+  // handle case where time runs out but user hasn't submitted (no automatic refetch happens)
+  useEffect(() => {
+    if (!task || !derivedEndDate || derivedEndDate < Date.now()) return
+
+    const interval = setInterval(() => {
+      if (derivedEndDate < Date.now()) {
+        refetch()
+        clearInteractive()
+        clearInterval(interval)
+      }
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [derivedEndDate, task])
+
+  useEffect(() => {
+    if (!task || !timeFrameFromEvent) return
+
+    // handles refetching after manual termination
+    if (timeFrameFromEvent[1] < Date.now()) {
+      clearInteractive()
+      refetch()
+    }
+  }, [timeFrameFromEvent, task])
+
   useEffect(() => {
     if (task) {
-      if (taskId < 0 || taskId != task.id) {
+      if (
+        taskId < 0 ||
+        taskId != task.id ||
+        submissionId !== task.submissions[0]?.id
+      ) {
         const defaultFiles = task.files.filter((file) => file.editable)
         const submission = task.submissions[0]
         if (submission) {
@@ -172,7 +315,6 @@ export default function Task({ type }: { type: "task" | "example" }) {
       }
     }
   }, [task, userId])
-
   useEffect(() => {
     if (task) {
       if (submissionId == -1 || submissionId == null) {
@@ -185,6 +327,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
           ...file,
           content: getUpdate(file, submission),
         }))
+
         setEditableFiles(updatedFiles)
       }
     }
@@ -205,7 +348,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
         setCurrentFile((file) => file && find(editableFiles, { id: file.id }))
       }
       setTaskId(task.id)
-      setEditorReload(editorReload + 1)
+      setEditorReload((prev) => prev + 1)
     }
   }, [editableFiles])
 
@@ -221,7 +364,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
     "run",
     "grade",
   ])
-  const isPrivileged = isAssistant && userId === user.email
+
   const getPath = (id: number) => `${id}/${user.email}/${submissionId}`
   const getTemplate = (name: string) => {
     if (!name.startsWith("/")) {
@@ -231,9 +374,11 @@ export default function Task({ type }: { type: "task" | "example" }) {
     if (!file) return ""
     return `data:${file.mimeType};base64,` + file.templateBinary
   }
+
   const getContent = (file: TaskFileProps) =>
     editor.getContent(getPath(file.id)) || file.template
-  const onSubmit = (command: string) => () =>
+
+  const onSubmit = (command: string) => () => {
     submit({
       restricted: !isAssistant,
       command,
@@ -244,6 +389,26 @@ export default function Task({ type }: { type: "task" | "example" }) {
     })
       .then(() => setCurrentTab(commands.indexOf(command)))
       .then(onClose)
+      .then(() => {
+        if (type === "example" && task?.status === "Interactive") {
+          toast({
+            title: "Submission received",
+            duration: 3000,
+          })
+        }
+      })
+      .then(async () => {
+        if (type === "example") {
+          await refetchPendingSubmissions()
+          await refetch()
+        }
+      })
+      .then(() => {
+        if (isAssistant && userId !== user.email) {
+          setUserId(user.email)
+        }
+      })
+  }
 
   const refill = () =>
     toast({
@@ -251,7 +416,6 @@ export default function Task({ type }: { type: "task" | "example" }) {
       duration: 3000,
       onCloseComplete: refetch,
     })
-
   const submissionName = (command: string, ordinalNum: number) => {
     const commandMap = {
       grade: "Submission_n",
@@ -315,7 +479,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
           leftIcon={<FcInspection />}
           onClick={onOpen}
           children={t("Submit")}
-          isDisabled={!!timer || (!isAssistant && task.remainingAttempts <= 0)}
+          isDisabled={!!timer || !enableSubmitCommand}
         />
         <Modal
           size="sm"
@@ -378,7 +542,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
               value={userId}
               defaultValue={user.email}
               onChange={setUserId}
-              hideStudentName={!!inspectionUserId}
+              obfuscateUserId={!!inspectionUserId}
             />
           )}
           <Accordion
@@ -467,7 +631,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
               key={editorReload}
               path={getPath(currentFile.id)}
               language={detectType(currentFile.name)}
-              defaultValue={currentFile.content || currentFile.template}
+              defaultValue={derivedEditorContent}
               options={{
                 minimap: { enabled: false },
                 readOnly: !currentFile.editable,
@@ -508,9 +672,12 @@ export default function Task({ type }: { type: "task" | "example" }) {
                   <ActionTab name="Test Output" />
                 </Tab>
               )}
-              <Tab>
-                <ActionTab name="Run Output" />
-              </Tab>
+              {task.runCommandAvailable ? (
+                <Tab>
+                  <ActionTab name="Run Output" />
+                </Tab>
+              ) : null}
+
               <Tab>
                 <HStack>
                   <FcInspection />
@@ -610,15 +777,18 @@ export default function Task({ type }: { type: "task" | "example" }) {
                 endTime={derivedEndDate}
                 size="large"
                 variant="circular"
-              ></CountdownTimer>
+              />
             </VStack>
           ) : null}
-          {!isPrivileged &&
-            task.remainingAttempts <= 0 &&
-            task.nextAttemptAt && (
+          {!enableSubmitCommand &&
+            task.nextAttemptAt &&
+            !(task.status === "Interactive") && (
               <NextAttemptAt date={task.nextAttemptAt} onComplete={refill} />
             )}
-          {task.status !== "Interactive" ? (
+          {type === "task" ||
+          isAssistant ||
+          (derivedEndDate &&
+            derivedEndDate + 60 * 60 * 2 * 1000 <= Date.now()) ? (
             <SimpleGrid columns={2} w="full" fontSize="sm">
               <VStack borderRightWidth={1} spacing={0} h={32} pb={2}>
                 <ScorePie value={task.points} max={task.maxPoints} />
@@ -667,8 +837,33 @@ export default function Task({ type }: { type: "task" | "example" }) {
                 </Tag>
               </VStack>
             </SimpleGrid>
-          ) : null}
-          {derivedStartDate == null ||
+          ) : (
+            <VStack borderRightWidth={1} spacing={0} p={2}>
+              {task.status === "Active" ? (
+                // shown in the first two hours after an example is finished
+                <>
+                  <CircularProgress
+                    value={
+                      (task.submissions[task.submissions.length - 1]?.points ??
+                        0 / task.maxPoints) * 100
+                    }
+                    size={120}
+                    color="green.500"
+                  >
+                    <CircularProgressLabel
+                      fontFamily={"monospace"}
+                      fontSize={"3xl"}
+                    >
+                      {`${((task.submissions[task.submissions.length - 1]?.points ?? 0 / task.maxPoints) * 100).toFixed(0)}%`}
+                    </CircularProgressLabel>
+                  </CircularProgress>
+                  <Text>{t("Correctness")}</Text>
+                </>
+              ) : null}
+            </VStack>
+          )}
+          {isAssistant ||
+          derivedStartDate == null ||
           derivedEndDate == null ||
           derivedEndDate < Date.now() ? (
             <Accordion
@@ -819,6 +1014,15 @@ export default function Task({ type }: { type: "task" | "example" }) {
                 </AccordionPanel>
               </AccordionItem>
             </Accordion>
+          ) : null}
+          {task.nextAttemptAt !== null &&
+          derivedEndDate &&
+          derivedEndDate > Date.now() ? (
+            <VStack>
+              <Divider />
+              <Text color={"purple.600"}>{t("Submission Received")}</Text>
+              <Divider />
+            </VStack>
           ) : null}
         </Stack>
       </TaskView>
