@@ -383,6 +383,7 @@ const SubmissionInspector: React.FC<{
               mr={-1}
               key={i}
               onClick={() => handleCategorySelection(categoryKey)}
+              cursor={"pointer"}
             >
               <Box
                 position={"absolute"}
