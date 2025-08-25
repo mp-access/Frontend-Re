@@ -67,13 +67,7 @@ export const useCourse = (options: UseQueryOptions<CourseProps> = {}) => {
 export const usePublish = () => {
   const { courseSlug, exampleSlug } = useParams()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { mutateAsync } = useMutation<any, AxiosError, any[]>({
-    // TODO: type this correctly once backend res is known.
-    onSuccess: () => {
-      // just for now
-      console.log("Redirected")
-    },
-  })
+  const { mutateAsync } = useMutation<any, AxiosError, any[]>({})
 
   const publish = (duration: number) =>
     mutateAsync([

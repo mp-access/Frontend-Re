@@ -371,13 +371,8 @@ export const SubmissionsCarousel: React.FC<{
           height={"auto"}
         >
           {submissions.map((submission, i) => {
-            const VISIBLE_RANGE = 3
-            const isVisible =
-              Math.abs(i - currentIndex) <= VISIBLE_RANGE ||
-              (i < VISIBLE_RANGE &&
-                currentIndex > submissions.length - VISIBLE_RANGE) ||
-              (i > submissions.length - VISIBLE_RANGE &&
-                currentIndex < VISIBLE_RANGE)
+            const VISIBLE_RANGE = 1 // renders 1 to the left and right of current visible editor => 3 in total
+            const isVisible = Math.abs(i - currentIndex) <= VISIBLE_RANGE
 
             return (
               <Slide
