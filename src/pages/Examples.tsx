@@ -15,6 +15,7 @@ import {
   Td,
   Text,
   Tr,
+  useToast,
   VStack,
 } from "@chakra-ui/react"
 import { useQueryClient } from "@tanstack/react-query"
@@ -47,7 +48,6 @@ export const ExamplesCard: React.FC<{
   const { isSupervisor } = useOutletContext<UserContext>()
   const [examplesWithSubmissionCount, setExamplesWithSubmissionCount] =
     useState<(TaskOverview & { submissionCount: number })[] | null>(null)
-
   useEffect(() => {
     if (!isSupervisor) {
       // nr of submissions fetchable by supervisor only
@@ -130,16 +130,19 @@ export const ExamplesCard: React.FC<{
                       example.information["en"].title}
                   </Heading>
                 </Td>
-                <Td w="17em" maxW="17em">
-                  <VStack>
-                    {published ? (
-                      <Tag bg="transparent">
-                        <TagLeftIcon as={AiOutlineInfoCircle} />
-                        <TagLabel>{example.status}</TagLabel>
-                      </Tag>
-                    ) : null}
-                  </VStack>
-                </Td>
+                {isAssistant ? (
+                  <Td w="17em" maxW="17em">
+                    <VStack>
+                      {published ? (
+                        <Tag bg="transparent">
+                          <TagLeftIcon as={AiOutlineInfoCircle} />
+                          <TagLabel>{example.status}</TagLabel>
+                        </Tag>
+                      ) : null}
+                    </VStack>
+                  </Td>
+                ) : null}
+
                 <Td>
                   {example.start ? (
                     <VStack>
@@ -197,15 +200,33 @@ export const ExamplesCard: React.FC<{
 
 export default function Examples() {
   const { i18n, t } = useTranslation()
+  const toast = useToast()
   const currentLanguage = i18n.language
   const { isAssistant } = useOutletContext<UserContext>()
-  const { data: examples, refetch, isFetching } = useExamples() //  TODO: only get TaskOverview, not TaskProps, once related backend problem is fixed
+  const { data: examples, refetch, isLoading } = useExamples() //  TODO: only get TaskOverview, not TaskProps, once related backend problem is fixed
 
   useSSE<ExampleResetSsePayload>("example-reset", () => {
     refetch()
   })
 
-  if (!examples || isFetching) return <Placeholder />
+  useSSE<string>("published", () => {
+    refetch()
+    toast({
+      title: t("A new lecture example just has has been published"),
+      status: "info",
+    })
+  })
+
+  useEffect(() => {
+    // to ensure update of exmaple states when no manual termination was triggered
+    const interval = setInterval(() => {
+      refetch()
+    }, 1000 * 10)
+
+    return () => clearInterval(interval)
+  }, [refetch])
+
+  if (!examples || isLoading) return <Placeholder />
 
   const [unpublishedExaples, publishedExamples] = fork(
     examples,
