@@ -15,8 +15,15 @@ const CustomBar: React.FC<{
   name: string
   value: number
   testCaseSelection: Record<string, boolean> | null
+  failedForCurrentImplementation: boolean | null
   handleOnBarClick: (name: string) => void
-}> = ({ name, value, testCaseSelection, handleOnBarClick }) => {
+}> = ({
+  name,
+  value,
+  testCaseSelection,
+  failedForCurrentImplementation,
+  handleOnBarClick,
+}) => {
   const selectedColor = "purple.500"
   const unselectedColor = "purple.200"
 
@@ -41,6 +48,14 @@ const CustomBar: React.FC<{
       <Text position={"absolute"} right={2} zIndex={1}>
         {value.toFixed()}%
       </Text>
+      <Box
+        position={"absolute"}
+        background={failedForCurrentImplementation ? "red.400" : "transparent"}
+        right={0}
+        height={"full"}
+        width={2}
+        borderRightRadius={"lg"}
+      />
       <Flex
         flex={Math.max(value, 1)}
         height={10}
@@ -62,8 +77,14 @@ type BarChartData = {
 const CustomBarChart: React.FC<{
   data: BarChartData[]
   testCaseSelection: Record<string, boolean> | null
+  namedTestsPassedCurrentSubmission: Record<string, boolean> | null
   handleOnBarClick: (name: string) => void
-}> = ({ data, testCaseSelection, handleOnBarClick }) => {
+}> = ({
+  data,
+  testCaseSelection,
+  namedTestsPassedCurrentSubmission,
+  handleOnBarClick,
+}) => {
   return (
     <VStack width={"full"} overflow={"auto"} align={"space-around"} gap={3}>
       {data.map((entry, i) => (
@@ -72,6 +93,11 @@ const CustomBarChart: React.FC<{
           value={entry.value}
           testCaseSelection={testCaseSelection}
           handleOnBarClick={handleOnBarClick}
+          failedForCurrentImplementation={
+            namedTestsPassedCurrentSubmission
+              ? !namedTestsPassedCurrentSubmission[entry.name]
+              : null
+          }
           key={i}
         />
       ))}
@@ -85,6 +111,8 @@ export const TestCaseBarChart: React.FC<{
   passRatePerTestCase: Record<string, number>
   exactMatch: boolean
   testCaseSelection: Record<string, boolean> | null
+  namedTestsPassedCurrentSubmission: Record<string, boolean> | null
+
   setTestCaseSelection: React.Dispatch<
     SetStateAction<Record<string, boolean> | null>
   >
@@ -93,6 +121,7 @@ export const TestCaseBarChart: React.FC<{
   passRatePerTestCase,
   exactMatch,
   testCaseSelection,
+  namedTestsPassedCurrentSubmission,
   setTestCaseSelection,
   setExactMatch,
 }) => {
@@ -187,6 +216,7 @@ export const TestCaseBarChart: React.FC<{
           data={sortedData}
           testCaseSelection={testCaseSelection}
           handleOnBarClick={handleOnBarClick}
+          namedTestsPassedCurrentSubmission={namedTestsPassedCurrentSubmission}
         />
       </Box>
 
