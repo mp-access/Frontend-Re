@@ -1,3 +1,4 @@
+import { InfoOutlineIcon } from "@chakra-ui/icons"
 import {
   Box,
   BoxProps,
@@ -15,31 +16,43 @@ import {
   Tooltip,
   VStack,
 } from "@chakra-ui/react"
-import React from "react"
-import { Link } from "react-router-dom"
-import { ActionIcon } from "./Icons"
-import { FcCalendar } from "react-icons/fc"
-import { InfoOutlineIcon } from "@chakra-ui/icons"
 import { flatMap, get, keys } from "lodash"
 import Countdown, { CountdownProps } from "react-countdown"
 import { useTranslation } from "react-i18next"
+import { FcCalendar } from "react-icons/fc"
+import { Link } from "react-router-dom"
+import { ActionIcon } from "./Icons"
 
 type EventBoxProps = {
   selected: string
   events: Record<string, Record<string, AssignmentProps[]>>
 }
 
-export const LogoButton = () => (
-  <Box
-    as={Link}
-    to="/courses"
-    fontFamily="monospace"
-    fontSize="4xl"
-    pt={2}
-    _hover={{ color: "purple.500" }}
-    children="ACCESS."
-  />
-)
+export const LogoButton: React.FC<{ disabled: boolean }> = ({ disabled }) => {
+  if (disabled) {
+    return (
+      <Box
+        fontFamily="monospace"
+        fontSize="4xl"
+        pt={2}
+        children="ACCESS."
+        cursor={"not-allowed"}
+      />
+    )
+  }
+
+  return (
+    <Box
+      as={Link}
+      to="/courses"
+      fontFamily="monospace"
+      fontSize="4xl"
+      pt={2}
+      _hover={{ color: "purple.500" }}
+      children="ACCESS."
+    />
+  )
+}
 
 export const TooltipIconButton = ({
   "aria-label": label,
@@ -117,7 +130,7 @@ export const EventBox = ({ selected, events }: EventBoxProps) => {
                 {get(a, key + "Time")}
               </Text>
             </HStack>
-          ))
+          )),
         )}
       </Stack>
     </Stack>

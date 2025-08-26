@@ -115,7 +115,11 @@ export default function Layout() {
         zIndex={1}
       >
         <HStack p={3}>
-          <LogoButton />
+          <LogoButton
+            disabled={
+              !context.isAssistant && exampleStatusContext.hasInteractive
+            }
+          />
           {courseSlug && <CourseNav isAssistant={context.isAssistant} />}
         </HStack>
         <HStack>
