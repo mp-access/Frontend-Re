@@ -212,7 +212,7 @@ export default function Examples() {
   useSSE<string>("published", () => {
     refetch()
     toast({
-      title: t("A new lecture example just has has been published"),
+      title: t("A new lecture example just has been published"),
       status: "info",
     })
   })
