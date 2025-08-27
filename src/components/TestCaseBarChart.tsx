@@ -51,9 +51,7 @@ const CustomBar: React.FC<{
           height={2}
           width={2}
           borderRadius={"full"}
-          background={
-            failedForCurrentImplementation ? "red.500" : "transparent"
-          }
+          background={failedForCurrentImplementation ? "red.500" : "green.500"}
         />
       </Flex>
       <Flex
