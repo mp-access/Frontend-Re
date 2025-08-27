@@ -388,6 +388,7 @@ const SubmissionInspector: React.FC<{
               h={9}
               position={"relative"}
               flex={category.ids.length}
+              minWidth={16}
               bgColor={bgColor}
               roundedLeft={i === 0 ? 8 : 0}
               roundedRight={i === lastIndex ? 8 : 0}
