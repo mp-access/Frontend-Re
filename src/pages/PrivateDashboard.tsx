@@ -187,6 +187,9 @@ const SubmissionInspector: React.FC<{
   selectedFileName: string | null
   disableCategorization: boolean
   setSelectedFileName: React.Dispatch<SetStateAction<string | null>>
+  setTestsPassedCurrentSubmission: React.Dispatch<
+    SetStateAction<number[] | null>
+  >
   setLastDisplayedSubmissionId: React.Dispatch<SetStateAction<number | null>>
   setCategories: React.Dispatch<React.SetStateAction<CategoriesType>>
   setSelectedCategory: React.Dispatch<SetStateAction<string | null>>
@@ -204,6 +207,7 @@ const SubmissionInspector: React.FC<{
   disableCategorization,
   setSelectedFileName,
   setLastDisplayedSubmissionId,
+  setTestsPassedCurrentSubmission,
   setSelectedCategory,
   setCategories,
   getSubmissionColor,
@@ -468,6 +472,7 @@ const SubmissionInspector: React.FC<{
         getSubmissionColor={getSubmissionColor}
         selectedFileName={selectedFileName}
         setSelectedFileName={setSelectedFileName}
+        setTestsPassedCurrentSubmission={setTestsPassedCurrentSubmission}
       />
     </Flex>
   )
@@ -758,6 +763,25 @@ export function PrivateDashboard() {
   const [categories, setCategories] = useState<CategoriesType>({})
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null)
+  const [testsPassedCurrentSubmission, setTestsPassedCurrentSubmission] =
+    useState<number[] | null>(null)
+
+  const namedTestsPassedCurrentSubmission: Record<string, boolean> | null =
+    useMemo(() => {
+      if (!testsPassedCurrentSubmission || !exampleInformation) {
+        return null
+      }
+
+      const withNames = Object.keys(
+        exampleInformation.passRatePerTestCase,
+      ).reduce<Record<string, boolean>>((acc, testName, i) => {
+        acc[testName] = !!testsPassedCurrentSubmission[i]
+        return acc
+      }, {})
+
+      return withNames
+    }, [exampleInformation, testsPassedCurrentSubmission])
+
   const getSubmissionColor = (submissionId: number) => {
     const foundColor = Object.values(categories).filter((category) =>
       category.ids.includes(submissionId),
@@ -1025,6 +1049,9 @@ export function PrivateDashboard() {
                 setExactMatch={setExactMatch}
                 testCaseSelection={testCaseSelection}
                 setTestCaseSelection={setTestCaseSelection}
+                namedTestsPassedCurrentSubmission={
+                  namedTestsPassedCurrentSubmission
+                }
               />
             </TabPanel>
             <TabPanel display={"flex"} flex={1}>
@@ -1060,6 +1087,7 @@ export function PrivateDashboard() {
               setSelectedCategory={setSelectedCategory}
               selectedFileName={selectedFileName}
               setSelectedFileName={setSelectedFileName}
+              setTestsPassedCurrentSubmission={setTestsPassedCurrentSubmission}
               disableCategorization={disableCategorization}
             />
           )}
