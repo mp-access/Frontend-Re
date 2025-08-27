@@ -694,8 +694,10 @@ export function PrivateDashboard() {
   const { publish } = usePublish()
   const toast = useToast()
   const { terminate } = useTerminate()
-  const { data: fetchedSubmissions, refetch: refetchStudentSubmissions } =
-    useStudentSubmissions()
+  const {
+    data: informationWithSubmissions,
+    refetch: refetchInformationWithSubmissions,
+  } = useStudentSubmissions()
   const { resetExample } = useResetExample()
   const [durationInSeconds, setDurationInSeconds] = useState<number>(150)
   const [exampleState, setExampleState] = useState<ExampleState | null>(null)
@@ -784,8 +786,7 @@ export function PrivateDashboard() {
     try {
       setExampleState("resetting")
       await resetExample()
-      const submissionsData = await refetchStudentSubmissions()
-
+      const submissionsData = await refetchInformationWithSubmissions()
       if (
         submissionsData.data === undefined ||
         submissionsData.data?.submissions?.length > 0
@@ -807,7 +808,7 @@ export function PrivateDashboard() {
       console.log("An error occured when resetting the example: ", e)
       setExampleState("finished")
     }
-  }, [refetchStudentSubmissions, resetExample, setBookmarks, toast])
+  }, [refetchInformationWithSubmissions, resetExample, setBookmarks, toast])
   const handleOnBookmarkClick = useCallback(
     (submission: SubmissionSsePayload) => {
       const submissionBookmark: Bookmark = {
@@ -907,23 +908,22 @@ export function PrivateDashboard() {
   )
 
   useEffect(() => {
-    if (fetchedSubmissions) {
+    if (informationWithSubmissions) {
       setSubmissions(
-        fetchedSubmissions.submissions.sort(
+        informationWithSubmissions.submissions.sort(
           (a, b) => Date.parse(a.date) - Date.parse(b.date),
         ),
       )
 
-      setExampleInformation(fetchedSubmissions)
+      setExampleInformation(informationWithSubmissions)
       const initialSelectedTests = Object.fromEntries(
-        Object.keys(fetchedSubmissions.passRatePerTestCase).map((testName) => [
-          testName,
-          false,
-        ]),
+        Object.keys(informationWithSubmissions.passRatePerTestCase).map(
+          (testName) => [testName, false],
+        ),
       )
       setTestCaseSelection(initialSelectedTests)
     }
-  }, [fetchedSubmissions])
+  }, [informationWithSubmissions])
 
   useEffect(() => {
     if (!derivedEndDate || !derivedEndDate) {
