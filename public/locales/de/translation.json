@@ -65,6 +65,8 @@
   "Descending": "Absteigend",
   "Default": "Standard",
   "redirect_toast": "Weitergeleitet zum veröffentlichten Beispiel",
-  "Submission Successful": "Abgabe Erfolgreich",
-  "A new lecture example just has been published": "Eine neues Vorlesungsbeispiel wurde gerade eben veröffentlicht."
+  "A new lecture example just has been published": "Eine neues Vorlesungsbeispiel wurde gerade eben veröffentlicht.",
+  "submission_received": "Abgabe erhalten",
+  "feedback_info": "Feedback wird nach Ablauf der Zeit bereitgestellt.",
+  "no_bookmarks": "Es wurden noch keine Lesezeichen gesetzt."
 }

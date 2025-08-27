@@ -72,12 +72,14 @@ type ExampleState =
   | "unpublished"
   | "publishing"
   | "ongoing"
+  | "terminating"
   | "finished"
   | "resetting"
 
-const TerminationDialog: React.FC<{ handleTermination: () => void }> = ({
-  handleTermination,
-}) => {
+const TerminationDialog: React.FC<{
+  handleTermination: () => void
+  exampleState: ExampleState
+}> = ({ handleTermination, exampleState }) => {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const cancelRef = useRef<HTMLButtonElement>(null)
   return (
@@ -109,6 +111,7 @@ const TerminationDialog: React.FC<{ handleTermination: () => void }> = ({
               onClick={handleTermination}
               colorScheme="red"
               backgroundColor={"red.600"}
+              isDisabled={exampleState === "terminating"}
             >
               {t("Terminate")}
             </Button>
@@ -158,6 +161,7 @@ const ResetDialog: React.FC<{
               onClick={handleReset}
               colorScheme="red"
               backgroundColor={"red.600"}
+              isDisabled={exampleState === "resetting"}
             >
               {t("Reset")}
             </Button>
@@ -181,6 +185,7 @@ const SubmissionInspector: React.FC<{
   categories: CategoriesType
   selectedCategory: string | null
   selectedFileName: string | null
+  disableCategorization: boolean
   setSelectedFileName: React.Dispatch<SetStateAction<string | null>>
   setTestsPassedCurrentSubmission: React.Dispatch<
     SetStateAction<number[] | null>
@@ -199,6 +204,7 @@ const SubmissionInspector: React.FC<{
   categories,
   selectedCategory,
   selectedFileName,
+  disableCategorization,
   setSelectedFileName,
   setLastDisplayedSubmissionId,
   setTestsPassedCurrentSubmission,
@@ -359,6 +365,11 @@ const SubmissionInspector: React.FC<{
     return Object.values(categories).map((category) => category.color)
   }, [categories])
 
+  const nrOfCategories = useMemo(
+    () => Object.entries(categories).length,
+    [categories],
+  )
+
   const bgColors = useToken(
     "colors",
     categoryColorNames.map((color) => `${color}.200`),
@@ -381,6 +392,7 @@ const SubmissionInspector: React.FC<{
               h={9}
               position={"relative"}
               flex={category.ids.length}
+              minWidth={16}
               bgColor={bgColor}
               roundedLeft={i === 0 ? 8 : 0}
               roundedRight={i === lastIndex ? 8 : 0}
@@ -430,7 +442,7 @@ const SubmissionInspector: React.FC<{
                 whiteSpace={"nowrap"}
                 textShadow={`-1px -1px 0 ${selectedColor}, 1px -1px 0 ${selectedColor}, -1px 1px 0 ${selectedColor}, 1px 1px 0 ${selectedColor}`}
               >
-                {category.ids.length} | Ø: {category.avgScore.toFixed(2)}
+                {category.ids.length} | Ø: {category.avgScore.toFixed(1)}
               </Grid>
             </Box>
           )
@@ -444,8 +456,9 @@ const SubmissionInspector: React.FC<{
           onClick={handleFetchCategories}
           disabled={submissions.length < 5 || isLoading}
           isLoading={isLoading}
+          isDisabled={disableCategorization}
         >
-          Re-categorize
+          {nrOfCategories > 1 ? "Re-categorize" : "Categorize"}
         </Button>
       </Flex>
 
@@ -688,7 +701,10 @@ const ExampleTimeController: React.FC<{
         <Button variant={"outline"} onClick={() => handleExtendTime(60)}>
           +60
         </Button>
-        <TerminationDialog handleTermination={handleTermination} />
+        <TerminationDialog
+          handleTermination={handleTermination}
+          exampleState={exampleState}
+        />
       </Flex>
     )
   }
@@ -788,6 +804,16 @@ export function PrivateDashboard() {
     setExampleInformation(data)
   })
 
+  const disableCategorization = useMemo(() => {
+    if (!exampleInformation) return true
+
+    return (
+      exampleInformation.numberOfProcessedSubmissionsWithEmbeddings < 5 &&
+      exampleInformation.numberOfReceivedSubmissions !==
+        exampleInformation.numberOfProcessedSubmissions
+    )
+  }, [exampleInformation])
+
   const handleTimeAdjustment = useCallback(
     (value: number) => {
       setDurationInSeconds((oldVal) => Math.max(15, oldVal + value))
@@ -804,9 +830,11 @@ export function PrivateDashboard() {
 
   const handleTermination = useCallback(async () => {
     try {
+      setExampleState("terminating")
       await terminate()
       setExampleState("finished")
     } catch (e) {
+      setExampleState("ongoing")
       console.log("Error terminating example: ", e)
     }
   }, [terminate])
@@ -829,6 +857,9 @@ export function PrivateDashboard() {
         return
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { submissions, ...infoWithoutSubmission } = submissionsData.data
+      setExampleInformation(infoWithoutSubmission)
       setSubmissions(null)
       setCategories({})
       setExampleState("unpublished")
@@ -883,7 +914,6 @@ export function PrivateDashboard() {
       testCaseSelection,
     ],
   )
-
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
     if (!example) {
       return [null, null]
@@ -1056,6 +1086,7 @@ export function PrivateDashboard() {
               selectedFileName={selectedFileName}
               setSelectedFileName={setSelectedFileName}
               setTestsPassedCurrentSubmission={setTestsPassedCurrentSubmission}
+              disableCategorization={disableCategorization}
             />
           )}
         </Flex>

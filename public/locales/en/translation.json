@@ -57,7 +57,9 @@
   "Descending": "Descending",
   "Default": "Default",
   "redirect_toast": "Redirected to published example",
-  "Submission Successful": "Submission Successful",
   "Correctness": "Correctness",
-  "A new lecture example just has been published": "A new lecture example just has has been published"
+  "A new lecture example just has been published": "A new lecture example just has has been published",
+  "submission_received": "Submision received",
+  "feedback_info": "Feedback will be provided once the time runs out.",
+  "no_bookmarks": "No bookmarks have been set yet."
 }
