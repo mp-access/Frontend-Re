@@ -72,12 +72,14 @@ type ExampleState =
   | "unpublished"
   | "publishing"
   | "ongoing"
+  | "terminating"
   | "finished"
   | "resetting"
 
-const TerminationDialog: React.FC<{ handleTermination: () => void }> = ({
-  handleTermination,
-}) => {
+const TerminationDialog: React.FC<{
+  handleTermination: () => void
+  exampleState: ExampleState
+}> = ({ handleTermination, exampleState }) => {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const cancelRef = useRef<HTMLButtonElement>(null)
   return (
@@ -109,6 +111,7 @@ const TerminationDialog: React.FC<{ handleTermination: () => void }> = ({
               onClick={handleTermination}
               colorScheme="red"
               backgroundColor={"red.600"}
+              isDisabled={exampleState === "terminating"}
             >
               {t("Terminate")}
             </Button>
@@ -158,6 +161,7 @@ const ResetDialog: React.FC<{
               onClick={handleReset}
               colorScheme="red"
               backgroundColor={"red.600"}
+              isDisabled={exampleState === "resetting"}
             >
               {t("Reset")}
             </Button>
@@ -683,7 +687,10 @@ const ExampleTimeController: React.FC<{
         <Button variant={"outline"} onClick={() => handleExtendTime(60)}>
           +60
         </Button>
-        <TerminationDialog handleTermination={handleTermination} />
+        <TerminationDialog
+          handleTermination={handleTermination}
+          exampleState={exampleState}
+        />
       </Flex>
     )
   }
@@ -780,9 +787,11 @@ export function PrivateDashboard() {
 
   const handleTermination = useCallback(async () => {
     try {
+      setExampleState("terminating")
       await terminate()
       setExampleState("finished")
     } catch (e) {
+      setExampleState("ongoing")
       console.log("Error terminating example: ", e)
     }
   }, [terminate])
