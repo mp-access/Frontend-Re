@@ -808,11 +808,9 @@ export function PrivateDashboard() {
     if (!exampleInformation) return true
 
     return (
-      exampleInformation.numberOfProcessedSubmissionsWithEmbeddings < 5 ||
-      // allows re-triggering embedding calculation when stale
-      (exampleInformation.numberOfProcessedSubmissions <= 5 &&
-        exampleInformation.numberOfReceivedSubmissions !==
-          exampleInformation.numberOfProcessedSubmissionsWithEmbeddings)
+      exampleInformation.numberOfProcessedSubmissionsWithEmbeddings < 5 &&
+      exampleInformation.numberOfReceivedSubmissions !==
+        exampleInformation.numberOfProcessedSubmissions
     )
   }, [exampleInformation])
 
