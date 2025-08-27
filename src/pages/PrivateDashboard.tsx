@@ -185,6 +185,7 @@ const SubmissionInspector: React.FC<{
   categories: CategoriesType
   selectedCategory: string | null
   selectedFileName: string | null
+  disableCategorization: boolean
   setSelectedFileName: React.Dispatch<SetStateAction<string | null>>
   setLastDisplayedSubmissionId: React.Dispatch<SetStateAction<number | null>>
   setCategories: React.Dispatch<React.SetStateAction<CategoriesType>>
@@ -200,6 +201,7 @@ const SubmissionInspector: React.FC<{
   categories,
   selectedCategory,
   selectedFileName,
+  disableCategorization,
   setSelectedFileName,
   setLastDisplayedSubmissionId,
   setSelectedCategory,
@@ -359,6 +361,11 @@ const SubmissionInspector: React.FC<{
     return Object.values(categories).map((category) => category.color)
   }, [categories])
 
+  const nrOfCategories = useMemo(
+    () => Object.entries(categories).length,
+    [categories],
+  )
+
   const bgColors = useToken(
     "colors",
     categoryColorNames.map((color) => `${color}.200`),
@@ -430,7 +437,7 @@ const SubmissionInspector: React.FC<{
                 whiteSpace={"nowrap"}
                 textShadow={`-1px -1px 0 ${selectedColor}, 1px -1px 0 ${selectedColor}, -1px 1px 0 ${selectedColor}, 1px 1px 0 ${selectedColor}`}
               >
-                {category.ids.length} | Ø: {category.avgScore.toFixed(2)}
+                {category.ids.length} | Ø: {category.avgScore.toFixed(1)}
               </Grid>
             </Box>
           )
@@ -444,8 +451,9 @@ const SubmissionInspector: React.FC<{
           onClick={handleFetchCategories}
           disabled={submissions.length < 5 || isLoading}
           isLoading={isLoading}
+          isDisabled={disableCategorization}
         >
-          Re-categorize
+          {nrOfCategories > 1 ? "Re-categorize" : "Categorize"}
         </Button>
       </Flex>
 
@@ -771,6 +779,18 @@ export function PrivateDashboard() {
     setExampleInformation(data)
   })
 
+  const disableCategorization = useMemo(() => {
+    if (!exampleInformation) return true
+
+    return (
+      exampleInformation.numberOfProcessedSubmissionsWithEmbeddings < 5 ||
+      // allows re-triggering embedding calculation when stale
+      (exampleInformation.numberOfProcessedSubmissions <= 5 &&
+        exampleInformation.numberOfReceivedSubmissions !==
+          exampleInformation.numberOfProcessedSubmissionsWithEmbeddings)
+    )
+  }, [exampleInformation])
+
   const handleTimeAdjustment = useCallback(
     (value: number) => {
       setDurationInSeconds((oldVal) => Math.max(15, oldVal + value))
@@ -1039,6 +1059,7 @@ export function PrivateDashboard() {
               setSelectedCategory={setSelectedCategory}
               selectedFileName={selectedFileName}
               setSelectedFileName={setSelectedFileName}
+              disableCategorization={disableCategorization}
             />
           )}
         </Flex>
