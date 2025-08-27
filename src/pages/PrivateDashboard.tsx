@@ -805,6 +805,9 @@ export function PrivateDashboard() {
         return
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { submissions, ...infoWithoutSubmission } = submissionsData.data
+      setExampleInformation(infoWithoutSubmission)
       setSubmissions(null)
       setCategories({})
       setExampleState("unpublished")
@@ -859,7 +862,6 @@ export function PrivateDashboard() {
       testCaseSelection,
     ],
   )
-
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
     if (!example) {
       return [null, null]
