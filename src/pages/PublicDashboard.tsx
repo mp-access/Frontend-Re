@@ -39,7 +39,7 @@ import {
 import { Markdown, Placeholder } from "../components/Panels"
 
 const PointsHistogram: React.FC<{
-  data: PointDistribution | undefined
+  data: PointDistribution | null
   isFetching: boolean
 }> = ({ data, isFetching }) => {
   const mappedPointDistribution = useMemo(() => {
@@ -125,6 +125,9 @@ export function PublicDashboard() {
   const [exampleInformation, setExampleInformation] =
     useState<ExampleInformation | null>(null)
 
+  const [pointDistribution, setPointDistribution] =
+    useState<PointDistribution | null>(null)
+
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
     if (!example) {
       return [null, null]
@@ -141,7 +144,7 @@ export function PublicDashboard() {
   }, [example, timeFrameFromEvent])
 
   const { timeLeftInSeconds } = useCountdown(derivedStartDate, derivedEndDate)
-  const { data: pointsDistribution, isFetching: isFetchingDistrib } =
+  const { data: fetchedPointDistribution, isFetching: isFetchingDistrib } =
     useExamplePointDistribution({
       enabled: timeLeftInSeconds === 0,
     })
@@ -174,12 +177,22 @@ export function PublicDashboard() {
     setExampleInformation(data)
   })
 
+  useSSE<PointDistribution>("point-distribution", (data) => {
+    setPointDistribution(data)
+  })
+
   useSSE<string>("example-reset", async () => {
     const refetchedInfo = await refetchInitialExampleInformation()
     if (refetchedInfo.data !== undefined) {
       setExampleInformation(refetchedInfo.data)
     }
   })
+
+  useEffect(() => {
+    if (fetchedPointDistribution) {
+      setPointDistribution(fetchedPointDistribution)
+    }
+  }, [fetchedPointDistribution])
 
   useEffect(() => {
     if (initialExampleInformation) {
@@ -258,7 +271,7 @@ export function PublicDashboard() {
         {showHistogram ? (
           <Flex flex={1} layerStyle={"segment"} direction={"column"}>
             <PointsHistogram
-              data={pointsDistribution}
+              data={pointDistribution}
               isFetching={isFetchingDistrib}
             />
           </Flex>
