@@ -9,11 +9,10 @@ import {
   VStack,
 } from "@chakra-ui/react"
 import { useKeycloak } from "@react-keycloak/web"
-import React from "react"
-import Typewriter from "typewriter-effect"
-import { SWITCHIcon } from "../components/Icons"
 import { Navigate } from "react-router-dom"
+import Typewriter from "typewriter-effect"
 import { LogoButton } from "../components/Buttons"
+import { SWITCHIcon } from "../components/Icons"
 
 export function Landing() {
   const { keycloak } = useKeycloak()

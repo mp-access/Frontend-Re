@@ -28,7 +28,7 @@ type EventBoxProps = {
   events: Record<string, Record<string, AssignmentProps[]>>
 }
 
-export const LogoButton: React.FC<{ disabled: boolean }> = ({ disabled }) => {
+export const LogoButton: React.FC<{ disabled?: boolean }> = ({ disabled }) => {
   if (disabled) {
     return (
       <Box
