@@ -29,7 +29,7 @@ import {
 } from "@chakra-ui/react"
 import { useTranslation } from "react-i18next"
 import { BsFillCircleFill } from "react-icons/bs"
-import { GoChecklist } from "react-icons/go"
+import { GoChecklist, GoInbox } from "react-icons/go"
 import { Cell, Pie, PieChart } from "recharts"
 
 import { t } from "i18next"
@@ -41,6 +41,8 @@ import React, {
   useRef,
   useState,
 } from "react"
+import { LuBrain } from "react-icons/lu"
+import { useOutletContext, useParams } from "react-router-dom"
 import { CountdownTimer } from "../components/CountdownTimer"
 import { RotateFromRightIcon } from "../components/CustomIcons"
 import {
@@ -56,8 +58,6 @@ import {
   useTerminate,
   useTimeframeFromSSE,
 } from "../components/Hooks"
-
-import { useOutletContext, useParams } from "react-router-dom"
 import { Markdown, Placeholder } from "../components/Panels"
 import {
   getFilteredSubmissions,
@@ -426,7 +426,7 @@ const SubmissionInspector: React.FC<{
                 whiteSpace={"nowrap"}
                 textShadow={`-1px -1px 0 ${selectedColor}, 1px -1px 0 ${selectedColor}, -1px 1px 0 ${selectedColor}, 1px 1px 0 ${selectedColor}`}
               >
-                {category.ids.length} | Avg: {category.avgScore.toFixed(2)}
+                {category.ids.length} | Ø: {category.avgScore.toFixed(2)}
               </Grid>
             </Box>
           )
@@ -512,23 +512,11 @@ const GeneralInformation: React.FC<{
   const {
     participantsOnline,
     totalParticipants,
-    numberOfStudentsWhoSubmitted,
+    numberOfReceivedSubmissions,
+    numberOfProcessedSubmissions,
+    numberOfProcessedSubmissionsWithEmbeddings,
     avgPoints,
   } = generalInformation
-  const submissionsProgress = useMemo(() => {
-    if (participantsOnline <= 0 && numberOfStudentsWhoSubmitted <= 0) {
-      return 0
-    }
-
-    if (
-      (participantsOnline <= 0 && numberOfStudentsWhoSubmitted > 0) ||
-      numberOfStudentsWhoSubmitted >= participantsOnline
-    ) {
-      return 100
-    } else {
-      return numberOfStudentsWhoSubmitted / participantsOnline
-    }
-  }, [numberOfStudentsWhoSubmitted, participantsOnline])
 
   return (
     <HStack p={0} minW={200} gap={5}>
@@ -540,21 +528,38 @@ const GeneralInformation: React.FC<{
       </Tag>
       {exampleState === "ongoing" || exampleState === "finished" ? (
         <>
-          <HStack>
-            <Icon as={GoChecklist} />
-            <Text color={"gray.500"} display={"flex"}>
-              {exampleState === "ongoing"
-                ? `${numberOfStudentsWhoSubmitted}/${Math.max(numberOfStudentsWhoSubmitted, participantsOnline)}` // if participants online not correctly updated, UI should not break
-                : numberOfStudentsWhoSubmitted}
-            </Text>
-            <CustomPieChart value={submissionsProgress} />
-          </HStack>
-
-          <HStack overflow={"auto"}>
-            <Text color={"gray.500"} display={"flex"}>
-              Avg. Points: {avgPoints.toFixed(2) ?? "-"}
-            </Text>
-            <CustomPieChart value={avgPoints * 100} />
+          <HStack gap={3}>
+            <HStack width={12}>
+              <Icon as={GoInbox} />
+              <Text color={"gray.500"} display={"flex"}>
+                {exampleState === "ongoing"
+                  ? `${numberOfReceivedSubmissions}`
+                  : numberOfReceivedSubmissions}
+              </Text>
+            </HStack>
+            <HStack gap={1} width={12}>
+              <Icon as={GoChecklist} />
+              <Text color={"gray.500"} display={"flex"}>
+                {numberOfProcessedSubmissions}
+              </Text>
+            </HStack>
+            <HStack gap={1} width={12}>
+              <Icon as={LuBrain} />
+              <Text color={"gray.500"} display={"flex"}>
+                {numberOfProcessedSubmissionsWithEmbeddings}
+              </Text>
+            </HStack>
+            <HStack overflow={"auto"}>
+              <Text
+                color={"gray.500"}
+                display={"flex"}
+                width={14}
+                justifyContent={"center"}
+              >
+                Ø {avgPoints.toFixed(2) ?? "-"}
+              </Text>
+              <CustomPieChart value={avgPoints * 100} />
+            </HStack>
           </HStack>
         </>
       ) : null}
@@ -1039,8 +1044,8 @@ export function PrivateDashboard() {
             exampleState={exampleState}
             generalInformation={{
               ...exampleInformation,
-              numberOfStudentsWhoSubmitted: Math.max(
-                exampleInformation.numberOfStudentsWhoSubmitted,
+              numberOfReceivedSubmissions: Math.max(
+                exampleInformation.numberOfReceivedSubmissions,
                 submissions?.length || 0,
               ),
             }}

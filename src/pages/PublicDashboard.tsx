@@ -148,11 +148,11 @@ export function PublicDashboard() {
   const showHistogram = useMemo(() => {
     if (
       timeLeftInSeconds === null ||
-      exampleInformation?.numberOfStudentsWhoSubmitted == 0
+      exampleInformation?.numberOfReceivedSubmissions == 0
     )
       return false
     return !timeLeftInSeconds
-  }, [exampleInformation?.numberOfStudentsWhoSubmitted, timeLeftInSeconds])
+  }, [exampleInformation?.numberOfReceivedSubmissions, timeLeftInSeconds])
 
   useSSE<string>("inspect", (editorURL) => {
     if (!editorURL) {
@@ -192,21 +192,21 @@ export function PublicDashboard() {
       !example ||
       !exampleInformation ||
       (exampleInformation.participantsOnline <= 0 &&
-        exampleInformation.numberOfStudentsWhoSubmitted <= 0)
+        exampleInformation.numberOfReceivedSubmissions <= 0)
     ) {
       return 0
     }
 
-    const { participantsOnline, numberOfStudentsWhoSubmitted } =
+    const { participantsOnline, numberOfReceivedSubmissions } =
       exampleInformation
 
     if (
-      (participantsOnline <= 0 && numberOfStudentsWhoSubmitted > 0) ||
-      numberOfStudentsWhoSubmitted >= participantsOnline
+      (participantsOnline <= 0 && numberOfReceivedSubmissions > 0) ||
+      numberOfReceivedSubmissions >= participantsOnline
     ) {
       return 100
     } else {
-      return (numberOfStudentsWhoSubmitted / participantsOnline) * 100
+      return (numberOfReceivedSubmissions / participantsOnline) * 100
     }
   }, [example, exampleInformation])
 
@@ -296,9 +296,9 @@ export function PublicDashboard() {
             <CircularProgressLabel fontFamily={"monospace"}>
               {Math.round(submissionsProgress)}%
               <CircularProgressLabel insetY={12} fontSize={16}>
-                {exampleInformation.numberOfStudentsWhoSubmitted}/
+                {exampleInformation.numberOfReceivedSubmissions}/
                 {Math.max(
-                  exampleInformation.numberOfStudentsWhoSubmitted,
+                  exampleInformation.numberOfReceivedSubmissions,
                   exampleInformation.participantsOnline,
                 )}
                 {/* if participants online not correctly updated, UI should not break */}

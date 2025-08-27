@@ -67,7 +67,7 @@ export const ExamplesCard: React.FC<{
         queryKey,
       })
 
-      return data.numberOfStudentsWhoSubmitted
+      return data.numberOfReceivedSubmissions
     }
 
     const fetchAllSubmissionCounts = async () => {
