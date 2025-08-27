@@ -45,17 +45,17 @@ const CustomBar: React.FC<{
       <Text justifyContent={"center"} pl={2} position={"absolute"} zIndex={1}>
         {name}
       </Text>
-      <Text position={"absolute"} right={2} zIndex={1}>
-        {value.toFixed()}%
-      </Text>
-      <Box
-        position={"absolute"}
-        background={failedForCurrentImplementation ? "red.400" : "transparent"}
-        right={0}
-        height={"full"}
-        width={2}
-        borderRightRadius={"lg"}
-      />
+      <Flex position={"absolute"} right={2} zIndex={1} align={"center"} gap={2}>
+        <Text>{value.toFixed()}%</Text>
+        <Box
+          height={2}
+          width={2}
+          borderRadius={"full"}
+          background={
+            failedForCurrentImplementation ? "red.500" : "transparent"
+          }
+        />
+      </Flex>
       <Flex
         flex={Math.max(value, 1)}
         height={10}
