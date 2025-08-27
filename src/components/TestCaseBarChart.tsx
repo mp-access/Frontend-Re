@@ -47,12 +47,16 @@ const CustomBar: React.FC<{
       </Text>
       <Flex position={"absolute"} right={2} zIndex={1} align={"center"} gap={2}>
         <Text>{value.toFixed()}%</Text>
-        <Box
-          height={2}
-          width={2}
-          borderRadius={"full"}
-          background={failedForCurrentImplementation ? "red.500" : "green.500"}
-        />
+        {failedForCurrentImplementation !== null ? (
+          <Box
+            height={2}
+            width={2}
+            borderRadius={"full"}
+            background={
+              failedForCurrentImplementation ? "red.500" : "green.500"
+            }
+          />
+        ) : null}
       </Flex>
       <Flex
         flex={Math.max(value, 1)}
