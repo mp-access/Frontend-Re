@@ -863,6 +863,7 @@ export function PrivateDashboard() {
       setSubmissions(null)
       setCategories({})
       setExampleState("unpublished")
+      setTestsPassedCurrentSubmission(null)
       setBookmarks(null)
     } catch (e) {
       console.log("An error occured when resetting the example: ", e)
