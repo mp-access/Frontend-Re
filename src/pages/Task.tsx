@@ -1020,7 +1020,16 @@ export default function Task({ type }: { type: "task" | "example" }) {
           derivedEndDate > Date.now() ? (
             <VStack>
               <Divider />
-              <Text color={"purple.600"}>{t("Submission Received")}</Text>
+              <Text
+                fontWeight={"bold"}
+                color={"purple.600"}
+                textAlign={"center"}
+              >
+                {t("submission_received")}
+              </Text>
+              <Text pl={2} pr={2} color={"purple.600"} textAlign={"center"}>
+                {t("feedback_info")}
+              </Text>
               <Divider />
             </VStack>
           ) : null}

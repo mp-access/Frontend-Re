@@ -29,7 +29,7 @@ import {
 } from "@chakra-ui/react"
 import { useTranslation } from "react-i18next"
 import { BsFillCircleFill } from "react-icons/bs"
-import { GoChecklist } from "react-icons/go"
+import { GoChecklist, GoInbox } from "react-icons/go"
 import { Cell, Pie, PieChart } from "recharts"
 
 import { t } from "i18next"
@@ -41,6 +41,8 @@ import React, {
   useRef,
   useState,
 } from "react"
+import { LuBrain } from "react-icons/lu"
+import { useOutletContext, useParams } from "react-router-dom"
 import { CountdownTimer } from "../components/CountdownTimer"
 import { RotateFromRightIcon } from "../components/CustomIcons"
 import {
@@ -56,8 +58,6 @@ import {
   useTerminate,
   useTimeframeFromSSE,
 } from "../components/Hooks"
-
-import { useOutletContext, useParams } from "react-router-dom"
 import { Markdown, Placeholder } from "../components/Panels"
 import {
   getFilteredSubmissions,
@@ -72,12 +72,14 @@ type ExampleState =
   | "unpublished"
   | "publishing"
   | "ongoing"
+  | "terminating"
   | "finished"
   | "resetting"
 
-const TerminationDialog: React.FC<{ handleTermination: () => void }> = ({
-  handleTermination,
-}) => {
+const TerminationDialog: React.FC<{
+  handleTermination: () => void
+  exampleState: ExampleState
+}> = ({ handleTermination, exampleState }) => {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const cancelRef = useRef<HTMLButtonElement>(null)
   return (
@@ -109,6 +111,7 @@ const TerminationDialog: React.FC<{ handleTermination: () => void }> = ({
               onClick={handleTermination}
               colorScheme="red"
               backgroundColor={"red.600"}
+              isDisabled={exampleState === "terminating"}
             >
               {t("Terminate")}
             </Button>
@@ -158,6 +161,7 @@ const ResetDialog: React.FC<{
               onClick={handleReset}
               colorScheme="red"
               backgroundColor={"red.600"}
+              isDisabled={exampleState === "resetting"}
             >
               {t("Reset")}
             </Button>
@@ -181,7 +185,11 @@ const SubmissionInspector: React.FC<{
   categories: CategoriesType
   selectedCategory: string | null
   selectedFileName: string | null
+  disableCategorization: boolean
   setSelectedFileName: React.Dispatch<SetStateAction<string | null>>
+  setTestsPassedCurrentSubmission: React.Dispatch<
+    SetStateAction<number[] | null>
+  >
   setLastDisplayedSubmissionId: React.Dispatch<SetStateAction<number | null>>
   setCategories: React.Dispatch<React.SetStateAction<CategoriesType>>
   setSelectedCategory: React.Dispatch<SetStateAction<string | null>>
@@ -196,8 +204,10 @@ const SubmissionInspector: React.FC<{
   categories,
   selectedCategory,
   selectedFileName,
+  disableCategorization,
   setSelectedFileName,
   setLastDisplayedSubmissionId,
+  setTestsPassedCurrentSubmission,
   setSelectedCategory,
   setCategories,
   getSubmissionColor,
@@ -355,6 +365,11 @@ const SubmissionInspector: React.FC<{
     return Object.values(categories).map((category) => category.color)
   }, [categories])
 
+  const nrOfCategories = useMemo(
+    () => Object.entries(categories).length,
+    [categories],
+  )
+
   const bgColors = useToken(
     "colors",
     categoryColorNames.map((color) => `${color}.200`),
@@ -377,12 +392,14 @@ const SubmissionInspector: React.FC<{
               h={9}
               position={"relative"}
               flex={category.ids.length}
+              minWidth={16}
               bgColor={bgColor}
               roundedLeft={i === 0 ? 8 : 0}
               roundedRight={i === lastIndex ? 8 : 0}
               mr={-1}
               key={i}
               onClick={() => handleCategorySelection(categoryKey)}
+              cursor={"pointer"}
             >
               <Box
                 position={"absolute"}
@@ -425,7 +442,7 @@ const SubmissionInspector: React.FC<{
                 whiteSpace={"nowrap"}
                 textShadow={`-1px -1px 0 ${selectedColor}, 1px -1px 0 ${selectedColor}, -1px 1px 0 ${selectedColor}, 1px 1px 0 ${selectedColor}`}
               >
-                {category.ids.length} | Avg: {category.avgScore.toFixed(2)}
+                {category.ids.length} | Ø: {category.avgScore.toFixed(1)}
               </Grid>
             </Box>
           )
@@ -439,8 +456,9 @@ const SubmissionInspector: React.FC<{
           onClick={handleFetchCategories}
           disabled={submissions.length < 5 || isLoading}
           isLoading={isLoading}
+          isDisabled={disableCategorization}
         >
-          Re-categorize
+          {nrOfCategories > 1 ? "Re-categorize" : "Categorize"}
         </Button>
       </Flex>
 
@@ -454,6 +472,7 @@ const SubmissionInspector: React.FC<{
         getSubmissionColor={getSubmissionColor}
         selectedFileName={selectedFileName}
         setSelectedFileName={setSelectedFileName}
+        setTestsPassedCurrentSubmission={setTestsPassedCurrentSubmission}
       />
     </Flex>
   )
@@ -511,23 +530,11 @@ const GeneralInformation: React.FC<{
   const {
     participantsOnline,
     totalParticipants,
-    numberOfStudentsWhoSubmitted,
+    numberOfReceivedSubmissions,
+    numberOfProcessedSubmissions,
+    numberOfProcessedSubmissionsWithEmbeddings,
     avgPoints,
   } = generalInformation
-  const submissionsProgress = useMemo(() => {
-    if (participantsOnline <= 0 && numberOfStudentsWhoSubmitted <= 0) {
-      return 0
-    }
-
-    if (
-      (participantsOnline <= 0 && numberOfStudentsWhoSubmitted > 0) ||
-      numberOfStudentsWhoSubmitted >= participantsOnline
-    ) {
-      return 100
-    } else {
-      return numberOfStudentsWhoSubmitted / participantsOnline
-    }
-  }, [numberOfStudentsWhoSubmitted, participantsOnline])
 
   return (
     <HStack p={0} minW={200} gap={5}>
@@ -539,21 +546,38 @@ const GeneralInformation: React.FC<{
       </Tag>
       {exampleState === "ongoing" || exampleState === "finished" ? (
         <>
-          <HStack>
-            <Icon as={GoChecklist} />
-            <Text color={"gray.500"} display={"flex"}>
-              {exampleState === "ongoing"
-                ? `${numberOfStudentsWhoSubmitted}/${Math.max(numberOfStudentsWhoSubmitted, participantsOnline)}` // if participants online not correctly updated, UI should not break
-                : numberOfStudentsWhoSubmitted}
-            </Text>
-            <CustomPieChart value={submissionsProgress} />
-          </HStack>
-
-          <HStack overflow={"auto"}>
-            <Text color={"gray.500"} display={"flex"}>
-              Avg. Points: {avgPoints.toFixed(2) ?? "-"}
-            </Text>
-            <CustomPieChart value={avgPoints * 100} />
+          <HStack gap={3}>
+            <HStack width={12}>
+              <Icon as={GoInbox} />
+              <Text color={"gray.500"} display={"flex"}>
+                {exampleState === "ongoing"
+                  ? `${numberOfReceivedSubmissions}`
+                  : numberOfReceivedSubmissions}
+              </Text>
+            </HStack>
+            <HStack gap={1} width={12}>
+              <Icon as={GoChecklist} />
+              <Text color={"gray.500"} display={"flex"}>
+                {numberOfProcessedSubmissions}
+              </Text>
+            </HStack>
+            <HStack gap={1} width={12}>
+              <Icon as={LuBrain} />
+              <Text color={"gray.500"} display={"flex"}>
+                {numberOfProcessedSubmissionsWithEmbeddings}
+              </Text>
+            </HStack>
+            <HStack overflow={"auto"}>
+              <Text
+                color={"gray.500"}
+                display={"flex"}
+                width={14}
+                justifyContent={"center"}
+              >
+                Ø {avgPoints.toFixed(2) ?? "-"}
+              </Text>
+              <CustomPieChart value={avgPoints * 100} />
+            </HStack>
           </HStack>
         </>
       ) : null}
@@ -677,7 +701,10 @@ const ExampleTimeController: React.FC<{
         <Button variant={"outline"} onClick={() => handleExtendTime(60)}>
           +60
         </Button>
-        <TerminationDialog handleTermination={handleTermination} />
+        <TerminationDialog
+          handleTermination={handleTermination}
+          exampleState={exampleState}
+        />
       </Flex>
     )
   }
@@ -693,8 +720,10 @@ export function PrivateDashboard() {
   const { publish } = usePublish()
   const toast = useToast()
   const { terminate } = useTerminate()
-  const { data: fetchedSubmissions, refetch: refetchStudentSubmissions } =
-    useStudentSubmissions()
+  const {
+    data: informationWithSubmissions,
+    refetch: refetchInformationWithSubmissions,
+  } = useStudentSubmissions()
   const { resetExample } = useResetExample()
   const [durationInSeconds, setDurationInSeconds] = useState<number>(150)
   const [exampleState, setExampleState] = useState<ExampleState | null>(null)
@@ -734,6 +763,25 @@ export function PrivateDashboard() {
   const [categories, setCategories] = useState<CategoriesType>({})
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null)
+  const [testsPassedCurrentSubmission, setTestsPassedCurrentSubmission] =
+    useState<number[] | null>(null)
+
+  const namedTestsPassedCurrentSubmission: Record<string, boolean> | null =
+    useMemo(() => {
+      if (!testsPassedCurrentSubmission || !exampleInformation) {
+        return null
+      }
+
+      const withNames = Object.keys(
+        exampleInformation.passRatePerTestCase,
+      ).reduce<Record<string, boolean>>((acc, testName, i) => {
+        acc[testName] = !!testsPassedCurrentSubmission[i]
+        return acc
+      }, {})
+
+      return withNames
+    }, [exampleInformation, testsPassedCurrentSubmission])
+
   const getSubmissionColor = (submissionId: number) => {
     const foundColor = Object.values(categories).filter((category) =>
       category.ids.includes(submissionId),
@@ -756,6 +804,16 @@ export function PrivateDashboard() {
     setExampleInformation(data)
   })
 
+  const disableCategorization = useMemo(() => {
+    if (!exampleInformation) return true
+
+    return (
+      exampleInformation.numberOfProcessedSubmissionsWithEmbeddings < 5 &&
+      exampleInformation.numberOfReceivedSubmissions !==
+        exampleInformation.numberOfProcessedSubmissions
+    )
+  }, [exampleInformation])
+
   const handleTimeAdjustment = useCallback(
     (value: number) => {
       setDurationInSeconds((oldVal) => Math.max(15, oldVal + value))
@@ -772,9 +830,11 @@ export function PrivateDashboard() {
 
   const handleTermination = useCallback(async () => {
     try {
+      setExampleState("terminating")
       await terminate()
       setExampleState("finished")
     } catch (e) {
+      setExampleState("ongoing")
       console.log("Error terminating example: ", e)
     }
   }, [terminate])
@@ -783,8 +843,7 @@ export function PrivateDashboard() {
     try {
       setExampleState("resetting")
       await resetExample()
-      const submissionsData = await refetchStudentSubmissions()
-
+      const submissionsData = await refetchInformationWithSubmissions()
       if (
         submissionsData.data === undefined ||
         submissionsData.data?.submissions?.length > 0
@@ -798,15 +857,19 @@ export function PrivateDashboard() {
         return
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { submissions, ...infoWithoutSubmission } = submissionsData.data
+      setExampleInformation(infoWithoutSubmission)
       setSubmissions(null)
       setCategories({})
       setExampleState("unpublished")
+      setTestsPassedCurrentSubmission(null)
       setBookmarks(null)
     } catch (e) {
       console.log("An error occured when resetting the example: ", e)
       setExampleState("finished")
     }
-  }, [refetchStudentSubmissions, resetExample, setBookmarks, toast])
+  }, [refetchInformationWithSubmissions, resetExample, setBookmarks, toast])
   const handleOnBookmarkClick = useCallback(
     (submission: SubmissionSsePayload) => {
       const submissionBookmark: Bookmark = {
@@ -852,7 +915,6 @@ export function PrivateDashboard() {
       testCaseSelection,
     ],
   )
-
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
     if (!example) {
       return [null, null]
@@ -906,23 +968,22 @@ export function PrivateDashboard() {
   )
 
   useEffect(() => {
-    if (fetchedSubmissions) {
+    if (informationWithSubmissions) {
       setSubmissions(
-        fetchedSubmissions.submissions.sort(
+        informationWithSubmissions.submissions.sort(
           (a, b) => Date.parse(a.date) - Date.parse(b.date),
         ),
       )
 
-      setExampleInformation(fetchedSubmissions)
+      setExampleInformation(informationWithSubmissions)
       const initialSelectedTests = Object.fromEntries(
-        Object.keys(fetchedSubmissions.passRatePerTestCase).map((testName) => [
-          testName,
-          false,
-        ]),
+        Object.keys(informationWithSubmissions.passRatePerTestCase).map(
+          (testName) => [testName, false],
+        ),
       )
       setTestCaseSelection(initialSelectedTests)
     }
-  }, [fetchedSubmissions])
+  }, [informationWithSubmissions])
 
   useEffect(() => {
     if (!derivedEndDate || !derivedEndDate) {
@@ -987,6 +1048,9 @@ export function PrivateDashboard() {
                 setExactMatch={setExactMatch}
                 testCaseSelection={testCaseSelection}
                 setTestCaseSelection={setTestCaseSelection}
+                namedTestsPassedCurrentSubmission={
+                  namedTestsPassedCurrentSubmission
+                }
               />
             </TabPanel>
             <TabPanel display={"flex"} flex={1}>
@@ -1022,6 +1086,8 @@ export function PrivateDashboard() {
               setSelectedCategory={setSelectedCategory}
               selectedFileName={selectedFileName}
               setSelectedFileName={setSelectedFileName}
+              setTestsPassedCurrentSubmission={setTestsPassedCurrentSubmission}
+              disableCategorization={disableCategorization}
             />
           )}
         </Flex>
@@ -1038,8 +1104,8 @@ export function PrivateDashboard() {
             exampleState={exampleState}
             generalInformation={{
               ...exampleInformation,
-              numberOfStudentsWhoSubmitted: Math.max(
-                exampleInformation.numberOfStudentsWhoSubmitted,
+              numberOfReceivedSubmissions: Math.max(
+                exampleInformation.numberOfReceivedSubmissions,
                 submissions?.length || 0,
               ),
             }}

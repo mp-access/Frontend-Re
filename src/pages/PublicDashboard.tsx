@@ -39,7 +39,7 @@ import {
 import { Markdown, Placeholder } from "../components/Panels"
 
 const PointsHistogram: React.FC<{
-  data: PointDistribution | undefined
+  data: PointDistribution | null
   isFetching: boolean
 }> = ({ data, isFetching }) => {
   const mappedPointDistribution = useMemo(() => {
@@ -125,6 +125,9 @@ export function PublicDashboard() {
   const [exampleInformation, setExampleInformation] =
     useState<ExampleInformation | null>(null)
 
+  const [pointDistribution, setPointDistribution] =
+    useState<PointDistribution | null>(null)
+
   const [derivedStartDate, derivedEndDate] = useMemo(() => {
     if (!example) {
       return [null, null]
@@ -141,18 +144,18 @@ export function PublicDashboard() {
   }, [example, timeFrameFromEvent])
 
   const { timeLeftInSeconds } = useCountdown(derivedStartDate, derivedEndDate)
-  const { data: pointsDistribution, isFetching: isFetchingDistrib } =
+  const { data: fetchedPointDistribution, isFetching: isFetchingDistrib } =
     useExamplePointDistribution({
       enabled: timeLeftInSeconds === 0,
     })
   const showHistogram = useMemo(() => {
     if (
       timeLeftInSeconds === null ||
-      exampleInformation?.numberOfStudentsWhoSubmitted == 0
+      exampleInformation?.numberOfReceivedSubmissions == 0
     )
       return false
     return !timeLeftInSeconds
-  }, [exampleInformation?.numberOfStudentsWhoSubmitted, timeLeftInSeconds])
+  }, [exampleInformation?.numberOfReceivedSubmissions, timeLeftInSeconds])
 
   useSSE<string>("inspect", (editorURL) => {
     if (!editorURL) {
@@ -174,12 +177,22 @@ export function PublicDashboard() {
     setExampleInformation(data)
   })
 
+  useSSE<PointDistribution>("point-distribution", (data) => {
+    setPointDistribution(data)
+  })
+
   useSSE<string>("example-reset", async () => {
     const refetchedInfo = await refetchInitialExampleInformation()
     if (refetchedInfo.data !== undefined) {
       setExampleInformation(refetchedInfo.data)
     }
   })
+
+  useEffect(() => {
+    if (fetchedPointDistribution) {
+      setPointDistribution(fetchedPointDistribution)
+    }
+  }, [fetchedPointDistribution])
 
   useEffect(() => {
     if (initialExampleInformation) {
@@ -192,21 +205,21 @@ export function PublicDashboard() {
       !example ||
       !exampleInformation ||
       (exampleInformation.participantsOnline <= 0 &&
-        exampleInformation.numberOfStudentsWhoSubmitted <= 0)
+        exampleInformation.numberOfReceivedSubmissions <= 0)
     ) {
       return 0
     }
 
-    const { participantsOnline, numberOfStudentsWhoSubmitted } =
+    const { participantsOnline, numberOfReceivedSubmissions } =
       exampleInformation
 
     if (
-      (participantsOnline <= 0 && numberOfStudentsWhoSubmitted > 0) ||
-      numberOfStudentsWhoSubmitted >= participantsOnline
+      (participantsOnline <= 0 && numberOfReceivedSubmissions > 0) ||
+      numberOfReceivedSubmissions >= participantsOnline
     ) {
       return 100
     } else {
-      return (numberOfStudentsWhoSubmitted / participantsOnline) * 100
+      return (numberOfReceivedSubmissions / participantsOnline) * 100
     }
   }, [example, exampleInformation])
 
@@ -258,7 +271,7 @@ export function PublicDashboard() {
         {showHistogram ? (
           <Flex flex={1} layerStyle={"segment"} direction={"column"}>
             <PointsHistogram
-              data={pointsDistribution}
+              data={pointDistribution}
               isFetching={isFetchingDistrib}
             />
           </Flex>
@@ -296,9 +309,9 @@ export function PublicDashboard() {
             <CircularProgressLabel fontFamily={"monospace"}>
               {Math.round(submissionsProgress)}%
               <CircularProgressLabel insetY={12} fontSize={16}>
-                {exampleInformation.numberOfStudentsWhoSubmitted}/
+                {exampleInformation.numberOfReceivedSubmissions}/
                 {Math.max(
-                  exampleInformation.numberOfStudentsWhoSubmitted,
+                  exampleInformation.numberOfReceivedSubmissions,
                   exampleInformation.participantsOnline,
                 )}
                 {/* if participants online not correctly updated, UI should not break */}

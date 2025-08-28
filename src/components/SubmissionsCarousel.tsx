@@ -235,6 +235,9 @@ export const SubmissionsCarousel: React.FC<{
   lastDisplayedSubmissionId: number | null
   selectedFileName: string | null
   setSelectedFileName: React.Dispatch<SetStateAction<string | null>>
+  setTestsPassedCurrentSubmission: React.Dispatch<
+    SetStateAction<number[] | null>
+  >
   setLastDisplayedSubmissionId: React.Dispatch<SetStateAction<number | null>>
   handleOnBookmarkClick: (submission: SubmissionSsePayload) => void
   openInEditor: (studentId: string) => Promise<void>
@@ -245,6 +248,7 @@ export const SubmissionsCarousel: React.FC<{
   bookmarks,
   selectedFileName,
   setSelectedFileName,
+  setTestsPassedCurrentSubmission,
   setLastDisplayedSubmissionId,
   handleOnBookmarkClick,
   openInEditor,
@@ -333,6 +337,12 @@ export const SubmissionsCarousel: React.FC<{
     }
   }, [fileNames, selectedFileName, setSelectedFileName])
 
+  useEffect(() => {
+    if (submissions && currentIndex !== null) {
+      setTestsPassedCurrentSubmission(submissions[currentIndex]?.testsPassed)
+    }
+  }, [currentIndex, setTestsPassedCurrentSubmission, submissions])
+
   const showPrevButton = currentIndex !== 0
   const showJumpToEndButton = currentIndex === 0 && submissions.length > 1
   const showNextButton = currentIndex !== submissions.length - 1
@@ -371,13 +381,8 @@ export const SubmissionsCarousel: React.FC<{
           height={"auto"}
         >
           {submissions.map((submission, i) => {
-            const VISIBLE_RANGE = 3
-            const isVisible =
-              Math.abs(i - currentIndex) <= VISIBLE_RANGE ||
-              (i < VISIBLE_RANGE &&
-                currentIndex > submissions.length - VISIBLE_RANGE) ||
-              (i > submissions.length - VISIBLE_RANGE &&
-                currentIndex < VISIBLE_RANGE)
+            const VISIBLE_RANGE = 1 // renders 1 to the left and right of current visible editor => 3 in total
+            const isVisible = Math.abs(i - currentIndex) <= VISIBLE_RANGE
 
             return (
               <Slide

@@ -1,4 +1,5 @@
 import { Button, Flex, Text, VStack } from "@chakra-ui/react"
+import { t } from "i18next"
 
 const Bookmark: React.FC<{
   bookmark: Bookmark
@@ -39,7 +40,7 @@ export const BookmarkView: React.FC<{
   if (!bookmarks)
     return (
       <Flex justify={"center"} flex={1}>
-        <Text> There are no Bookmarks yet.</Text>
+        <Text> {t("no_bookmarks")}</Text>
       </Flex>
     )
 

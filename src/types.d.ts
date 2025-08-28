@@ -234,7 +234,9 @@ declare interface CurrentUser {
 declare interface ExampleInformation {
   participantsOnline: number
   totalParticipants: number
-  numberOfStudentsWhoSubmitted: number
+  numberOfReceivedSubmissions: number
+  numberOfProcessedSubmissions: number
+  numberOfProcessedSubmissionsWithEmbeddings: number
   passRatePerTestCase: Record<string, number>
   avgPoints: number
 }
