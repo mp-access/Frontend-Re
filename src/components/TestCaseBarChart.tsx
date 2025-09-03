@@ -1,15 +1,8 @@
-import {
-  Box,
-  Button,
-  Flex,
-  HStack,
-  Select,
-  Switch,
-  Text,
-  VStack,
-} from "@chakra-ui/react"
-import { t } from "i18next"
+import { Box, Button, Flex, HStack, Text, VStack } from "@chakra-ui/react"
 import React, { SetStateAction, useCallback, useMemo, useState } from "react"
+import { FiCheckCircle, FiXCircle } from "react-icons/fi"
+import { PiCrosshairSimpleFill, PiCrosshairSimpleLight } from "react-icons/pi"
+import { TbSpy, TbSpyOff } from "react-icons/tb"
 
 const CustomBar: React.FC<{
   name: string
@@ -78,11 +71,13 @@ type BarChartData = {
 
 const CustomBarChart: React.FC<{
   data: BarChartData[]
+  showPassRate: boolean
   testCaseSelection: Record<string, boolean> | null
   namedTestsPassedCurrentSubmission: Record<string, boolean> | null
   handleOnBarClick: (name: string) => void
 }> = ({
   data,
+  showPassRate,
   testCaseSelection,
   namedTestsPassedCurrentSubmission,
   handleOnBarClick,
@@ -92,7 +87,7 @@ const CustomBarChart: React.FC<{
       {data.map((entry, i) => (
         <CustomBar
           name={entry.name}
-          value={entry.value}
+          value={showPassRate ? entry.value : 100 - entry.value}
           testCaseSelection={testCaseSelection}
           handleOnBarClick={handleOnBarClick}
           failedForCurrentImplementation={
@@ -107,11 +102,10 @@ const CustomBarChart: React.FC<{
   )
 }
 
-type Sortings = "default" | "ascending" | "descending"
-
 export const TestCaseBarChart: React.FC<{
   passRatePerTestCase: Record<string, number>
   exactMatch: boolean
+  hideStudentInfo: boolean
   testCaseSelection: Record<string, boolean> | null
   namedTestsPassedCurrentSubmission: Record<string, boolean> | null
 
@@ -119,15 +113,18 @@ export const TestCaseBarChart: React.FC<{
     SetStateAction<Record<string, boolean> | null>
   >
   setExactMatch: React.Dispatch<SetStateAction<boolean>>
+  setHideStudentInfo: React.Dispatch<SetStateAction<boolean>>
 }> = ({
   passRatePerTestCase,
   exactMatch,
+  hideStudentInfo,
   testCaseSelection,
   namedTestsPassedCurrentSubmission,
   setTestCaseSelection,
   setExactMatch,
+  setHideStudentInfo,
 }) => {
-  const [sorting, setSorting] = useState<Sortings>("default")
+  const [showPassRate, setShowPassRate] = useState(true)
 
   const data = useMemo(() => {
     return Object.entries(passRatePerTestCase).map(([name, value]) => ({
@@ -135,11 +132,6 @@ export const TestCaseBarChart: React.FC<{
       value: value * 100,
     }))
   }, [passRatePerTestCase])
-
-  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    // TODO: type this properly
-    setSorting(event.target.value as "default" | "ascending" | "descending")
-  }
 
   const handleOnBarClick = useCallback(
     (name: string) => {
@@ -153,10 +145,6 @@ export const TestCaseBarChart: React.FC<{
     },
     [setTestCaseSelection],
   )
-
-  const handleToggle = () => {
-    setExactMatch((prev) => !prev)
-  }
 
   const handleWorstSolutionClick = useCallback(() => {
     if (!testCaseSelection) return
@@ -179,57 +167,88 @@ export const TestCaseBarChart: React.FC<{
     )
   }, [setExactMatch, setTestCaseSelection, testCaseSelection])
 
-  const sortedData = useMemo(() => {
-    if (sorting === "ascending") {
-      return [...data].sort((a, b) => a.value - b.value)
-    } else if (sorting === "descending") {
-      return [...data].sort((a, b) => b.value - a.value)
-    }
-    return data
-  }, [data, sorting])
-
   return (
     <VStack display={"flex"} width={"full"} p={0} flex={1}>
       <Flex
         width={"100%"}
+        height={10}
         justifyContent={"space-between"}
         align={"center"}
-        p={1}
-        pt={0}
+        gap={4}
       >
-        <Select maxW={150} onChange={handleChange} value={sorting} size={"md"}>
-          <option value={"default"}>{t("Default")}</option>
-          <option value={"ascending"}>{t("Ascending")}</option>
-          <option value={"descending"}>{t("Descending")}</option>
-        </Select>
-        <HStack>
-          <Text> Exact Match</Text>
-          <Switch
-            size={"md"}
-            colorScheme="purple"
-            isChecked={exactMatch}
-            onChange={handleToggle}
-          />
-        </HStack>
+        <Button
+          flex={1}
+          height={"full"}
+          borderRadius={"md"}
+          fontSize={"sm"}
+          colorScheme={showPassRate ? "green" : "red"}
+          backgroundColor={showPassRate ? "green.500" : "red.600"}
+          onClick={() => setShowPassRate((prev) => !prev)}
+        >
+          {showPassRate ? <FiCheckCircle size={20} /> : <FiXCircle size={20} />}
+        </Button>
+
+        <Button
+          flex={1}
+          height={"full"}
+          borderRadius={"md"}
+          fontSize={"sm"}
+          backgroundColor={"purple.500"}
+          onClick={() => setExactMatch((prev) => !prev)}
+        >
+          {exactMatch ? (
+            <PiCrosshairSimpleFill size={24} />
+          ) : (
+            <PiCrosshairSimpleLight size={24} />
+          )}
+        </Button>
+
+        <Button
+          flex={1}
+          height={"full"}
+          borderRadius={"md"}
+          fontSize={"sm"}
+          colorScheme={"gray"}
+          backgroundColor={"gray.500"}
+          onClick={() => setHideStudentInfo((prev) => !prev)}
+        >
+          {hideStudentInfo ? <TbSpy size={20} /> : <TbSpyOff size={20} />}
+        </Button>
+
+        <Button
+          flex={1}
+          height={"full"}
+          borderRadius={"md"}
+          fontSize={"sm"}
+          colorScheme={"red"}
+          backgroundColor={"red.600"}
+          onClick={handleWorstSolutionClick}
+        >
+          0%
+        </Button>
+
+        <Button
+          flex={1}
+          height={"full"}
+          borderRadius={"md"}
+          fontSize={"sm"}
+          colorScheme={"green"}
+          backgroundColor={"green.500"}
+          onClick={handlePerfectSolutionClick}
+        >
+          100%
+        </Button>
       </Flex>
 
       <Box flex={1} minH={0} overflowY="auto" width={"full"}>
         <CustomBarChart
-          data={sortedData}
+          data={data}
+          showPassRate={showPassRate}
           testCaseSelection={testCaseSelection}
           handleOnBarClick={handleOnBarClick}
           namedTestsPassedCurrentSubmission={namedTestsPassedCurrentSubmission}
         />
       </Box>
-
-      <HStack justify={"space-between"} w={"full"} display={"flex"}>
-        <Button borderRadius={"lg"} onClick={handleWorstSolutionClick}>
-          Select Fail All
-        </Button>
-        <Button borderRadius={"lg"} onClick={handlePerfectSolutionClick}>
-          Select Pass All
-        </Button>
-      </HStack>
     </VStack>
   )
 }
