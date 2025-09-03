@@ -233,6 +233,13 @@ const SubmissionInspector: React.FC<{
   const LEFTOVER_CATEGORY_KEY = "none"
 
   const handleCategorySelection = (categoryKey: string) => {
+    // If single or no categories exist or the key
+    if (
+      Object.keys(categories).length <= 1 ||
+      !Object.keys(categories).includes(categoryKey)
+    )
+      return
+
     if (Object.keys(categories).length > 1)
       setSelectedCategory((prev) => (prev === categoryKey ? null : categoryKey))
     setLastDisplayedSubmissionId(categories[categoryKey].selectedIds[0])
@@ -346,7 +353,10 @@ const SubmissionInspector: React.FC<{
   }, [exactMatch, testCaseSelection])
 
   useEffect(() => {
-    if (selectedCategory) {
+    if (
+      selectedCategory &&
+      Object.keys(categories).includes(selectedCategory)
+    ) {
       const selectedIds = categories[selectedCategory].selectedIds
 
       const selectedSubmissions = submissions.filter((f) =>
