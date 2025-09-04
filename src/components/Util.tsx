@@ -1,11 +1,16 @@
 import { format, parseISO } from "date-fns"
 
 export function formatDateRange(startDate: string, endDate: string): string {
-  const parsedStartDate = parseISO(startDate)
-  const parsedEndDate = parseISO(endDate)
-
-  const formattedStartDate = format(parsedStartDate, "dd-MM-yyyy")
-  const formattedEndDate = format(parsedEndDate, "dd-MM-yyyy")
+  var formattedStartDate = ""
+  var formattedEndDate = ""
+  if (startDate != null) {
+    const parsedStartDate = parseISO(startDate)
+    formattedStartDate = format(parsedStartDate, "dd-MM-yyyy")
+  }
+  if (endDate != null) {
+    const parsedEndDate = parseISO(endDate)
+    formattedEndDate = format(parsedEndDate, "dd-MM-yyyy")
+  }
 
   return `${formattedStartDate} ~ ${formattedEndDate}`
 }
