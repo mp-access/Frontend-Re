@@ -180,6 +180,7 @@ const SubmissionInspector: React.FC<{
   submissions: SubmissionSsePayload[]
   testCaseSelection: Record<string, boolean> | null
   exactMatch: boolean
+  hideStudentInfo: boolean
   bookmarks: Bookmark[] | null
   lastDisplayedSubmissionId: number | null
   categories: CategoriesType
@@ -199,6 +200,7 @@ const SubmissionInspector: React.FC<{
   submissions,
   testCaseSelection,
   exactMatch,
+  hideStudentInfo,
   bookmarks,
   lastDisplayedSubmissionId,
   categories,
@@ -233,6 +235,13 @@ const SubmissionInspector: React.FC<{
   const LEFTOVER_CATEGORY_KEY = "none"
 
   const handleCategorySelection = (categoryKey: string) => {
+    // If single or no categories exist or the key
+    if (
+      Object.keys(categories).length <= 1 ||
+      !Object.keys(categories).includes(categoryKey)
+    )
+      return
+
     if (Object.keys(categories).length > 1)
       setSelectedCategory((prev) => (prev === categoryKey ? null : categoryKey))
     setLastDisplayedSubmissionId(categories[categoryKey].selectedIds[0])
@@ -346,7 +355,10 @@ const SubmissionInspector: React.FC<{
   }, [exactMatch, testCaseSelection])
 
   useEffect(() => {
-    if (selectedCategory) {
+    if (
+      selectedCategory &&
+      Object.keys(categories).includes(selectedCategory)
+    ) {
       const selectedIds = categories[selectedCategory].selectedIds
 
       const selectedSubmissions = submissions.filter((f) =>
@@ -464,6 +476,7 @@ const SubmissionInspector: React.FC<{
 
       <SubmissionsCarousel
         submissions={carouselSubmissions}
+        hideStudentInfo={hideStudentInfo}
         openInEditor={openInEditor}
         handleOnBookmarkClick={handleOnBookmarkClick}
         bookmarks={bookmarks}
@@ -728,6 +741,7 @@ export function PrivateDashboard() {
   const [durationInSeconds, setDurationInSeconds] = useState<number>(150)
   const [exampleState, setExampleState] = useState<ExampleState | null>(null)
   const [exactMatch, setExactMatch] = useState<boolean>(false)
+  const [hideStudentInfo, setHideStudentInfo] = useState<boolean>(false)
   const [exampleInformation, setExampleInformation] =
     useState<ExampleInformation | null>(null)
   const { courseSlug, exampleSlug } = useParams()
@@ -1046,6 +1060,8 @@ export function PrivateDashboard() {
                 passRatePerTestCase={exampleInformation.passRatePerTestCase}
                 exactMatch={exactMatch}
                 setExactMatch={setExactMatch}
+                hideStudentInfo={hideStudentInfo}
+                setHideStudentInfo={setHideStudentInfo}
                 testCaseSelection={testCaseSelection}
                 setTestCaseSelection={setTestCaseSelection}
                 namedTestsPassedCurrentSubmission={
@@ -1075,6 +1091,7 @@ export function PrivateDashboard() {
               submissions={submissions}
               testCaseSelection={testCaseSelection}
               exactMatch={exactMatch}
+              hideStudentInfo={hideStudentInfo}
               handleOnBookmarkClick={handleOnBookmarkClick}
               bookmarks={bookmarks}
               lastDisplayedSubmissionId={lastDisplayedSubmissionId}

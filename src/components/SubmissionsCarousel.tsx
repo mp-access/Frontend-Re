@@ -127,6 +127,7 @@ const MemoizedEditor = React.memo(EditorContainer)
 
 const Slide: React.FC<{
   submission: SubmissionSsePayload
+  hideStudentInfo: boolean
   categoryColor: string
   currentIndex: number
   totalSubmissions: number
@@ -139,6 +140,7 @@ const Slide: React.FC<{
   openInEditor: (studentId: string) => Promise<void>
 }> = ({
   submission,
+  hideStudentInfo,
   currentIndex,
   totalSubmissions,
   categoryColor,
@@ -168,7 +170,7 @@ const Slide: React.FC<{
         borderTopRadius={"xl"}
       >
         <Heading fontSize="lg">
-          {submission.studentId}{" "}
+          {hideStudentInfo ? "****************" : submission.studentId}{" "}
           <Text fontSize={"sm"} fontWeight={400} display={"inline"}>
             ({currentIndex + 1}/{totalSubmissions})
           </Text>
@@ -231,6 +233,7 @@ const SLIDES_GAP = 50
 
 export const SubmissionsCarousel: React.FC<{
   submissions: SubmissionSsePayload[]
+  hideStudentInfo: boolean
   bookmarks: Bookmark[] | null
   lastDisplayedSubmissionId: number | null
   selectedFileName: string | null
@@ -244,6 +247,7 @@ export const SubmissionsCarousel: React.FC<{
   getSubmissionColor: (submissionId: number) => string
 }> = ({
   submissions,
+  hideStudentInfo,
   lastDisplayedSubmissionId,
   bookmarks,
   selectedFileName,
@@ -387,6 +391,7 @@ export const SubmissionsCarousel: React.FC<{
             return (
               <Slide
                 submission={submission}
+                hideStudentInfo={hideStudentInfo}
                 categoryColor={getSubmissionColor(submission.submissionId)}
                 currentIndex={i}
                 totalSubmissions={submissions.length}
