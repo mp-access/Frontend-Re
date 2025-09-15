@@ -63,7 +63,7 @@ type TaskViewProps = {
 
 export const TaskView = ({ children }: TaskViewProps) => {
   const size = useWindowSize()
-  const x = useMotionValue(400)
+  const x = useMotionValue(700)
   const width = useTransform(x, (value) => size[0] - 224 - value)
 
   return (
