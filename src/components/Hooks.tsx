@@ -2,23 +2,51 @@ import { useMonaco } from "@monaco-editor/react"
 import { useMutation, useQuery, UseQueryOptions } from "@tanstack/react-query"
 import axios, { AxiosError } from "axios"
 import { compact, concat, flatten } from "lodash"
-import { Uri } from "monaco-editor"
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
+import * as monaco from "monaco-editor"
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react"
 import { useParams } from "react-router-dom"
 import { useEventSource } from "../context/EventSourceContext"
 
-export const useCodeEditor = () => {
-  const monaco = useMonaco()
-  const getContent = (path: string) =>
-    monaco?.editor.getModel(Uri.file(path))?.getValue()
+interface UseCodeEditorOptions {
+  disablePasting?: boolean
+}
 
-  const resetModel = (path: string) => {
-    if (!monaco) return
-    const model = monaco.editor.getModel(Uri.file(path))
-    if (model) model.dispose()
-  }
+export const useCodeEditor = (options: UseCodeEditorOptions) => {
+  const monacoInstance = useMonaco()
 
-  return { getContent, resetModel }
+  const getContent = useCallback(
+    (path: string) =>
+      monacoInstance?.editor.getModel(monaco.Uri.file(path))?.getValue(),
+    [monacoInstance],
+  )
+  const resetModel = useCallback(
+    (path: string) => {
+      if (!monacoInstance) return
+      const model = monacoInstance.editor.getModel(monaco.Uri.file(path))
+      if (model) model.dispose()
+    },
+    [monacoInstance],
+  )
+
+  const handleEditorMount = useCallback(
+    (editorInstance: monaco.editor.IStandaloneCodeEditor) => {
+      if (options.disablePasting) {
+        editorInstance.onDidPaste(() => {
+          editorInstance.trigger("keyboard", "undo", null)
+        })
+      }
+    },
+    [options.disablePasting],
+  )
+
+  return { getContent, resetModel, handleEditorMount }
 }
 
 const usePath = (prefix: string): string[] => {
