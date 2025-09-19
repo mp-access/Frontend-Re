@@ -203,7 +203,7 @@ export default function Examples() {
   const toast = useToast()
   const currentLanguage = i18n.language
   const { isAssistant } = useOutletContext<UserContext>()
-  const { data: examples, refetch, isLoading } = useExamples() //  TODO: only get TaskOverview, not TaskProps, once related backend problem is fixed
+  const { data: examples, refetch, isLoading } = useExamples()
 
   useSSE<ExampleResetSsePayload>("example-reset", () => {
     refetch()

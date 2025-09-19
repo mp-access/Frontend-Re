@@ -1,14 +1,12 @@
 import {
   CircularProgress,
   CircularProgressLabel,
+  Container,
   Divider,
   Flex,
-  Grid,
-  GridItem,
   Heading,
   HStack,
   Icon,
-  Spacer,
   Spinner,
   Text,
   VStack,
@@ -116,7 +114,7 @@ export function PublicDashboard() {
   const { i18n } = useTranslation()
   const navigate = useNavigate()
   const currentLanguage = i18n.language
-  const { timeFrameFromEvent } = useTimeframeFromSSE()
+  const { timeFrameFromEvent, resetTimeFrameFromEvent } = useTimeframeFromSSE()
   const { exampleSlug } = useParams()
   const {
     data: initialExampleInformation,
@@ -142,6 +140,8 @@ export function PublicDashboard() {
     }
     return [Date.parse(example.start), Date.parse(example.end)]
   }, [example, timeFrameFromEvent])
+
+  const displayLiveInfo = derivedEndDate !== null && derivedStartDate !== null
 
   const { timeLeftInSeconds } = useCountdown(derivedStartDate, derivedEndDate)
   const { data: fetchedPointDistribution, isFetching: isFetchingDistrib } =
@@ -186,6 +186,8 @@ export function PublicDashboard() {
     if (refetchedInfo.data !== undefined) {
       setExampleInformation(refetchedInfo.data)
     }
+
+    resetTimeFrameFromEvent()
   })
 
   useEffect(() => {
@@ -237,24 +239,15 @@ export function PublicDashboard() {
     example.information["en"]?.title
 
   return (
-    <Grid
+    <Container
       layerStyle={"container"}
-      templateColumns="2fr  1fr"
-      templateRows={"1fr 1fr"}
       gap={2}
       h={"full"}
       maxH={900}
+      display={"flex"}
+      maxWidth={"7xl"}
     >
-      <GridItem
-        gap={2}
-        rowStart={1}
-        rowEnd={-1}
-        colStart={1}
-        colEnd={2}
-        p={0}
-        display={"flex"}
-        flexDirection={"column"}
-      >
+      <Flex gap={2} p={0} flexDirection={"column"} flex={2}>
         <Flex
           direction={"column"}
           layerStyle={"segment"}
@@ -276,50 +269,65 @@ export function PublicDashboard() {
             />
           </Flex>
         ) : null}
-      </GridItem>
-      <GridItem layerStyle={"segment"} p={3} maxHeight={450}>
-        <HStack>
-          <Icon as={FcAlarmClock} boxSize={6} />
-          <Heading fontSize="xl">{t("Remaining Time")}</Heading>
-        </HStack>
-        <Divider />
-        <Spacer height={1} />
-        <Flex justify={"center"} align={"center"} flex={1} h={"100%"}>
-          <CountdownTimer
-            startTime={derivedStartDate}
-            endTime={derivedEndDate}
-            size="large"
-            variant="circular"
-          />
-        </Flex>
-      </GridItem>
-      <GridItem layerStyle={"segment"} p={3} maxHeight={450}>
-        <HStack>
-          <Icon as={FcDocument} boxSize={6} />
-          <Heading fontSize="xl">{t("Submissions")}</Heading>
-        </HStack>
-        <Divider />
-        <Spacer height={1} />
-        <Flex justify={"center"} align={"center"} flex={1} h={"100%"}>
-          <CircularProgress
-            size={175}
-            value={submissionsProgress}
-            color={"green.500"}
+      </Flex>
+      {displayLiveInfo ? (
+        <Flex flex={1} direction={"column"} gap={2}>
+          <Flex
+            layerStyle={"segment"}
+            p={3}
+            maxHeight={450}
+            flex={1}
+            direction={"column"}
           >
-            <CircularProgressLabel fontFamily={"monospace"}>
-              {Math.round(submissionsProgress)}%
-              <CircularProgressLabel insetY={12} fontSize={16}>
-                {exampleInformation.numberOfReceivedSubmissions}/
-                {Math.max(
-                  exampleInformation.numberOfReceivedSubmissions,
-                  exampleInformation.participantsOnline,
-                )}
-                {/* if participants online not correctly updated, UI should not break */}
-              </CircularProgressLabel>
-            </CircularProgressLabel>
-          </CircularProgress>
+            <HStack>
+              <Icon as={FcAlarmClock} boxSize={6} />
+              <Heading fontSize="xl">{t("Remaining Time")}</Heading>
+            </HStack>
+            <Divider />
+            <Flex justify={"center"} align={"center"} flex={1} h={"100%"}>
+              <CountdownTimer
+                startTime={derivedStartDate}
+                endTime={derivedEndDate}
+                size="large"
+                variant="circular"
+              />
+            </Flex>
+          </Flex>
+
+          <Flex
+            layerStyle={"segment"}
+            p={3}
+            maxHeight={450}
+            flex={1}
+            direction={"column"}
+          >
+            <HStack>
+              <Icon as={FcDocument} boxSize={6} />
+              <Heading fontSize="xl">{t("Submissions")}</Heading>
+            </HStack>
+            <Divider />
+            <Flex justify={"center"} align={"center"} flex={1} h={"100%"}>
+              <CircularProgress
+                size={175}
+                value={submissionsProgress}
+                color={"green.500"}
+              >
+                <CircularProgressLabel fontFamily={"monospace"}>
+                  {Math.round(submissionsProgress)}%
+                  <CircularProgressLabel insetY={12} fontSize={16}>
+                    {exampleInformation.numberOfReceivedSubmissions}/
+                    {Math.max(
+                      exampleInformation.numberOfReceivedSubmissions,
+                      exampleInformation.participantsOnline,
+                    )}
+                    {/* if participants online not correctly updated, UI should not break */}
+                  </CircularProgressLabel>
+                </CircularProgressLabel>
+              </CircularProgress>
+            </Flex>
+          </Flex>
         </Flex>
-      </GridItem>
-    </Grid>
+      ) : null}
+    </Container>
   )
 }

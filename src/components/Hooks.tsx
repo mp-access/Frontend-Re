@@ -360,6 +360,10 @@ export const useTimeframeFromSSE = () => {
     [number, number] | null
   >(null)
 
+  const resetTimeFrameFromEvent = () => {
+    setTimeFrameFromEvent(null)
+  }
+
   useSSE<string>("timer-update", (data) => {
     const [startTimeString, endTimeString] = data.split("/")
     setTimeFrameFromEvent([
@@ -368,7 +372,7 @@ export const useTimeframeFromSSE = () => {
     ])
   })
 
-  return { timeFrameFromEvent }
+  return { timeFrameFromEvent, resetTimeFrameFromEvent }
 }
 
 export const useSSE = <T,>(eventType: string, handler: (data: T) => void) => {
