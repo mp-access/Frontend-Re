@@ -218,6 +218,12 @@ export default function Task({ type }: { type: "task" | "example" }) {
     return Date.parse(task.nextAttemptAt) < Date.now()
   }, [task])
 
+  const enableRunCommand = useMemo(() => {
+    if (type === "task") return true
+
+    return enableSubmitCommand
+  }, [enableSubmitCommand, type])
+
   const derivedEditorContent = useMemo(() => {
     // example case: submission not yet fully processed, so content only available from pending subnmission
     if (
@@ -390,7 +396,11 @@ export default function Task({ type }: { type: "task" | "example" }) {
       .then(() => setCurrentTab(commands.indexOf(command)))
       .then(onClose)
       .then(() => {
-        if (type === "example" && task?.status === "Interactive") {
+        if (
+          type === "example" &&
+          task?.status === "Interactive" &&
+          command === "GRADE"
+        ) {
           toast({
             title: "Submission received",
             duration: 3000,
@@ -470,6 +480,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
             name="Run"
             color="gray.600"
             isLoading={!!timer}
+            isDisabled={!enableSubmitCommand}
             onClick={onSubmit("run")}
           />
         ) : null}
