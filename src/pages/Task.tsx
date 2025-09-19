@@ -84,7 +84,7 @@ import { TaskController } from "./Supervisor"
 export default function Task({ type }: { type: "task" | "example" }) {
   const { i18n, t } = useTranslation()
   const currentLanguage = i18n.language
-  const editor = useCodeEditor()
+  const editor = useCodeEditor({ disablePasting: type === "example" })
   const navigate = useNavigate()
   const toast = useToast()
   const { courseSlug } = useParams()
@@ -636,6 +636,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
                 minimap: { enabled: false },
                 readOnly: !currentFile.editable,
               }}
+              onMount={editor.handleEditorMount}
             />
           )}
           {currentFile.binary && (
