@@ -16,10 +16,10 @@ import {
 import { Select } from "chakra-react-select"
 import { take } from "lodash"
 import { Link } from "react-router-dom"
-import { usePoints } from "../components/Hooks"
+import { useUsers } from "../components/Hooks"
 
 export function SupervisorZone() {
-  const { data: participants } = usePoints()
+  const { data: participants } = useUsers()
   if (!participants) return <></>
   return (
     <Stack flexGrow={1} p={4}>
@@ -72,7 +72,7 @@ export function TaskController({
   onChange,
   obfuscateUserId,
 }: TaskControllerProps) {
-  const { data: participants } = usePoints()
+  const { data: participants } = useUsers()
   return (
     <HStack p={1} w="full">
       <Stack fontSize="sm" flexGrow={1}>
