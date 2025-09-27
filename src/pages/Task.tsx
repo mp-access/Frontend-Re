@@ -204,7 +204,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
     if (isAssistant) return true
 
     if (type === "task") {
-      return task.remainingAttempts >= 0
+      return task.remainingAttempts > 0
     }
 
     // only concerns lecture examples, not tasks
@@ -480,7 +480,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
             name="Run"
             color="gray.600"
             isLoading={!!timer}
-            isDisabled={!enableSubmitCommand}
+            isDisabled={!enableRunCommand}
             onClick={onSubmit("run")}
           />
         ) : null}
