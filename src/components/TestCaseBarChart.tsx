@@ -1,8 +1,9 @@
 import { Box, Button, Flex, HStack, Text, VStack } from "@chakra-ui/react"
-import React, { SetStateAction, useCallback, useMemo, useState } from "react"
+import React, { SetStateAction, useCallback, useMemo } from "react"
 import { FiCheckCircle, FiXCircle } from "react-icons/fi"
 import { PiCrosshairSimpleFill, PiCrosshairSimpleLight } from "react-icons/pi"
 import { TbSpy, TbSpyOff } from "react-icons/tb"
+import { useLocalStorage } from "./Hooks"
 
 const CustomBar: React.FC<{
   name: string
@@ -124,7 +125,10 @@ export const TestCaseBarChart: React.FC<{
   setExactMatch,
   setHideStudentInfo,
 }) => {
-  const [showPassRate, setShowPassRate] = useState(true)
+  const [showPassRate, setShowPassRate] = useLocalStorage<boolean>(
+    "show-pass-rate",
+    true,
+  )
 
   const data = useMemo(() => {
     return Object.entries(passRatePerTestCase).map(([name, value]) => ({

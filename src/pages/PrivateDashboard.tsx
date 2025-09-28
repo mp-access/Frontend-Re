@@ -741,7 +741,10 @@ export function PrivateDashboard() {
   const [durationInSeconds, setDurationInSeconds] = useState<number>(150)
   const [exampleState, setExampleState] = useState<ExampleState | null>(null)
   const [exactMatch, setExactMatch] = useState<boolean>(false)
-  const [hideStudentInfo, setHideStudentInfo] = useState<boolean>(false)
+  const [hideStudentInfo, setHideStudentInfo] = useLocalStorage<boolean>(
+    "hide-student-information",
+    false,
+  )
   const [exampleInformation, setExampleInformation] =
     useState<ExampleInformation | null>(null)
   const { courseSlug, exampleSlug } = useParams()
