@@ -219,6 +219,10 @@ declare interface ParticipantProps {
   username?: string
 }
 
+declare interface ExampleSubmissionsCount {
+  submissionsCount: Record<string, number>
+}
+
 declare interface UserContext {
   isCreator: boolean
   user: CurrentUser

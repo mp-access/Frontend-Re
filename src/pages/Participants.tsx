@@ -11,11 +11,11 @@ import {
   Tr,
   VStack,
 } from "@chakra-ui/react"
-import React from "react"
-import { usePoints } from "../components/Hooks"
+import { usePoints, useStudentExampleSubmissions } from "../components/Hooks"
 
 export default function Participants() {
   const { data: participants } = usePoints()
+  const { data: exampleSubmissions } = useStudentExampleSubmissions()
   if (!participants) return <></>
   return (
     <VStack>
@@ -33,6 +33,7 @@ export default function Participants() {
               <Th>First Name</Th>
               <Th>Email</Th>
               <Th>Points</Th>
+              <Th>Example Submissions</Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -45,6 +46,15 @@ export default function Participants() {
                 <Td>{participant.firstName}</Td>
                 <Td>{participant.email}</Td>
                 <Td>{participant.points?.toFixed(2)}</Td>
+                <Td>
+                  {(
+                    (participant.username &&
+                      exampleSubmissions?.submissionsCount?.[
+                        participant.username
+                      ]) ||
+                    0
+                  ).toFixed(0)}
+                </Td>
               </Tr>
             ))}
           </Tbody>
