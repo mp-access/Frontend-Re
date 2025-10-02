@@ -192,7 +192,7 @@ export default function Course() {
                       as={Link}
                       to={"examples"}
                     >
-                      Examples
+                      {t("Examples")}
                     </Button>
                   </Td>
                 </Tr>
