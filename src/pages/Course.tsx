@@ -63,15 +63,6 @@ export default function Course() {
     (a) => a.published,
   )
 
-  const [activeExamples] = fork(
-    course.examples,
-    (e) => e.status === "Active" || e.status === "Interactive",
-  )
-  const nrOfSolvedExampels = activeExamples.reduce(
-    (total, example) => total + example.points,
-    0,
-  )
-
   const [activeAssignments, pastAssignments] = fork(
     publishedAssignments,
     (a) => a.active,
@@ -176,7 +167,7 @@ export default function Course() {
         </VStack>
       </GridItem>
       <GridItem as={Stack} layerStyle="container" p={0} spacing={4}>
-        {isSupervisor || activeExamples.length > 0 ? (
+        {course.hasVisibleExamples ? (
           <TableContainer layerStyle="segment">
             <HStack>
               <Icon as={FcIdea} boxSize={6} />
@@ -201,7 +192,7 @@ export default function Course() {
                       as={Link}
                       to={"examples"}
                     >
-                      {nrOfSolvedExampels ? t("Continue") : t("Examples")}
+                      {t("Examples")}
                     </Button>
                   </Td>
                 </Tr>
