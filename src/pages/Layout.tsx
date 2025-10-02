@@ -162,11 +162,10 @@ export const CourseNav: React.FC<{
   const { i18n, t } = useTranslation()
   const currentLanguage = i18n.language
   const matches = useMatches()
-  const { courseSlug, taskSlug, exampleSlug } = useParams()
+  const { courseSlug, taskSlug } = useParams()
   const { data: course } = useCourse()
   const { data: assignment } = useAssignment()
   const task = assignment?.tasks.find((task) => task.slug === taskSlug)
-  const example = course?.examples.find((e) => e.slug === exampleSlug)
 
   const { status: exampleStatusContext } = useContext(ExampleStatusContext)
 
@@ -177,14 +176,7 @@ export const CourseNav: React.FC<{
   if (!course) return <></>
 
   const toNav = (h: unknown) =>
-    join(
-      compact([
-        h,
-        (h === t("Assignment") && assignment?.ordinalNum) ||
-          (h == t("Example") && example?.ordinalNum),
-      ]),
-      " ",
-    )
+    join(compact([h, h === t("Assignment") && assignment?.ordinalNum]), " ")
   return (
     <Breadcrumb
       layerStyle="float"
