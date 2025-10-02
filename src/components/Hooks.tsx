@@ -60,9 +60,9 @@ const usePath = (prefix: string): string[] => {
           "assignments",
           assignmentSlug,
           prefix !== "assignments" && ["tasks", taskSlug],
-        ]
-      )
-    )
+        ],
+      ),
+    ),
   )
 }
 
@@ -70,7 +70,7 @@ export const useCreate = (slug: string) => {
   const target = slug === "" ? "/create" : "/edit"
   const { mutate, isLoading } = useMutation<string, AxiosError, object>(
     (repository) => axios.post(target, repository),
-    { onSuccess: () => window.location.reload() }
+    { onSuccess: () => window.location.reload() },
   )
   return { mutate, isLoading }
 }
@@ -79,7 +79,7 @@ export const usePull = () => {
   const path = usePath("")
   const { mutate, isLoading } = useMutation(
     () => axios.post("/courses" + `/${path[1]}/pull`, {}),
-    { onSuccess: () => window.location.reload() }
+    { onSuccess: () => window.location.reload() },
   )
   return { mutate, isLoading }
 }
@@ -119,6 +119,17 @@ export const useExtendExample = () => {
   const extendExampleDuration = (duration: number) => mutateAsync([duration])
 
   return { extendExampleDuration }
+}
+
+export const useInteractiveExample = (options: UseQueryOptions = {}) => {
+  const { courseSlug } = useParams()
+
+  return useQuery<InteractiveExampleDTO>(
+    ["courses", courseSlug, "examples", "interactive"],
+    {
+      enabled: options.enabled,
+    },
+  )
 }
 
 export const useTerminate = () => {
@@ -175,7 +186,7 @@ export const useCategorize = () => {
 }
 
 export const useExamples = (
-  options: UseQueryOptions<PointDistribution> = {}
+  options: UseQueryOptions<PointDistribution> = {},
 ) => {
   const { courseSlug } = useParams()
 
@@ -186,7 +197,7 @@ export const useExamples = (
 
 export const usePendingSubmissions = (
   userId: string,
-  options: UseQueryOptions<PointDistribution> = {}
+  options: UseQueryOptions<PointDistribution> = {},
 ) => {
   const { courseSlug, exampleSlug } = useParams()
   return useQuery<NewSubmissionProps[]>(
@@ -202,7 +213,7 @@ export const usePendingSubmissions = (
     {
       enabled: options.enabled,
       refetchOnMount: "always",
-    }
+    },
   )
 }
 
@@ -242,7 +253,7 @@ export const useAssignment = () => {
   const { courseSlug, assignmentSlug } = useParams()
   return useQuery<AssignmentProps>(
     ["courses", courseSlug, "assignments", assignmentSlug],
-    { enabled: !!assignmentSlug }
+    { enabled: !!assignmentSlug },
   )
 }
 
@@ -251,7 +262,7 @@ export const useExample = (userId: string) => {
   const { courseSlug, exampleSlug } = useParams()
   const query = useQuery<TaskProps>(
     ["courses", courseSlug, "examples", exampleSlug, "users", userId],
-    { enabled: !timer, refetchOnMount: "always" }
+    { enabled: !timer, refetchOnMount: "always" },
   )
   // eslint-disable-next-line
   const { mutateAsync } = useMutation<any, AxiosError, any[]>(
@@ -259,7 +270,7 @@ export const useExample = (userId: string) => {
     {
       onMutate: () => setTimer(Date.now() + 30000),
       onSettled: () => setTimer(undefined),
-    }
+    },
   )
   const submit = (data: NewSubmissionProps) =>
     mutateAsync([
@@ -283,7 +294,7 @@ export const useTask = (userId: string) => {
       "users",
       userId,
     ],
-    { enabled: !timer }
+    { enabled: !timer },
   )
   // eslint-disable-next-line
   const { mutateAsync } = useMutation<any, AxiosError, any[]>(
@@ -292,7 +303,7 @@ export const useTask = (userId: string) => {
       onMutate: () => setTimer(Date.now() + 30000),
       onSettled: () => setTimer(undefined),
       onSuccess: query.refetch,
-    }
+    },
   )
   const submit = (data: NewSubmissionProps) =>
     mutateAsync([
@@ -312,7 +323,7 @@ export const useTask = (userId: string) => {
 
 export const useCountdown = (start: number | null, end: number | null) => {
   const [timeLeftInSeconds, setTimeLeftInSeconds] = useState<number | null>(
-    null
+    null,
   )
   const [circleValue, setCircleValue] = useState<number | null>(null)
 
@@ -416,7 +427,7 @@ export const useInspect = () => {
 
   if (!courseSlug || !exampleSlug) {
     throw new Error(
-      `Course Slug ${courseSlug} or example slug ${exampleSlug} undefined`
+      `Course Slug ${courseSlug} or example slug ${exampleSlug} undefined`,
     )
   }
 
@@ -450,7 +461,7 @@ export const useStudentSubmissions = () => {
 }
 
 export const useExamplePointDistribution = (
-  options: UseQueryOptions<PointDistribution> = {}
+  options: UseQueryOptions<PointDistribution> = {},
 ) => {
   const { courseSlug, exampleSlug } = useParams()
   return useQuery<PointDistribution>(
@@ -458,7 +469,7 @@ export const useExamplePointDistribution = (
     {
       enabled: options.enabled,
       ...options,
-    }
+    },
   )
 }
 
@@ -488,10 +499,10 @@ const getStorageValue = <T,>(key: string, defaultValue: T) => {
 
 export const useLocalStorage = <T,>(
   key: string,
-  defaultValue: T
+  defaultValue: T,
 ): [T, Dispatch<SetStateAction<T>>] => {
   const [value, setValue] = useState<T>(() =>
-    getStorageValue(key, defaultValue)
+    getStorageValue(key, defaultValue),
   )
 
   useEffect(() => {
