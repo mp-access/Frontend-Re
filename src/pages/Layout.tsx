@@ -49,7 +49,7 @@ export default function Layout() {
     !!courseSlug && keycloak.hasRealmRole(courseSlug + "-supervisor")
 
   useEffect(() => {
-    if (!isSupervisor && exampleStatusContext.hasInteractive) {
+    if (courseSlug && !isSupervisor && exampleStatusContext.hasInteractive) {
       const interactiveExamplePath = `/courses/${courseSlug}/examples/${exampleStatusContext.exampleSlug}`
       if (interactiveExamplePath !== location.pathname) {
         navigate(interactiveExamplePath)
