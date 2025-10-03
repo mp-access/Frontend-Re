@@ -279,3 +279,7 @@ declare interface ExampleSubmissionsDTO extends ExampleInformation {
 declare interface ExampleResetSsePayload {
   exampleSlug: string
 }
+
+declare interface InteractiveExampleDTO {
+  exampleSlug: string | null
+}

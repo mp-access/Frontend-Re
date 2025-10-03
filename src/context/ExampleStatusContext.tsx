@@ -1,6 +1,6 @@
 import { createContext, useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
-import { useExamples } from "../components/Hooks"
+import { useInteractiveExample } from "../components/Hooks"
 
 type ExampleStatusContextType =
   | {
@@ -27,24 +27,25 @@ export const ExampleStatusProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const { courseSlug } = useParams()
-  const { data: examples } = useExamples({ enabled: !!courseSlug })
+  const { data: interactiveExampleDTO } = useInteractiveExample({
+    enabled: !!courseSlug,
+  })
   const [status, setStatus] = useState<ExampleStatusContextType>({
     hasInteractive: false,
   })
 
   useEffect(() => {
-    if (!courseSlug || !examples) return
+    if (!courseSlug || !interactiveExampleDTO) return
 
-    const interactiveExample = examples.find(
-      (example) => example.status === "Interactive",
-    )
-
-    if (interactiveExample) {
-      setStatus({ hasInteractive: true, exampleSlug: interactiveExample.slug })
+    if (interactiveExampleDTO.exampleSlug) {
+      setStatus({
+        hasInteractive: true,
+        exampleSlug: interactiveExampleDTO.exampleSlug,
+      })
     } else {
       setStatus({ hasInteractive: false })
     }
-  }, [courseSlug, examples])
+  }, [courseSlug, interactiveExampleDTO])
 
   const setInteractive = (slug: string) =>
     setStatus({ hasInteractive: true, exampleSlug: slug })
