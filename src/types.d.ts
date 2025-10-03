@@ -24,7 +24,7 @@ declare interface CourseInformation {
 
 declare interface CourseProps extends CourseOverview {
   assignments: Array<AssignmentProps>
-  examples: Array<TaskOverview>
+  hasVisibleExamples: boolean
   events: Array<CourseEventProps>
   rank: number
 }
@@ -282,4 +282,8 @@ declare interface ExampleSubmissionsDTO extends ExampleInformation {
 
 declare interface ExampleResetSsePayload {
   exampleSlug: string
+}
+
+declare interface InteractiveExampleDTO {
+  exampleSlug: string | null
 }

@@ -121,6 +121,17 @@ export const useExtendExample = () => {
   return { extendExampleDuration }
 }
 
+export const useInteractiveExample = (options: UseQueryOptions = {}) => {
+  const { courseSlug } = useParams()
+
+  return useQuery<InteractiveExampleDTO>(
+    ["courses", courseSlug, "examples", "interactive"],
+    {
+      enabled: options.enabled,
+    },
+  )
+}
+
 export const useTerminate = () => {
   const { courseSlug, exampleSlug } = useParams()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
