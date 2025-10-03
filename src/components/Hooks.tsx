@@ -242,6 +242,16 @@ export const usePoints = () => {
   })
 }
 
+export const useStudentExampleSubmissions = () => {
+  const { courseSlug } = useParams()
+  return useQuery<ExampleSubmissionsCount>(
+    ["courses", courseSlug, "examples", "submissions-count"],
+    {
+      enabled: !!courseSlug,
+    },
+  )
+}
+
 export const useUsers = () => {
   const { courseSlug } = useParams()
   return useQuery<ParticipantProps[]>(["courses", courseSlug, "users"], {
