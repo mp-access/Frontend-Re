@@ -224,6 +224,8 @@ export default function Task({ type }: { type: "task" | "example" }) {
     return enableSubmitCommand
   }, [enableSubmitCommand, type])
 
+  const getPath = (id: number) => `${id}/${user.email}/${submissionId}`
+
   const derivedEditorContent = useMemo(() => {
     // example case: submission not yet fully processed, so content only available from pending subnmission
     if (
@@ -246,7 +248,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
       }
     }
 
-    return currentFile?.content || currentFile?.template
+    return currentFile?.content || currentFile?.template || ""
   }, [pendingSubmissions, task, currentFile, type])
 
   useEffect(() => {
@@ -338,6 +340,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
       }
     }
   }, [submissionId])
+
   useEffect(() => {
     if (task) {
       if (currentFile == undefined || taskId != task.id) {
@@ -351,7 +354,16 @@ export default function Task({ type }: { type: "task" | "example" }) {
             "id",
           ),
         )
-        setCurrentFile((file) => file && find(editableFiles, { id: file.id }))
+
+        setCurrentFile((file) => {
+          if (!file) return file
+
+          const updatedEditableFile = find(editableFiles, { id: file.id })
+
+          if (updatedEditableFile) return updatedEditableFile
+
+          return find(task.files, { id: file.id })
+        })
       }
       setTaskId(task.id)
       setEditorReload((prev) => prev + 1)
@@ -363,6 +375,28 @@ export default function Task({ type }: { type: "task" | "example" }) {
       setOpenFiles((files) => unionBy(files, [currentFile], "id"))
   }, [currentFile])
 
+  const saveCurrentFileContent = (currFile: TaskFileProps | undefined) => {
+    if (currFile && !currFile.binary && currFile.editable) {
+      const currentContent = editor.getContent(getPath(currFile.id))
+      setEditableFiles((prevFiles) =>
+        prevFiles.map((file) =>
+          file.id === currFile.id && currentContent
+            ? { ...file, content: currentContent } // Update content for persistence
+            : file,
+        ),
+      )
+    }
+  }
+
+  const handleFileSelect = (newFile: TaskFileProps) => {
+    if (newFile.id !== currentFile?.id) {
+      saveCurrentFileContent(currentFile)
+      // Find the file from editableFiles to ensure you use the version with the latest content
+      const fileWithContent = find(editableFiles, { id: newFile.id }) || newFile
+      setCurrentFile(fileWithContent)
+    }
+  }
+
   if (!task || !currentFile) return <Placeholder />
 
   const commands: string[] = compact([
@@ -371,7 +405,6 @@ export default function Task({ type }: { type: "task" | "example" }) {
     "grade",
   ])
 
-  const getPath = (id: number) => `${id}/${user.email}/${submissionId}`
   const getTemplate = (name: string) => {
     if (!name.startsWith("/")) {
       name = "/" + name
@@ -622,9 +655,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
                 <FileTree
                   files={task.files}
                   selected={currentFile.path}
-                  onSelect={(file) =>
-                    setCurrentFile(find(editableFiles, { id: file.id }) || file)
-                  }
+                  onSelect={(file) => handleFileSelect(file)}
                 />
               </AccordionPanel>
             </AccordionItem>
@@ -634,7 +665,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
           <FileTabs
             id={currentFile.id}
             files={openFiles}
-            onSelect={setCurrentFile}
+            onSelect={handleFileSelect}
             onReorder={setOpenFiles}
           />
           {currentFile.binary || (
