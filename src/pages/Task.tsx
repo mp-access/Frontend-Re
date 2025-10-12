@@ -224,7 +224,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
     return enableSubmitCommand
   }, [enableSubmitCommand, type])
 
-  const getPath = (id: number) => `${id}/${user.email}/${submissionId}`
+  const getPath = (id: number) => `${id}/${user.email}`
 
   const derivedEditorContent = useMemo(() => {
     // example case: submission not yet fully processed, so content only available from pending subnmission
