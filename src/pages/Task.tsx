@@ -391,7 +391,6 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const handleFileSelect = (newFile: TaskFileProps) => {
     if (newFile.id !== currentFile?.id) {
       saveCurrentFileContent(currentFile)
-      // Find the file from editableFiles to ensure you use the version with the latest content
       const fileWithContent = find(editableFiles, { id: newFile.id }) || newFile
       setCurrentFile(fileWithContent)
     }
