@@ -248,7 +248,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
       }
     }
 
-    return currentFile?.content || currentFile?.template || ""
+    return currentFile?.content || currentFile?.template
   }, [pendingSubmissions, task, currentFile, type])
 
   useEffect(() => {
