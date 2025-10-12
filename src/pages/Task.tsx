@@ -381,7 +381,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
       setEditableFiles((prevFiles) =>
         prevFiles.map((file) =>
           file.id === currFile.id && currentContent
-            ? { ...file, content: currentContent } // Update content for persistence
+            ? { ...file, content: currentContent }
             : file,
         ),
       )
