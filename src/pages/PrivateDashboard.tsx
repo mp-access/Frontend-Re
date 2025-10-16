@@ -783,6 +783,10 @@ export function PrivateDashboard() {
   const [testsPassedCurrentSubmission, setTestsPassedCurrentSubmission] =
     useState<number[] | null>(null)
 
+  const [timeFrameFromPublishing, setTimeFrameFromPublishing] = useState<
+    [number, number] | null
+  >(null)
+
   const namedTestsPassedCurrentSubmission: Record<string, boolean> | null =
     useMemo(() => {
       if (!testsPassedCurrentSubmission || !exampleInformation) {
@@ -839,7 +843,12 @@ export function PrivateDashboard() {
   )
   const handleStart = useCallback(async () => {
     try {
-      await publish(durationInSeconds)
+      setExampleState("publishing")
+      const res = await publish(durationInSeconds)
+      setTimeFrameFromPublishing([
+        Date.parse(res.startDate),
+        Date.parse(res.endDate),
+      ])
     } catch (e) {
       console.log("Error publishing example: ", e)
     }
@@ -941,12 +950,16 @@ export function PrivateDashboard() {
       return timeFrameFromEvent
     }
 
+    if (timeFrameFromPublishing) {
+      return timeFrameFromPublishing
+    }
+
     if (!example.start || !example.end) {
       return [null, null]
     }
 
     return [Date.parse(example.start), Date.parse(example.end)]
-  }, [example, timeFrameFromEvent])
+  }, [example, timeFrameFromEvent, timeFrameFromPublishing])
 
   const getCategoryKeyBySubmissionId = useCallback(
     (submissionId: number) => {

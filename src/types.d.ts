@@ -287,3 +287,8 @@ declare interface ExampleResetSsePayload {
 declare interface InteractiveExampleDTO {
   exampleSlug: string | null
 }
+
+declare interface ExamplePublicationDTO {
+  startDate: string
+  endDate: string
+}
