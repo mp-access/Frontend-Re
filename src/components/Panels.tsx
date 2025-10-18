@@ -237,8 +237,10 @@ const MarkdownOrderedList = ({ children }: OrderedListProps) => (
 const MarkdownBlock = ({ children }: { children: React.ReactNode }) => (
   <Stack bg="blackAlpha.100" p={2} m={2} children={children} />
 )
-const MarkdownCode = ({ inline, children, className }: CodeProps) =>
-  inline ? (
+const MarkdownCode = ({ inline, children, className }: CodeProps) => {
+  const language = className?.replace("language-", "") || ""
+
+  return inline ? (
     <Code
       colorScheme="gray"
       bg="gray.175"
@@ -249,11 +251,12 @@ const MarkdownCode = ({ inline, children, className }: CodeProps) =>
     <SyntaxHighlighter
       children={String(children).replace(/\n$/, "")}
       style={atomOneLight}
-      language={className}
+      language={language}
       wrapLines
       customStyle={{ fontSize: "85%" }}
     />
   )
+}
 const MarkdownListItem = ({ checked, children }: LiProps) => (
   <ListItem pb={1} display="flex">
     <ListIcon as={checked === null ? RxDotFilled : Checkbox} mt={1} />
