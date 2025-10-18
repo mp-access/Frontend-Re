@@ -1096,7 +1096,7 @@ export function PrivateDashboard() {
         </Tabs>
       </Flex>
       <Flex gap={2} flexDirection={"column"} minWidth={0} flex={2}>
-        <Flex direction={"column"} flex={1}>
+        <Flex direction={"column"} flex={1} overflow={"auto"}>
           {!submissions || submissions.length < 1 ? (
             <TaskDescription
               instructionContent={instructionsContent}
@@ -1132,6 +1132,7 @@ export function PrivateDashboard() {
           alignContent={"space-between"}
           p={2}
           overflow={"auto"}
+          minH={"70px"}
         >
           <GeneralInformation
             exampleState={exampleState}
