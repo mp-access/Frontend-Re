@@ -27,7 +27,6 @@ import {
   AnimatePresence,
   AnimatePresenceProps,
   motion,
-  useMotionValue,
   useTransform,
 } from "framer-motion"
 import "katex/dist/katex.min.css"
@@ -49,6 +48,7 @@ import { atomOneLight } from "react-syntax-highlighter/dist/cjs/styles/hljs"
 import rehypeKatex from "rehype-katex"
 import remarkGfm from "remark-gfm"
 import RemarkMathPlugin from "remark-math"
+import { usePersistentMotionValue } from "./Hooks"
 
 const MotionBox = motion(Box)
 const swap = (to: number) => (r: number) => ({
@@ -63,7 +63,7 @@ type TaskViewProps = {
 
 export const TaskView = ({ children }: TaskViewProps) => {
   const size = useWindowSize()
-  const x = useMotionValue(700)
+  const x = usePersistentMotionValue("TaskView-sidebar-width", size[0] * 0.3)
   const width = useTransform(x, (value) => size[0] - 224 - value)
   return (
     <Flex
@@ -114,7 +114,7 @@ type TaskIOProps = {
 
 export const TaskIO = ({ children }: TaskIOProps) => {
   const size = useWindowSize()
-  const y = useMotionValue(size[1] * 0.7)
+  const y = usePersistentMotionValue("TaskIO-height", size[0] * 0.3)
 
   return (
     <>
