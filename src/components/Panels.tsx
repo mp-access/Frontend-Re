@@ -65,7 +65,6 @@ export const TaskView = ({ children }: TaskViewProps) => {
   const size = useWindowSize()
   const x = useMotionValue(700)
   const width = useTransform(x, (value) => size[0] - 224 - value)
-
   return (
     <Flex
       flex={1}
@@ -115,8 +114,7 @@ type TaskIOProps = {
 
 export const TaskIO = ({ children }: TaskIOProps) => {
   const size = useWindowSize()
-  const maxHeight = useMotionValue(size[1])
-  const y = useTransform(maxHeight, (value) => value * 0.7)
+  const y = useMotionValue(size[1] * 0.7)
 
   return (
     <>
@@ -130,7 +128,11 @@ export const TaskIO = ({ children }: TaskIOProps) => {
         }}
       >
         <motion.div
-          style={{ height: y, display: "flex", position: "relative" }}
+          style={{
+            height: y,
+            display: "flex",
+            position: "relative",
+          }}
         >
           {children[1]}
           {children[2]}
@@ -144,7 +146,7 @@ export const TaskIO = ({ children }: TaskIOProps) => {
           bg="purple.600"
           w="full"
           h={2}
-          dragConstraints={{ top: 200, bottom: size[1] - 150 }}
+          dragConstraints={{ top: 100, bottom: size[1] - 150 }}
           style={{ y }}
           cursor="row-resize"
           key={JSON.stringify(size)}
