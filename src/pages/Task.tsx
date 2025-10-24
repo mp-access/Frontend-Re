@@ -84,7 +84,7 @@ import { TaskController } from "./Supervisor"
 export default function Task({ type }: { type: "task" | "example" }) {
   const { i18n, t } = useTranslation()
   const currentLanguage = i18n.language
-  const editor = useCodeEditor({ disablePasting: type === "example" })
+  const editor = useCodeEditor({ disablePasting: false })
   const navigate = useNavigate()
   const toast = useToast()
   const { courseSlug } = useParams()

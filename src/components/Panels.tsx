@@ -27,7 +27,6 @@ import {
   AnimatePresence,
   AnimatePresenceProps,
   motion,
-  useMotionValue,
   useTransform,
 } from "framer-motion"
 import "katex/dist/katex.min.css"
@@ -49,6 +48,7 @@ import { atomOneLight } from "react-syntax-highlighter/dist/cjs/styles/hljs"
 import rehypeKatex from "rehype-katex"
 import remarkGfm from "remark-gfm"
 import RemarkMathPlugin from "remark-math"
+import { usePersistentMotionValue } from "./Hooks"
 
 const MotionBox = motion(Box)
 const swap = (to: number) => (r: number) => ({
@@ -63,9 +63,8 @@ type TaskViewProps = {
 
 export const TaskView = ({ children }: TaskViewProps) => {
   const size = useWindowSize()
-  const x = useMotionValue(700)
+  const x = usePersistentMotionValue("TaskView-sidebar-width", size[0] * 0.3)
   const width = useTransform(x, (value) => size[0] - 224 - value)
-
   return (
     <Flex
       flex={1}
@@ -115,8 +114,7 @@ type TaskIOProps = {
 
 export const TaskIO = ({ children }: TaskIOProps) => {
   const size = useWindowSize()
-  const maxHeight = useMotionValue(size[1])
-  const y = useTransform(maxHeight, (value) => value * 0.7)
+  const y = usePersistentMotionValue("TaskIO-height", size[0] * 0.3)
 
   return (
     <>
@@ -130,7 +128,11 @@ export const TaskIO = ({ children }: TaskIOProps) => {
         }}
       >
         <motion.div
-          style={{ height: y, display: "flex", position: "relative" }}
+          style={{
+            height: y,
+            display: "flex",
+            position: "relative",
+          }}
         >
           {children[1]}
           {children[2]}
@@ -144,7 +146,7 @@ export const TaskIO = ({ children }: TaskIOProps) => {
           bg="purple.600"
           w="full"
           h={2}
-          dragConstraints={{ top: 200, bottom: size[1] - 150 }}
+          dragConstraints={{ top: 100, bottom: size[1] - 150 }}
           style={{ y }}
           cursor="row-resize"
           key={JSON.stringify(size)}
@@ -237,8 +239,10 @@ const MarkdownOrderedList = ({ children }: OrderedListProps) => (
 const MarkdownBlock = ({ children }: { children: React.ReactNode }) => (
   <Stack bg="blackAlpha.100" p={2} m={2} children={children} />
 )
-const MarkdownCode = ({ inline, children, className }: CodeProps) =>
-  inline ? (
+const MarkdownCode = ({ inline, children, className }: CodeProps) => {
+  const language = className?.replace("language-", "") || ""
+
+  return inline ? (
     <Code
       colorScheme="gray"
       bg="gray.175"
@@ -249,11 +253,12 @@ const MarkdownCode = ({ inline, children, className }: CodeProps) =>
     <SyntaxHighlighter
       children={String(children).replace(/\n$/, "")}
       style={atomOneLight}
-      language={className}
+      language={language}
       wrapLines
       customStyle={{ fontSize: "85%" }}
     />
   )
+}
 const MarkdownListItem = ({ checked, children }: LiProps) => (
   <ListItem pb={1} display="flex">
     <ListIcon as={checked === null ? RxDotFilled : Checkbox} mt={1} />
