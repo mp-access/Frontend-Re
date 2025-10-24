@@ -1,6 +1,7 @@
 import { useMonaco } from "@monaco-editor/react"
 import { useMutation, useQuery, UseQueryOptions } from "@tanstack/react-query"
 import axios, { AxiosError } from "axios"
+import { useMotionValue } from "framer-motion"
 import { compact, concat, flatten } from "lodash"
 import * as monaco from "monaco-editor"
 import {
@@ -522,4 +523,39 @@ export const useLocalStorage = <T,>(
   }, [key, value])
 
   return [value, setValue]
+}
+
+export const usePersistentMotionValue = (
+  key: string,
+  fallback: number,
+  delay = 1000,
+) => {
+  const value = useMotionValue(fallback)
+
+  useEffect(() => {
+    const saved = localStorage.getItem(key)
+    if (saved !== null) {
+      const parsed = parseFloat(saved)
+      if (!isNaN(parsed)) value.set(parsed)
+    }
+  }, [key, value])
+
+  useEffect(() => {
+    // debounce for local storage
+    let timeout: NodeJS.Timeout | null = null
+
+    const unsubscribe = value.on("change", (latest) => {
+      if (timeout) clearTimeout(timeout)
+      timeout = setTimeout(() => {
+        localStorage.setItem(key, String(latest))
+      }, delay)
+    })
+
+    return () => {
+      unsubscribe()
+      if (timeout) clearTimeout(timeout)
+    }
+  }, [key, value, delay])
+
+  return value
 }
