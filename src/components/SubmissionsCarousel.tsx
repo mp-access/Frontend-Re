@@ -112,7 +112,6 @@ const EditorContainer: React.FC<{
     <Editor
       value={submissionContent}
       options={{
-        readOnly: true,
         minimap: { enabled: false },
         scrollBeyondLastLine: false,
         automaticLayout: true,
@@ -204,14 +203,10 @@ const Slide: React.FC<{
       >
         <Box flex={1} minH={0} position={"relative"}>
           {isVisible ? (
-            <div
-              style={{ pointerEvents: "none", height: "100%", width: "100%" }}
-            >
-              <MemoizedEditor
-                submissionContent={submission.content[selectedFileName]}
-                selectedFileName={selectedFileName}
-              />
-            </div>
+            <MemoizedEditor
+              submissionContent={submission.content[selectedFileName]}
+              selectedFileName={selectedFileName}
+            />
           ) : (
             <Text></Text>
           )}
