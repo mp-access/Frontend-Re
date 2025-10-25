@@ -406,7 +406,11 @@ export const useTimeframeFromSSE = () => {
   return { timeFrameFromEvent, resetTimeFrameFromEvent }
 }
 
-export const useSSE = <T,>(eventType: string, handler: (data: T) => void) => {
+export const useSSE = <T,>(
+  eventType: string,
+  handler: (data: T) => void,
+  disabled?: boolean,
+) => {
   const { eventSource } = useEventSource()
 
   const handlerRef = useRef(handler)
@@ -416,7 +420,7 @@ export const useSSE = <T,>(eventType: string, handler: (data: T) => void) => {
   }, [handler])
 
   useEffect(() => {
-    if (!eventSource) return
+    if (!eventSource || disabled) return
 
     const listener = (event: MessageEvent) => {
       try {
@@ -432,7 +436,7 @@ export const useSSE = <T,>(eventType: string, handler: (data: T) => void) => {
     return () => {
       eventSource.removeEventListener(eventType, listener)
     }
-  }, [eventSource, eventType])
+  }, [disabled, eventSource, eventType])
 }
 
 export const useInspect = () => {

@@ -111,9 +111,9 @@ export default function Task({ type }: { type: "task" | "example" }) {
     submit,
     refetch,
     timer,
-
     // eslint-disable-next-line react-hooks/rules-of-hooks
-  } = type == "task" ? useTask(userId) : useExample(userId)
+  } = type === "task" ? useTask(userId) : useExample(userId)
+
   const { data: pendingSubmissions, refetch: refetchPendingSubmissions } =
     usePendingSubmissions(user.email, { enabled: type === "example" })
 
@@ -159,6 +159,24 @@ export default function Task({ type }: { type: "task" | "example" }) {
       setUserId(atob(id))
     }
   })
+
+  const refetchOnGradingComplete = (message: string) => {
+    if (message == "COMPLETE") {
+      refetch()
+    }
+  }
+
+  const disableGradingListener = useMemo(() => {
+    return (
+      type === "task" || !pendingSubmissions || pendingSubmissions.length === 0
+    )
+  }, [pendingSubmissions])
+
+  useSSE<string>(
+    "grading-status",
+    refetchOnGradingComplete,
+    disableGradingListener,
+  )
 
   const getUpdate = (file: TaskFileProps, submission?: WorkspaceProps) =>
     submission?.files?.find((s) => s.taskFileId === file.id)?.content ||
@@ -446,6 +464,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
         }
       })
       .then(() => {
+        // case if assistant submits from other user's implementation
         if (isAssistant && userId !== user.email) {
           setUserId(user.email)
         }
