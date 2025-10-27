@@ -632,7 +632,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
           refetch()
         }
       }
-    }, 5000)
+    }, 3000)
 
     return () => clearInterval(pendingSubmissionPolling)
   }, [task, derivedEndDate, pendingSubmissions])
