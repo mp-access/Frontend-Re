@@ -32,6 +32,7 @@ import {
   PopoverContent,
   PopoverTrigger,
   SimpleGrid,
+  Spinner,
   Stack,
   Tab,
   TabList,
@@ -40,6 +41,7 @@ import {
   Tabs,
   Tag,
   Text,
+  ToastId,
   useDisclosure,
   useToast,
   VStack,
@@ -47,6 +49,7 @@ import {
 import Editor from "@monaco-editor/react"
 import { useQueryClient } from "@tanstack/react-query"
 import { format, parseISO } from "date-fns"
+import { TFunction } from "i18next"
 import fileDownload from "js-file-download"
 import JSZip from "jszip"
 import { compact, find, range, unionBy } from "lodash"
@@ -80,6 +83,327 @@ import { ScoreBar, ScorePie } from "../components/Statistics"
 import { createDownloadHref, detectType } from "../components/Util"
 import { ExampleStatusContext } from "../context/ExampleStatusContext"
 import { TaskController } from "./Supervisor"
+
+const RightSidebar: React.FC<{
+  task: TaskProps
+  derivedStartDate: number | null
+  derivedEndDate: number | null
+  enableSubmitCommand: boolean
+  type: "task" | "example"
+  isAssistant: boolean
+  isPrivileged: boolean
+  submissionPending: boolean
+  submissionName: (command: string, ordinalNum: number) => string
+  refill: () => ToastId
+  reload: (submission: SubmissionProps) => void
+  reset: () => void
+  t: TFunction<"translation", undefined>
+}> = ({
+  task,
+  derivedStartDate,
+  derivedEndDate,
+  enableSubmitCommand,
+  type,
+  isAssistant,
+  t,
+  submissionPending,
+  submissionName,
+  isPrivileged,
+  refill,
+  reload,
+  reset,
+}) => {
+  const showStillProcessingIndicator = useMemo(() => {
+    return (
+      submissionPending &&
+      task.status === "Active" &&
+      derivedEndDate &&
+      derivedEndDate < Date.now()
+    )
+  }, [submissionPending, task, derivedEndDate])
+
+  return (
+    <Stack pos="sticky" minW="3xs" h="full" spacing={0}>
+      {task.status === "Interactive" ? (
+        <VStack p={4} w="full">
+          <HStack>
+            <Heading fontSize="xl">{t("Remaining Time")}</Heading>
+          </HStack>
+          <Divider />
+          <CountdownTimer
+            startTime={derivedStartDate}
+            endTime={derivedEndDate}
+            size="large"
+            variant="circular"
+          />
+        </VStack>
+      ) : null}
+      {!enableSubmitCommand &&
+        task.nextAttemptAt &&
+        !(task.status === "Interactive") && (
+          <NextAttemptAt date={task.nextAttemptAt} onComplete={refill} />
+        )}
+      {type === "task" ||
+      isAssistant ||
+      (derivedEndDate && derivedEndDate + 60 * 60 * 2 * 1000 <= Date.now()) ? (
+        <SimpleGrid columns={2} w="full" fontSize="sm">
+          <VStack borderRightWidth={1} spacing={0} h={32} pb={2}>
+            <ScorePie value={task.points} max={task.maxPoints} />
+            <Tag size="sm" colorScheme="purple" fontWeight={400} bg="purple.50">
+              {t("Score")}
+            </Tag>
+          </VStack>
+          <VStack h={32} p={2}>
+            <SimpleGrid
+              columns={Math.min(task.maxAttempts, 5)}
+              gap={1}
+              flexGrow={1}
+              alignItems="center"
+            >
+              {range(Math.min(task.maxAttempts, 10)).map((i) => (
+                <Center
+                  key={i}
+                  rounded="full"
+                  boxSize={4}
+                  borderWidth={2}
+                  borderColor="purple.400"
+                  bg={
+                    isPrivileged || i < task.remainingAttempts
+                      ? "gradients.500"
+                      : "transparent"
+                  }
+                />
+              ))}
+            </SimpleGrid>
+            <Text fontSize="lg">
+              <b>{isPrivileged ? "∞" : task.remainingAttempts}</b> /{" "}
+              {task.maxAttempts}
+            </Text>
+            <Tag size="sm" colorScheme="purple" fontWeight={400} bg="purple.50">
+              {t("Submissions")}
+            </Tag>
+          </VStack>
+        </SimpleGrid>
+      ) : (
+        <VStack borderRightWidth={1} spacing={0} p={2}>
+          {task.status === "Active" ? (
+            // shown in the first two hours after an example is finished
+            <>
+              <Flex
+                direction={"column"}
+                align={"center"}
+                justify={"center"}
+                height={"160px"}
+              >
+                {showStillProcessingIndicator ? (
+                  <Spinner mt={4} color="gray.600" speed={"1s"} />
+                ) : (
+                  <>
+                    <CircularProgress
+                      value={
+                        (task.submissions[task.submissions.length - 1]
+                          ?.points ?? 0 / task.maxPoints) * 100
+                      }
+                      size={120}
+                      color="green.500"
+                    >
+                      <CircularProgressLabel
+                        fontFamily={"monospace"}
+                        fontSize={"3xl"}
+                      >
+                        {`${((task.submissions[task.submissions.length - 1]?.points ?? 0 / task.maxPoints) * 100).toFixed(0)}%`}
+                      </CircularProgressLabel>
+                    </CircularProgress>
+                    <Text>{t("Correctness")}</Text>
+                  </>
+                )}
+              </Flex>
+              {showStillProcessingIndicator ? (
+                <>
+                  <Text
+                    color={"purple.600"}
+                    textAlign={"center"}
+                    fontSize={"sm"}
+                  >
+                    {t("submission_processing")}
+                  </Text>
+                  <Text
+                    color={"purple.600"}
+                    textAlign={"center"}
+                    fontSize={"sm"}
+                  >
+                    {t("feedback_soon")}
+                  </Text>
+                </>
+              ) : null}
+            </>
+          ) : null}
+        </VStack>
+      )}
+      {!submissionPending &&
+      (isAssistant ||
+        type === "task" || // might remove this again???
+        derivedStartDate == null ||
+        derivedEndDate == null ||
+        derivedEndDate < Date.now()) ? (
+        <Accordion
+          allowMultiple
+          defaultIndex={[0]}
+          overflow="hidden"
+          flexGrow={1}
+        >
+          <AccordionItem boxSize="full">
+            <AccordionButton>
+              <AccordionIcon />
+              <FcTimeline />
+              <Text title={t("pruning_help")}>{t("History")}</Text>
+            </AccordionButton>
+            <AccordionPanel
+              motionProps={{
+                style: { display: "flex", maxHeight: "100%" },
+              }}
+              p={0}
+              flexGrow={1}
+              overflow="scroll"
+            >
+              {task.submissions.map((submission) => (
+                <SimpleGrid
+                  templateColumns="1rem 1fr auto"
+                  templateRows="auto auto"
+                  key={submission.id}
+                  fontSize="sm"
+                  justifyItems="stretch"
+                  justifyContent="space-between"
+                >
+                  <VStack gridRow="span 2">
+                    <Icon
+                      as={BsCircleFill}
+                      mx={2}
+                      mt={1}
+                      boxSize={2}
+                      color="purple.500"
+                    />
+                    <Divider orientation="vertical" borderColor="gray.500" />
+                  </VStack>
+                  <Box>
+                    <Text lineHeight={1.2} fontWeight={500}>
+                      {submissionName(
+                        submission.command,
+                        submission.ordinalNum,
+                      )}
+                    </Text>
+                    <Text fontSize="2xs">
+                      {format(
+                        parseISO(submission.createdAt),
+                        "dd.MM.yyyy HH:mm",
+                      )}
+                    </Text>
+                    {!submission.valid && (
+                      <Badge colorScheme="red" mr={1}>
+                        Invalid
+                      </Badge>
+                    )}
+                    {task.deadline && submission.createdAt > task.deadline && (
+                      <Badge colorScheme="purple" mr={1}>
+                        Late
+                      </Badge>
+                    )}
+                  </Box>
+                  <ButtonGroup size="sm" variant="ghost" spacing={1}>
+                    <Popover placement="left">
+                      <PopoverTrigger>
+                        <IconButton
+                          isDisabled={!submission.output}
+                          bg="gray.10"
+                          color="contra"
+                          rounded="md"
+                          aria-label={submission.graded ? "Hint" : "Output"}
+                          fontSize="120%"
+                          icon={
+                            submission.graded ? (
+                              <AiOutlineBulb />
+                            ) : (
+                              <AiOutlineCode />
+                            )
+                          }
+                        />
+                      </PopoverTrigger>
+                      <PopoverContent w="fit-content" maxW="xl" bg="yellow.50">
+                        <PopoverArrow />
+                        <PopoverBody
+                          overflow="auto"
+                          fontSize="sm"
+                          whiteSpace="pre-wrap"
+                          maxH="2xs"
+                        >
+                          {submission.output}
+                        </PopoverBody>
+                      </PopoverContent>
+                    </Popover>
+                    <TooltipIconButton
+                      onClick={() => reload(submission)}
+                      aria-label="Reload"
+                      bg="gray.10"
+                      color="contra"
+                      icon={<AiOutlineReload />}
+                    />
+                  </ButtonGroup>
+                  <Stack gridColumn="span 2" py={2} mb={4}>
+                    {submission.graded && submission.valid && (
+                      <ScoreBar
+                        value={submission.points}
+                        max={submission.maxPoints}
+                        h={6}
+                      />
+                    )}
+                  </Stack>
+                </SimpleGrid>
+              ))}
+              <Flex gap={2} fontSize="sm">
+                <VStack w={4}>
+                  <Icon
+                    as={BsCircleFill}
+                    mx={2}
+                    mt={1}
+                    boxSize={2}
+                    color="purple.500"
+                  />
+                  <Divider orientation="vertical" borderColor="gray.500" />
+                </VStack>
+                <Stack mb={8}>
+                  <Text lineHeight={1.2} fontWeight={500}>
+                    {t("Started task")}.
+                  </Text>
+                  <Button
+                    size="xs"
+                    leftIcon={<AiOutlineReload />}
+                    onClick={reset}
+                  >
+                    {t("Reset")}
+                  </Button>
+                </Stack>
+              </Flex>
+            </AccordionPanel>
+          </AccordionItem>
+        </Accordion>
+      ) : null}
+      {task.nextAttemptAt !== null &&
+      derivedEndDate &&
+      derivedEndDate > Date.now() ? (
+        <VStack>
+          <Divider />
+          <Text fontWeight={"bold"} color={"purple.600"} textAlign={"center"}>
+            {t("submission_received")}
+          </Text>
+          <Text pl={2} pr={2} color={"purple.600"} textAlign={"center"}>
+            {t("feedback_info")}
+          </Text>
+          <Divider />
+        </VStack>
+      ) : null}
+    </Stack>
+  )
+}
 
 export default function Task({ type }: { type: "task" | "example" }) {
   const { i18n, t } = useTranslation()
@@ -159,24 +483,6 @@ export default function Task({ type }: { type: "task" | "example" }) {
       setUserId(atob(id))
     }
   })
-
-  const refetchOnGradingComplete = (message: string) => {
-    if (message == "COMPLETE") {
-      refetch()
-    }
-  }
-
-  const disableGradingListener = useMemo(() => {
-    return (
-      type === "task" || !pendingSubmissions || pendingSubmissions.length === 0
-    )
-  }, [pendingSubmissions])
-
-  useSSE<string>(
-    "grading-status",
-    refetchOnGradingComplete,
-    disableGradingListener,
-  )
 
   const getUpdate = (file: TaskFileProps, submission?: WorkspaceProps) =>
     submission?.files?.find((s) => s.taskFileId === file.id)?.content ||
@@ -296,9 +602,10 @@ export default function Task({ type }: { type: "task" | "example" }) {
   // handle case where time runs out but user hasn't submitted (no automatic refetch happens)
   useEffect(() => {
     if (!task || !derivedEndDate || derivedEndDate < Date.now()) return
-
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
       if (derivedEndDate < Date.now()) {
+        // only executed once
+        refetchPendingSubmissions()
         refetch()
         clearInteractive()
         clearInterval(interval)
@@ -309,13 +616,38 @@ export default function Task({ type }: { type: "task" | "example" }) {
   }, [derivedEndDate, task])
 
   useEffect(() => {
-    if (!task || !timeFrameFromEvent) return
+    if (
+      !task ||
+      !derivedEndDate ||
+      derivedEndDate > Date.now() ||
+      pendingSubmissions?.length === 0
+    )
+      return
 
-    // handles refetching after manual termination
-    if (timeFrameFromEvent[1] < Date.now()) {
-      clearInteractive()
-      refetch()
+    const pendingSubmissionPolling = setInterval(async () => {
+      if (pendingSubmissions?.length !== 0) {
+        const res = await refetchPendingSubmissions()
+        if (res?.data?.length === 0) {
+          // no pending submissions anymore
+          refetch()
+        }
+      }
+    }, 5000)
+
+    return () => clearInterval(pendingSubmissionPolling)
+  }, [task, derivedEndDate, pendingSubmissions])
+
+  useEffect(() => {
+    if (!task || !timeFrameFromEvent) return
+    const handleRefetchOnManualTermination = () => {
+      if (timeFrameFromEvent[1] < Date.now()) {
+        clearInteractive()
+        refetchPendingSubmissions()
+        refetch()
+      }
     }
+
+    handleRefetchOnManualTermination()
   }, [timeFrameFromEvent, task])
 
   useEffect(() => {
@@ -459,8 +791,8 @@ export default function Task({ type }: { type: "task" | "example" }) {
       })
       .then(async () => {
         if (type === "example") {
-          await refetchPendingSubmissions()
           await refetch()
+          await refetchPendingSubmissions()
         }
       })
       .then(() => {
@@ -826,275 +1158,26 @@ export default function Task({ type }: { type: "task" | "example" }) {
             </TabPanels>
           </Tabs>
         </TaskIO>
-        <Stack pos="sticky" minW="3xs" h="full" spacing={0}>
-          {task.status === "Interactive" ? (
-            <VStack p={4} w="full">
-              <HStack>
-                <Heading fontSize="xl">{t("Remaining Time")}</Heading>
-              </HStack>
-              <Divider />
-              <CountdownTimer
-                startTime={derivedStartDate}
-                endTime={derivedEndDate}
-                size="large"
-                variant="circular"
-              />
-            </VStack>
-          ) : null}
-          {!enableSubmitCommand &&
-            task.nextAttemptAt &&
-            !(task.status === "Interactive") && (
-              <NextAttemptAt date={task.nextAttemptAt} onComplete={refill} />
-            )}
-          {type === "task" ||
-          isAssistant ||
-          (derivedEndDate &&
-            derivedEndDate + 60 * 60 * 2 * 1000 <= Date.now()) ? (
-            <SimpleGrid columns={2} w="full" fontSize="sm">
-              <VStack borderRightWidth={1} spacing={0} h={32} pb={2}>
-                <ScorePie value={task.points} max={task.maxPoints} />
-                <Tag
-                  size="sm"
-                  colorScheme="purple"
-                  fontWeight={400}
-                  bg="purple.50"
-                >
-                  {t("Score")}
-                </Tag>
-              </VStack>
-              <VStack h={32} p={2}>
-                <SimpleGrid
-                  columns={Math.min(task.maxAttempts, 5)}
-                  gap={1}
-                  flexGrow={1}
-                  alignItems="center"
-                >
-                  {range(Math.min(task.maxAttempts, 10)).map((i) => (
-                    <Center
-                      key={i}
-                      rounded="full"
-                      boxSize={4}
-                      borderWidth={2}
-                      borderColor="purple.400"
-                      bg={
-                        isPrivileged || i < task.remainingAttempts
-                          ? "gradients.500"
-                          : "transparent"
-                      }
-                    />
-                  ))}
-                </SimpleGrid>
-                <Text fontSize="lg">
-                  <b>{isPrivileged ? "∞" : task.remainingAttempts}</b> /{" "}
-                  {task.maxAttempts}
-                </Text>
-                <Tag
-                  size="sm"
-                  colorScheme="purple"
-                  fontWeight={400}
-                  bg="purple.50"
-                >
-                  {t("Submissions")}
-                </Tag>
-              </VStack>
-            </SimpleGrid>
-          ) : (
-            <VStack borderRightWidth={1} spacing={0} p={2}>
-              {task.status === "Active" ? (
-                // shown in the first two hours after an example is finished
-                <>
-                  <CircularProgress
-                    value={
-                      (task.submissions[task.submissions.length - 1]?.points ??
-                        0 / task.maxPoints) * 100
-                    }
-                    size={120}
-                    color="green.500"
-                  >
-                    <CircularProgressLabel
-                      fontFamily={"monospace"}
-                      fontSize={"3xl"}
-                    >
-                      {`${((task.submissions[task.submissions.length - 1]?.points ?? 0 / task.maxPoints) * 100).toFixed(0)}%`}
-                    </CircularProgressLabel>
-                  </CircularProgress>
-                  <Text>{t("Correctness")}</Text>
-                </>
-              ) : null}
-            </VStack>
-          )}
-          {isAssistant ||
-          derivedStartDate == null ||
-          derivedEndDate == null ||
-          derivedEndDate < Date.now() ? (
-            <Accordion
-              allowMultiple
-              defaultIndex={[0]}
-              overflow="hidden"
-              flexGrow={1}
-            >
-              <AccordionItem boxSize="full">
-                <AccordionButton>
-                  <AccordionIcon />
-                  <FcTimeline />
-                  <Text title={t("pruning_help")}>{t("History")}</Text>
-                </AccordionButton>
-                <AccordionPanel
-                  motionProps={{
-                    style: { display: "flex", maxHeight: "100%" },
-                  }}
-                  p={0}
-                  flexGrow={1}
-                  overflow="scroll"
-                >
-                  {task.submissions.map((submission) => (
-                    <SimpleGrid
-                      templateColumns="1rem 1fr auto"
-                      templateRows="auto auto"
-                      key={submission.id}
-                      fontSize="sm"
-                      justifyItems="stretch"
-                      justifyContent="space-between"
-                    >
-                      <VStack gridRow="span 2">
-                        <Icon
-                          as={BsCircleFill}
-                          mx={2}
-                          mt={1}
-                          boxSize={2}
-                          color="purple.500"
-                        />
-                        <Divider
-                          orientation="vertical"
-                          borderColor="gray.500"
-                        />
-                      </VStack>
-                      <Box>
-                        <Text lineHeight={1.2} fontWeight={500}>
-                          {submissionName(
-                            submission.command,
-                            submission.ordinalNum,
-                          )}
-                        </Text>
-                        <Text fontSize="2xs">
-                          {format(
-                            parseISO(submission.createdAt),
-                            "dd.MM.yyyy HH:mm",
-                          )}
-                        </Text>
-                        {!submission.valid && (
-                          <Badge colorScheme="red" mr={1}>
-                            Invalid
-                          </Badge>
-                        )}
-                        {task.deadline &&
-                          submission.createdAt > task.deadline && (
-                            <Badge colorScheme="purple" mr={1}>
-                              Late
-                            </Badge>
-                          )}
-                      </Box>
-                      <ButtonGroup size="sm" variant="ghost" spacing={1}>
-                        <Popover placement="left">
-                          <PopoverTrigger>
-                            <IconButton
-                              isDisabled={!submission.output}
-                              bg="gray.10"
-                              color="contra"
-                              rounded="md"
-                              aria-label={submission.graded ? "Hint" : "Output"}
-                              fontSize="120%"
-                              icon={
-                                submission.graded ? (
-                                  <AiOutlineBulb />
-                                ) : (
-                                  <AiOutlineCode />
-                                )
-                              }
-                            />
-                          </PopoverTrigger>
-                          <PopoverContent
-                            w="fit-content"
-                            maxW="xl"
-                            bg="yellow.50"
-                          >
-                            <PopoverArrow />
-                            <PopoverBody
-                              overflow="auto"
-                              fontSize="sm"
-                              whiteSpace="pre-wrap"
-                              maxH="2xs"
-                            >
-                              {submission.output}
-                            </PopoverBody>
-                          </PopoverContent>
-                        </Popover>
-                        <TooltipIconButton
-                          onClick={() => reload(submission)}
-                          aria-label="Reload"
-                          bg="gray.10"
-                          color="contra"
-                          icon={<AiOutlineReload />}
-                        />
-                      </ButtonGroup>
-                      <Stack gridColumn="span 2" py={2} mb={4}>
-                        {submission.graded && submission.valid && (
-                          <ScoreBar
-                            value={submission.points}
-                            max={submission.maxPoints}
-                            h={6}
-                          />
-                        )}
-                      </Stack>
-                    </SimpleGrid>
-                  ))}
-                  <Flex gap={2} fontSize="sm">
-                    <VStack w={4}>
-                      <Icon
-                        as={BsCircleFill}
-                        mx={2}
-                        mt={1}
-                        boxSize={2}
-                        color="purple.500"
-                      />
-                      <Divider orientation="vertical" borderColor="gray.500" />
-                    </VStack>
-                    <Stack mb={8}>
-                      <Text lineHeight={1.2} fontWeight={500}>
-                        {t("Started task")}.
-                      </Text>
-                      <Button
-                        size="xs"
-                        leftIcon={<AiOutlineReload />}
-                        onClick={reset}
-                      >
-                        {t("Reset")}
-                      </Button>
-                    </Stack>
-                  </Flex>
-                </AccordionPanel>
-              </AccordionItem>
-            </Accordion>
-          ) : null}
-          {task.nextAttemptAt !== null &&
-          derivedEndDate &&
-          derivedEndDate > Date.now() ? (
-            <VStack>
-              <Divider />
-              <Text
-                fontWeight={"bold"}
-                color={"purple.600"}
-                textAlign={"center"}
-              >
-                {t("submission_received")}
-              </Text>
-              <Text pl={2} pr={2} color={"purple.600"} textAlign={"center"}>
-                {t("feedback_info")}
-              </Text>
-              <Divider />
-            </VStack>
-          ) : null}
-        </Stack>
+        <RightSidebar
+          task={task}
+          derivedStartDate={derivedStartDate}
+          derivedEndDate={derivedEndDate}
+          enableSubmitCommand={enableSubmitCommand}
+          type={type}
+          isAssistant={isAssistant}
+          isPrivileged={isPrivileged}
+          submissionPending={
+            (pendingSubmissions &&
+              pendingSubmissions.length > 0 &&
+              task.submissions.length === 0) ??
+            false
+          }
+          submissionName={submissionName}
+          refill={refill}
+          reload={reload}
+          reset={reset}
+          t={t}
+        />
       </TaskView>
     </Flex>
   )

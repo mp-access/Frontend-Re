@@ -216,6 +216,8 @@ export const usePendingSubmissions = (
     {
       enabled: options.enabled,
       refetchOnMount: "always",
+      cacheTime: 0,
+      staleTime: 0,
     },
   )
 }
