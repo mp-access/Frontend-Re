@@ -618,6 +618,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
   useEffect(() => {
     if (
       !task ||
+      type === "task" ||
       !derivedEndDate ||
       derivedEndDate > Date.now() ||
       pendingSubmissions?.length === 0
@@ -632,14 +633,14 @@ export default function Task({ type }: { type: "task" | "example" }) {
           refetch()
         }
       }
-    }, 3000)
+    }, 1000)
 
     return () => clearInterval(pendingSubmissionPolling)
   }, [task, derivedEndDate, pendingSubmissions])
 
   useEffect(() => {
-    if (!task || !timeFrameFromEvent) return
-    const handleRefetchOnManualTermination = () => {
+    if (!task || type === "task" || !timeFrameFromEvent) return
+    const handleExampleRefetchOnManualTermination = () => {
       if (timeFrameFromEvent[1] < Date.now()) {
         clearInteractive()
         refetchPendingSubmissions()
@@ -647,7 +648,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
       }
     }
 
-    handleRefetchOnManualTermination()
+    handleExampleRefetchOnManualTermination()
   }, [timeFrameFromEvent, task])
 
   useEffect(() => {
