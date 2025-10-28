@@ -124,19 +124,25 @@ const RightSidebar: React.FC<{
 
   return (
     <Stack pos="sticky" minW="3xs" h="full" spacing={0}>
-      {task.status === "Interactive" ? (
-        <VStack p={4} w="full">
-          <HStack>
-            <Heading fontSize="xl">{t("Remaining Time")}</Heading>
-          </HStack>
-          <Divider />
-          <CountdownTimer
-            startTime={derivedStartDate}
-            endTime={derivedEndDate}
-            size="large"
-            variant="circular"
-          />
-        </VStack>
+      {task.status === "Interactive" && derivedEndDate ? (
+        Date.now() < derivedEndDate ? (
+          <VStack p={4} w="full">
+            <HStack>
+              <Heading fontSize="xl">{t("Remaining Time")}</Heading>
+            </HStack>
+            <Divider />
+            <CountdownTimer
+              startTime={derivedStartDate}
+              endTime={derivedEndDate}
+              size="large"
+              variant="circular"
+            />
+          </VStack>
+        ) : (
+          <Flex justify={"center"} align={"center"} flex={1}>
+            <Spinner mt={4} color="gray.600" speed={"1s"} />
+          </Flex>
+        )
       ) : null}
       {!enableSubmitCommand &&
         task.nextAttemptAt &&
