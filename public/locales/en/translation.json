@@ -61,5 +61,7 @@
   "A new lecture example just has been published": "A new lecture example just has has been published",
   "submission_received": "Submision received",
   "feedback_info": "Feedback will be provided once the time runs out.",
-  "no_bookmarks": "No bookmarks have been set yet."
+  "no_bookmarks": "No bookmarks have been set yet.",
+  "submission_processing": "Submission is being processed",
+  "feedback_soon": "Feedback will be available soon"
 }
