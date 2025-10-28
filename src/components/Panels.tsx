@@ -31,7 +31,7 @@ import {
 } from "framer-motion"
 import "katex/dist/katex.min.css"
 import { toInt } from "radash"
-import React, { ReactNode } from "react"
+import React, { ReactNode, useEffect } from "react"
 import { RxDotFilled } from "react-icons/rx"
 import ReactMarkdown from "react-markdown"
 import {
@@ -65,6 +65,16 @@ export const TaskView = ({ children }: TaskViewProps) => {
   const size = useWindowSize()
   const x = usePersistentMotionValue("TaskView-sidebar-width", size[0] * 0.3)
   const width = useTransform(x, (value) => size[0] - 224 - value)
+
+  const maxX = size[0] - 225
+  const minX = 100
+
+  useEffect(() => {
+    const current = x.get()
+    const clamped = Math.min(Math.max(current, minX), maxX)
+    if (current !== clamped) x.set(clamped)
+  }, [maxX, x])
+
   return (
     <Flex
       flex={1}
@@ -114,7 +124,17 @@ type TaskIOProps = {
 
 export const TaskIO = ({ children }: TaskIOProps) => {
   const size = useWindowSize()
-  const y = usePersistentMotionValue("TaskIO-height", size[0] * 0.3)
+
+  const minY = 100
+  const maxY = size[1] - 150
+  const y = usePersistentMotionValue("TaskIO-height", size[1] * 0.3)
+
+  // ensure motion box is never out of bound when decreasing window size.
+  useEffect(() => {
+    const current = y.get()
+    const clamped = Math.min(Math.max(current, minY), maxY)
+    if (current !== clamped) y.set(clamped)
+  }, [maxY, y])
 
   return (
     <>
@@ -125,6 +145,7 @@ export const TaskIO = ({ children }: TaskIOProps) => {
           flexDirection: "column",
           flexGrow: 1,
           position: "relative",
+          minHeight: 42,
         }}
       >
         <motion.div
@@ -146,7 +167,7 @@ export const TaskIO = ({ children }: TaskIOProps) => {
           bg="purple.600"
           w="full"
           h={2}
-          dragConstraints={{ top: 100, bottom: size[1] - 150 }}
+          dragConstraints={{ top: 50, bottom: size[1] - 150 }}
           style={{ y }}
           cursor="row-resize"
           key={JSON.stringify(size)}
