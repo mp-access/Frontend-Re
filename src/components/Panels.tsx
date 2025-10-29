@@ -235,7 +235,9 @@ export const Feature = ({
   </AnimatePresence>
 )
 
-const MarkdownImg = ({ src }: ImgProps) => <Image src={src} h="auto" pr={3} />
+const MarkdownImg = ({ src }: ImgProps) => (
+  <Image src={src} h="auto" pr={3} width={"100%"} maxW={"25rem"} />
+)
 const MarkdownText = (props: TextProps) => (
   <Text {...props} pb={2} w="full" sx={{ hyphens: "auto" }} />
 )
