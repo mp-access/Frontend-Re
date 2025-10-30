@@ -7,6 +7,7 @@ import {
   Code,
   Divider,
   Flex,
+  FlexProps,
   Heading,
   Link as Href,
   LinkProps as HrefProps,
@@ -235,7 +236,9 @@ export const Feature = ({
   </AnimatePresence>
 )
 
-const MarkdownImg = ({ src }: ImgProps) => <Image src={src} h="auto" pr={3} />
+const MarkdownImg = ({ src }: ImgProps) => (
+  <Image src={src} h="auto" pr={3} width={"100%"} maxW={"25rem"} />
+)
 const MarkdownText = (props: TextProps) => (
   <Text {...props} pb={2} w="full" sx={{ hyphens: "auto" }} />
 )
@@ -262,6 +265,52 @@ const MarkdownBlock = ({ children }: { children: React.ReactNode }) => (
 )
 const MarkdownCode = ({ inline, children, className }: CodeProps) => {
   const language = className?.replace("language-", "") || ""
+  const customCodeBlockStlye: FlexProps = {
+    width: "100%",
+    direction: "column",
+    fontSize: "85%",
+    p: 1,
+    borderRadius: 4,
+    overflow: "auto",
+  }
+
+  if (language === "warning") {
+    return (
+      <Flex {...customCodeBlockStlye} background="red.100">
+        <Code
+          children={children}
+          width="100%"
+          p={2}
+          wordBreak="break-word"
+        ></Code>
+      </Flex>
+    )
+  }
+
+  if (language === "output") {
+    return (
+      <Flex {...customCodeBlockStlye} background="green.100">
+        <Code
+          children={children}
+          width="100%"
+          p={2}
+          wordBreak="break-word"
+          backgroundColor={"none"}
+        ></Code>
+      </Flex>
+    )
+  }
+  if (language === "plain") {
+    return (
+      <Code
+        children={children}
+        width="100%"
+        p={2}
+        wordBreak="break-word"
+        bg="gray.175"
+      ></Code>
+    )
+  }
 
   return inline ? (
     <Code
