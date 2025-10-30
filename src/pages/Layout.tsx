@@ -162,7 +162,7 @@ export const CourseNav: React.FC<{
   const { i18n, t } = useTranslation()
   const currentLanguage = i18n.language
   const matches = useMatches()
-  const { courseSlug, taskSlug } = useParams()
+  const { courseSlug, taskSlug, exampleSlug } = useParams()
   const { data: course } = useCourse()
   const { data: assignment } = useAssignment()
   const task = assignment?.tasks.find((task) => task.slug === taskSlug)
@@ -225,6 +225,54 @@ export const CourseNav: React.FC<{
                   isDisabled={disableNavigation}
                 />
               ))}
+            {exampleSlug && isAssistant && (
+              <>
+                <Button
+                  key={"private-dashboard"}
+                  as={Link}
+                  ml={2}
+                  size="sm"
+                  children={t("Private Dashboard")}
+                  variant="ghost"
+                  isActive={
+                    location.pathname.split("/").pop() === "private-dashboard"
+                  }
+                  to={resolvePath(
+                    `${exampleSlug}/private-dashboard`,
+                    match.pathname,
+                  )}
+                  isDisabled={disableNavigation}
+                />
+                <Button
+                  key={"public-dashboard"}
+                  as={Link}
+                  size="sm"
+                  children={t("Public Dashboard")}
+                  variant="ghost"
+                  isActive={
+                    location.pathname.split("/").pop() === "public-dashboard"
+                  }
+                  to={resolvePath(
+                    `${exampleSlug}/public-dashboard`,
+                    match.pathname,
+                  )}
+                  isDisabled={disableNavigation}
+                />
+                <Button
+                  key={"view-task"}
+                  as={Link}
+                  size="sm"
+                  children={t("View Task")}
+                  variant="ghost"
+                  isActive={
+                    location.pathname.split("/").pop() === exampleSlug ||
+                    location.pathname.includes("inspect")
+                  }
+                  to={resolvePath(`${exampleSlug}`, match.pathname)}
+                  isDisabled={disableNavigation}
+                />
+              </>
+            )}
           </BreadcrumbItem>
         ))}
     </Breadcrumb>

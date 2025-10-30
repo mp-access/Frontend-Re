@@ -139,22 +139,21 @@ function App() {
                     { index: true, element: <Examples /> },
                     {
                       path: ":exampleSlug",
-                      handle: t("Example"),
                       children: [
                         { index: true, element: <Task type="example" /> },
                         {
+                          element: <Task type="example" />,
+                        },
+                        {
                           path: "private-dashboard",
-                          handle: t("Private Dashboard"), // add this in translation.json
                           element: <PrivateDashboard />,
                         },
                         {
                           path: "public-dashboard",
-                          handle: t("Public Dashboard"), // add this in translation.json
                           children: [
                             { index: true, element: <PublicDashboard /> },
                             {
                               path: "inspect/users/:base64EncodedUserId",
-                              handle: "Inspect",
                               element: <Task type="example" />,
                             },
                           ],
