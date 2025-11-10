@@ -849,6 +849,7 @@ export function PrivateDashboard() {
         Date.parse(res.startDate),
         Date.parse(res.endDate),
       ])
+      setExampleState("ongoing")
     } catch (e) {
       console.log("Error publishing example: ", e)
     }
