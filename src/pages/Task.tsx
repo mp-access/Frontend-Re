@@ -515,10 +515,6 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const showTestCommand = useMemo(() => {
     if (!task) return false
 
-    if (!isAssistant && type === "example") {
-      return false
-    }
-
     return task.testCommandAvailable
   }, [task, isAssistant, type])
 
