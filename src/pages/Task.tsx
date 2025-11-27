@@ -767,9 +767,9 @@ export default function Task({ type }: { type: "task" | "example" }) {
   }
 
   const getContent = (file: TaskFileProps) => {
-    const contentFromEditor = editor.getContent(getPath(file.id))
+    const editorContent = editor.getContent(getPath(file.id))
 
-    if (contentFromEditor) return contentFromEditor
+    if (editorContent) return editorContent
 
     const lastestSubmissionContent = task.submissions[0].files.find(
       (f) => f.taskFileId === file.id,
