@@ -1,4 +1,5 @@
 import {
+  Button,
   Center,
   Heading,
   Table,
@@ -11,11 +12,34 @@ import {
   Tr,
   VStack,
 } from "@chakra-ui/react"
+import axios from "axios"
+import { useParams } from "react-router-dom"
 import { usePoints, useStudentExampleSubmissions } from "../components/Hooks"
 
 export default function Participants() {
+  const { courseSlug } = useParams()
   const { data: participants } = usePoints()
   const { data: exampleSubmissions } = useStudentExampleSubmissions()
+
+  const downloadAssignmentPoints = async () => {
+    const response = await axios.get<Blob>(`/courses/${courseSlug}/assignmentPoints`, {
+      responseType: 'blob',
+      headers: { 'Accept': 'text/csv' }
+    });
+    const link = document.createElement('a');
+    // why the weird casting?
+    // response above is a Blob { size: ..., type: "text/csv" }
+    // but createObjectURL sees it as AxiosResponse<Blob, any>
+    // and also, response.data is undefiend. ¯\_(ツ)_/¯
+    link.href = window.URL.createObjectURL(response as unknown as Blob);
+    const currentDate = new Date().toISOString().split('T')[0];
+    link.download = `${courseSlug}_assignment_points_${currentDate}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+
   if (!participants) return <></>
   return (
     <VStack>
@@ -23,6 +47,9 @@ export default function Participants() {
         <Heading m={2} mt={0} fontSize="3xl">
           {participants.length} Participants
         </Heading>
+        <Button ml={2} mb={2} rounded="md" onClick={downloadAssignmentPoints}>
+          Download Assignment points as CSV
+        </Button>
         <Table maxW="container.sm">
           <Thead>
             <Tr>
