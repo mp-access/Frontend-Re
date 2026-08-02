@@ -41,10 +41,13 @@ const authClient = new Keycloak({
 
 axios.defaults.baseURL = "/api/"
 axios.interceptors.response.use((response) => response.data)
-const setAuthToken = (token?: string) =>
-  (axios.defaults.headers.common = {
-    Authorization: token && `Bearer ${token}`,
-  })
+const setAuthToken = (token?: string) => {
+  if (token != null) {
+    const auth = `Bearer ${token}`
+    axios.defaults.headers.common = { Authorization: auth }
+    localStorage.setItem("access-auth", auth)
+  }
+}
 
 const getDefaultLanguage = () => {
   const storedLang = localStorage.getItem("language")

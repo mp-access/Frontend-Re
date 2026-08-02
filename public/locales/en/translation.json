@@ -63,5 +63,8 @@
   "feedback_info": "Feedback will be provided once the time runs out.",
   "no_bookmarks": "No bookmarks have been set yet.",
   "submission_processing": "Submission is being processed",
-  "feedback_soon": "Feedback will be available soon"
+  "feedback_soon": "Feedback will be available soon",
+  "dump_help": "Download all metadata and submissions as a ZIP file. This may take a long while to download!",
+  "dump_impossible": "Sorry, downloading the data dump is only possible in Chrome-based browsers (including Edge, but not, for example, Firefox or Safari).",
+  "dump_downloading": "This dialog will close when the download is finished. Cancelling the download will result in an incomplete file. Downloading..."
 }

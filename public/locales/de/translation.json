@@ -71,5 +71,8 @@
   "no_bookmarks": "Es wurden noch keine Lesezeichen gesetzt.",
   "submission_processing": "Abgabe wird verarbeitet",
   "feedback_soon": "Feedback wird bald verfügbar sein",
-  "View Task": "Aufgabe"
+  "View Task": "Aufgabe",
+  "dump_help": "Alle Metadaten und Abgaben als ZIP downloaden. Kann eine lange Weile dauern!",
+  "dump_impossible": "Tut mir Leid, der Download des data dumps funktioniert nur in Chrome-basierten Browsern (inklusive Edge, aber nicht, zum Beispiel, Firefox oder Safari).",
+  "dump_downloading": "Dieser Dialog schliesst, sobald der Download abgeschlossen ist. Den Download abzubrechen resultiert in einer unvollständigen Datei. Download läuft..."
 }
