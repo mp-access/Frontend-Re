@@ -23,7 +23,7 @@ declare interface CourseInformation {
 }
 
 declare interface CourseProps extends CourseOverview {
-  assignments: Array<AssignmentProps>
+  assignments: Array<AssignmentOverviewProps>
   hasVisibleExamples: boolean
   events: Array<CourseEventProps>
   rank: number
@@ -66,6 +66,11 @@ declare interface AssignmentProps {
   maxPoints: number
   points: number
   tasks: Array<TaskOverview>
+}
+// The assignment as returned inside GET /courses/{c}: same fields, no task list, only the count
+// (mirrors AssignmentCourseView in the backend).
+declare type AssignmentOverviewProps = Omit<AssignmentProps, "tasks"> & {
+  tasksCount: number
 }
 
 declare interface AssignmentInformation {

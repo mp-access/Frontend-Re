@@ -70,7 +70,7 @@ export default function Course() {
   )
 
   const collectEvents = (prop: string) =>
-    groupBy(omit(course.assignments, "tasks"), (a) => get(a, prop + "Date"))
+    groupBy(course.assignments, (a) => get(a, prop + "Date"))
   const events = objectify(
     ["published", "due"],
     (key) => key,
@@ -229,7 +229,7 @@ export default function Course() {
                           {assignment.information["en"].title}
                         </Heading>
                         <Text noOfLines={1} fontSize="sm">
-                          {t("task", { count: assignment.tasks.length })}
+                          {t("task", { count: assignment.tasksCount })}
                         </Text>
                       </VStack>
                     </Td>
@@ -294,7 +294,7 @@ export default function Course() {
                           assignment.information["en"].title}
                       </Heading>
                       <Text noOfLines={1} fontSize="sm">
-                        {t("task", { count: assignment.tasks.length })}
+                        {t("task", { count: assignment.tasksCount })}
                       </Text>
                     </VStack>
                   </Td>
@@ -366,7 +366,7 @@ export default function Course() {
                           assignment.information["en"].title}
                       </Heading>
                       <Text noOfLines={1} fontSize="sm">
-                        {t("task", { count: assignment.tasks.length })}
+                        {t("task", { count: assignment.tasksCount })}
                       </Text>
                     </VStack>
                   </Td>

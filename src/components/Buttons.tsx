@@ -25,7 +25,7 @@ import { ActionIcon } from "./Icons"
 
 type EventBoxProps = {
   selected: string
-  events: Record<string, Record<string, AssignmentProps[]>>
+  events: Record<string, Record<string, AssignmentOverviewProps[]>>
 }
 
 export const LogoButton: React.FC<{ disabled?: boolean }> = ({ disabled }) => {
