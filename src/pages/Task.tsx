@@ -766,8 +766,19 @@ export default function Task({ type }: { type: "task" | "example" }) {
     return `data:${file.mimeType};base64,` + file.templateBinary
   }
 
-  const getContent = (file: TaskFileProps) =>
-    editor.getContent(getPath(file.id)) || file.template
+  const getContent = (file: TaskFileProps) => {
+    const editorContent = editor.getContent(getPath(file.id))
+
+    if (editorContent) return editorContent
+
+    const lastestSubmissionContent = task.submissions[0].files.find(
+      (f) => f.taskFileId === file.id,
+    )?.content
+
+    if (lastestSubmissionContent) return lastestSubmissionContent
+
+    return file.template
+  }
 
   const onSubmit = (command: string) => () => {
     submit({
