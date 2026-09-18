@@ -122,6 +122,11 @@ const RightSidebar: React.FC<{
     )
   }, [submissionPending, task, derivedEndDate])
 
+  const gradedSubmission = task.submissions.find((s) => s.graded && s.valid)
+  const correctness = Math.round(
+    ((gradedSubmission?.points ?? 0) / task.maxPoints) * 100,
+  )
+
   return (
     <Stack pos="sticky" minW="3xs" h="full" spacing={0}>
       {task.status === "Interactive" && derivedEndDate ? (
@@ -206,10 +211,7 @@ const RightSidebar: React.FC<{
                 ) : (
                   <>
                     <CircularProgress
-                      value={
-                        (task.submissions[task.submissions.length - 1]
-                          ?.points ?? 0 / task.maxPoints) * 100
-                      }
+                      value={correctness}
                       size={120}
                       color="green.500"
                     >
@@ -217,7 +219,7 @@ const RightSidebar: React.FC<{
                         fontFamily={"monospace"}
                         fontSize={"3xl"}
                       >
-                        {`${((task.submissions[task.submissions.length - 1]?.points ?? 0 / task.maxPoints) * 100).toFixed(0)}%`}
+                        {gradedSubmission ? `${correctness}%` : "–"}
                       </CircularProgressLabel>
                     </CircularProgress>
                     <Text>{t("Correctness")}</Text>
@@ -784,7 +786,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
         if (
           type === "example" &&
           task?.status === "Interactive" &&
-          command === "GRADE"
+          command === "grade"
         ) {
           toast({
             title: "Submission received",
