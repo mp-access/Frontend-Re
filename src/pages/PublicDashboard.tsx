@@ -110,11 +110,16 @@ const PointsHistogram: React.FC<{
 
 export function PublicDashboard() {
   const { user } = useOutletContext<UserContext>()
-  const { data: example, refetch: refetchExample } = useExample(user.email)
+  const {
+    data: example,
+    dataUpdatedAt,
+    refetch: refetchExample,
+  } = useExample(user.email)
   const { i18n } = useTranslation()
   const navigate = useNavigate()
   const currentLanguage = i18n.language
-  const { timeFrameFromEvent, resetTimeFrameFromEvent } = useTimeframeFromSSE()
+  const { timeFrameFromEvent, timeFrameReceivedAt, resetTimeFrameFromEvent } =
+    useTimeframeFromSSE()
   const { exampleSlug } = useParams()
   const {
     data: initialExampleInformation,
@@ -131,7 +136,7 @@ export function PublicDashboard() {
       return [null, null]
     }
 
-    if (timeFrameFromEvent) {
+    if (timeFrameFromEvent && timeFrameReceivedAt >= dataUpdatedAt) {
       return timeFrameFromEvent
     }
 
@@ -139,7 +144,7 @@ export function PublicDashboard() {
       return [null, null]
     }
     return [Date.parse(example.start), Date.parse(example.end)]
-  }, [example, timeFrameFromEvent])
+  }, [example, dataUpdatedAt, timeFrameFromEvent, timeFrameReceivedAt])
 
   const displayLiveInfo = derivedEndDate !== null && derivedStartDate !== null
 

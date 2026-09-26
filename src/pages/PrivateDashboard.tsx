@@ -610,6 +610,7 @@ const ExampleTimeController: React.FC<{
   setExampleState: React.Dispatch<React.SetStateAction<ExampleState | null>>
   startTime: number | null
   endTime: number | null
+  onTimeFrameSaved: (timeFrame: [number, number]) => void
 }> = ({
   handleTimeAdjustment,
   durationInSeconds,
@@ -622,18 +623,23 @@ const ExampleTimeController: React.FC<{
   setDurationInSeconds,
   startTime,
   endTime,
+  onTimeFrameSaved,
 }) => {
   const { extendExampleDuration } = useExtendExample()
   const handleExtendTime = useCallback(
     async (duration: number) => {
       try {
-        await extendExampleDuration(duration)
+        const saved = await extendExampleDuration(duration)
         setDurationInSeconds((oldVal) => oldVal + duration)
+        onTimeFrameSaved([
+          Date.parse(saved.startDate),
+          Date.parse(saved.endDate),
+        ])
       } catch (e) {
         console.log("Error extending example duration: ", e)
       }
     },
-    [extendExampleDuration, setDurationInSeconds],
+    [extendExampleDuration, setDurationInSeconds, onTimeFrameSaved],
   )
 
   const handleTimeIsUp = useCallback(() => {
@@ -769,8 +775,8 @@ export function PrivateDashboard() {
   const { i18n } = useTranslation()
   const currentLanguage = i18n.language
   const { user } = useOutletContext<UserContext>()
-  const { data: example } = useExample(user.email)
-  const { timeFrameFromEvent } = useTimeframeFromSSE()
+  const { data: example, dataUpdatedAt } = useExample(user.email)
+  const { timeFrameFromEvent, timeFrameReceivedAt } = useTimeframeFromSSE()
   const durationAsString = useMemo(() => {
     return formatSeconds(durationInSeconds || 0)
   }, [durationInSeconds])
@@ -786,6 +792,11 @@ export function PrivateDashboard() {
   const [timeFrameFromPublishing, setTimeFrameFromPublishing] = useState<
     [number, number] | null
   >(null)
+  const [timeFrameSavedAt, setTimeFrameSavedAt] = useState(0)
+  const applySavedTimeFrame = useCallback((timeFrame: [number, number]) => {
+    setTimeFrameFromPublishing(timeFrame)
+    setTimeFrameSavedAt(Date.now())
+  }, [])
 
   const namedTestsPassedCurrentSubmission: Record<string, boolean> | null =
     useMemo(() => {
@@ -845,15 +856,12 @@ export function PrivateDashboard() {
     try {
       setExampleState("publishing")
       const res = await publish(durationInSeconds)
-      setTimeFrameFromPublishing([
-        Date.parse(res.startDate),
-        Date.parse(res.endDate),
-      ])
+      applySavedTimeFrame([Date.parse(res.startDate), Date.parse(res.endDate)])
       setExampleState("ongoing")
     } catch (e) {
       console.log("Error publishing example: ", e)
     }
-  }, [publish, durationInSeconds])
+  }, [publish, durationInSeconds, applySavedTimeFrame])
 
   const handleTermination = useCallback(async () => {
     try {
@@ -947,20 +955,29 @@ export function PrivateDashboard() {
       return [null, null]
     }
 
-    if (timeFrameFromEvent) {
-      return timeFrameFromEvent
-    }
+    const candidates: [number, [number, number] | null][] = [
+      [timeFrameReceivedAt, timeFrameFromEvent],
+      [timeFrameSavedAt, timeFrameFromPublishing],
+      [
+        dataUpdatedAt,
+        example.start && example.end
+          ? [Date.parse(example.start), Date.parse(example.end)]
+          : null,
+      ],
+    ]
+    const freshest = candidates
+      .filter(([, timeFrame]) => timeFrame !== null)
+      .sort(([a], [b]) => b - a)[0]
 
-    if (timeFrameFromPublishing) {
-      return timeFrameFromPublishing
-    }
-
-    if (!example.start || !example.end) {
-      return [null, null]
-    }
-
-    return [Date.parse(example.start), Date.parse(example.end)]
-  }, [example, timeFrameFromEvent, timeFrameFromPublishing])
+    return freshest ? (freshest[1] as [number, number]) : [null, null]
+  }, [
+    example,
+    dataUpdatedAt,
+    timeFrameFromEvent,
+    timeFrameReceivedAt,
+    timeFrameFromPublishing,
+    timeFrameSavedAt,
+  ])
 
   const getCategoryKeyBySubmissionId = useCallback(
     (submissionId: number) => {
@@ -1158,6 +1175,7 @@ export function PrivateDashboard() {
             startTime={derivedStartDate}
             endTime={derivedEndDate}
             setExampleState={setExampleState}
+            onTimeFrameSaved={applySavedTimeFrame}
           />
         </Flex>
       </Flex>

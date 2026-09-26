@@ -111,15 +111,20 @@ export const usePublish = () => {
 
 export const useExtendExample = () => {
   const { courseSlug, exampleSlug } = useParams()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { mutateAsync } = useMutation<any, AxiosError, any[]>({
+  const { mutateAsync } = useMutation<
+    ExamplePublicationDTO,
+    AxiosError,
+    number
+  >({
     mutationFn: (duration) => {
       const url = `/courses/${courseSlug}/examples/${exampleSlug}/extend`
-      return axios.put<void>(url, { duration: duration[0] })
+      return axios.put(url, {
+        duration,
+      }) as unknown as Promise<ExamplePublicationDTO>
     },
   })
 
-  const extendExampleDuration = (duration: number) => mutateAsync([duration])
+  const extendExampleDuration = (duration: number) => mutateAsync(duration)
 
   return { extendExampleDuration }
 }
@@ -392,9 +397,11 @@ export const useTimeframeFromSSE = () => {
   const [timeFrameFromEvent, setTimeFrameFromEvent] = useState<
     [number, number] | null
   >(null)
+  const [timeFrameReceivedAt, setTimeFrameReceivedAt] = useState(0)
 
   const resetTimeFrameFromEvent = () => {
     setTimeFrameFromEvent(null)
+    setTimeFrameReceivedAt(0)
   }
 
   useSSE<string>("timer-update", (data) => {
@@ -403,9 +410,10 @@ export const useTimeframeFromSSE = () => {
       Date.parse(startTimeString),
       Date.parse(endTimeString),
     ])
+    setTimeFrameReceivedAt(Date.now())
   })
 
-  return { timeFrameFromEvent, resetTimeFrameFromEvent }
+  return { timeFrameFromEvent, timeFrameReceivedAt, resetTimeFrameFromEvent }
 }
 
 export const useSSE = <T,>(eventType: string, handler: (data: T) => void) => {

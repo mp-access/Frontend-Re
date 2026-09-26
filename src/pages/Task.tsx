@@ -434,12 +434,13 @@ export default function Task({ type }: { type: "task" | "example" }) {
     ? atob(base64EncodedUserId)
     : null
   const [userId, setUserId] = useState(inspectionUserId ?? user.email)
-  const { timeFrameFromEvent } = useTimeframeFromSSE()
+  const { timeFrameFromEvent, timeFrameReceivedAt } = useTimeframeFromSSE()
   const { exampleSlug } = useParams()
   const { clearInteractive } = useContext(ExampleStatusContext)
   const queryClient = useQueryClient()
   const {
     data: task,
+    dataUpdatedAt,
     submit,
     refetch,
     timer,
@@ -503,7 +504,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
       return [null, null]
     }
 
-    if (timeFrameFromEvent) {
+    if (timeFrameFromEvent && timeFrameReceivedAt >= dataUpdatedAt) {
       return timeFrameFromEvent
     }
 
@@ -512,7 +513,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
     }
 
     return [Date.parse(task.start), Date.parse(task.end)]
-  }, [task, timeFrameFromEvent])
+  }, [task, dataUpdatedAt, timeFrameFromEvent, timeFrameReceivedAt])
 
   const showTestCommand = useMemo(() => {
     if (!task) return false
@@ -538,13 +539,14 @@ export default function Task({ type }: { type: "task" | "example" }) {
     // only concerns lecture examples, not tasks
     if (
       task.nextAttemptAt === null &&
+      task.status === "Interactive" &&
       derivedEndDate &&
       Date.now() < derivedEndDate
     )
       return true // no submissions yet & time not up, so enabled
 
     return Date.parse(task.nextAttemptAt) < Date.now()
-  }, [task])
+  }, [task, derivedEndDate])
 
   const enableRunCommand = useMemo(() => {
     if (type === "task") return true
@@ -603,21 +605,37 @@ export default function Task({ type }: { type: "task" | "example" }) {
     }
   }, [task, isAssistant, navigate])
 
-  // handle case where time runs out but user hasn't submitted (no automatic refetch happens)
+  // reconcile with the server when the local timer runs ou
   useEffect(() => {
-    if (!task || !derivedEndDate || derivedEndDate < Date.now()) return
-    const interval = setInterval(async () => {
-      if (derivedEndDate < Date.now()) {
-        // only executed once
-        refetchPendingSubmissions()
-        refetch()
-        clearInteractive()
-        clearInterval(interval)
-      }
-    }, 1000)
+    if (type !== "example" || !task || !derivedEndDate) return
+    let cancelled = false
+    let attempt = 0
+    let handle: ReturnType<typeof setTimeout> | null = null
 
-    return () => clearInterval(interval)
-  }, [derivedEndDate, task])
+    const reconcile = async () => {
+      if (cancelled) return
+      attempt += 1
+      const [, refreshed] = await Promise.all([
+        refetchPendingSubmissions(),
+        refetch(),
+      ])
+      if (cancelled) return
+      if (refreshed.data?.status !== "Interactive") {
+        clearInteractive()
+        return
+      }
+      handle = setTimeout(reconcile, Math.min(2000 * 2 ** (attempt - 1), 15000))
+    }
+
+    const delay =
+      Math.max(0, derivedEndDate - Date.now()) + 500 + Math.random() * 2000
+    handle = setTimeout(reconcile, delay)
+
+    return () => {
+      cancelled = true
+      if (handle) clearTimeout(handle)
+    }
+  }, [derivedEndDate, type, task?.id])
 
   useEffect(() => {
     if (
