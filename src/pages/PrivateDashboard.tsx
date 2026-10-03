@@ -859,6 +859,7 @@ export function PrivateDashboard() {
       applySavedTimeFrame([Date.parse(res.startDate), Date.parse(res.endDate)])
       setExampleState("ongoing")
     } catch (e) {
+      setExampleState("unpublished")
       console.log("Error publishing example: ", e)
     }
   }, [publish, durationInSeconds, applySavedTimeFrame])

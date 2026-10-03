@@ -40,7 +40,41 @@ const authClient = new Keycloak({
 })
 
 axios.defaults.baseURL = "/api/"
-axios.interceptors.response.use((response) => response.data)
+const renewToken = (minValidity: number) =>
+  authClient.updateToken(minValidity).catch(() => {
+    if (!authClient.authenticated) authClient.login()
+  })
+axios.interceptors.request.use(async (config) => {
+  if (authClient.authenticated) {
+    await renewToken(30)
+    if (authClient.token) {
+      config.headers.set("Authorization", `Bearer ${authClient.token}`)
+    }
+  }
+  return config
+})
+axios.interceptors.response.use(
+  (response) => response.data,
+  async (error) => {
+    const request = error.config
+    if (
+      error.response?.status === 401 &&
+      request &&
+      !request.retriedAfterRefresh &&
+      authClient.authenticated
+    ) {
+      request.retriedAfterRefresh = true
+      await renewToken(-1)
+      if (authClient.authenticated) return axios(request)
+    }
+    return Promise.reject(error)
+  },
+)
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && authClient.authenticated) {
+    renewToken(30)
+  }
+})
 const setAuthToken = (token?: string) => {
   if (token != null) {
     const auth = `Bearer ${token}`
@@ -74,11 +108,18 @@ function App() {
   const onError = (error: AxiosError | unknown) => {
     if (axios.isAxiosError(error)) {
       toast({
-        title: error?.response?.data?.message || "Error",
+        title:
+          error?.response?.data?.message ||
+          (error?.response?.status === 401
+            ? "Session expired, please reload the page"
+            : "Error"),
         status: "error",
       })
     } else {
-      toast({ title: "Error", status: "error" })
+      toast({
+        title: error instanceof Error ? error.message : "Error",
+        status: "error",
+      })
     }
   }
   const toURL = (path: string[]) => join(compact(flattenDeep(path)), "/")

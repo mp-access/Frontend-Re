@@ -1,6 +1,7 @@
 import { createContext, useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 import { useInteractiveExample } from "../components/Hooks"
+import { useKeycloak } from "@react-keycloak/web"
 
 type ExampleStatusContextType =
   | {
@@ -27,8 +28,9 @@ export const ExampleStatusProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const { courseSlug } = useParams()
+  const { keycloak } = useKeycloak()
   const { data: interactiveExampleDTO } = useInteractiveExample({
-    enabled: !!courseSlug,
+    enabled: !!courseSlug && !!keycloak.token,
   })
   const [status, setStatus] = useState<ExampleStatusContextType>({
     hasInteractive: false,
