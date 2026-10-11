@@ -11,7 +11,8 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react"
-import React from "react"
+import axios from "axios"
+import React, { useEffect } from "react"
 import { GrUndo } from "react-icons/gr"
 import {
   Link,
@@ -36,6 +37,19 @@ export default function ErrorPage() {
   } else {
     errorMessage = "Unknown error"
   }
+
+  useEffect(() => {
+    const stack = error instanceof globalThis.Error ? (error.stack ?? "") : ""
+    axios
+      .post("/client-errors", {
+        message: errorMessage,
+        stack,
+        url: window.location.href,
+        userAgent: navigator.userAgent,
+      })
+      .catch(() => undefined)
+  }, [error, errorMessage])
+
   return (
     <Center h="full" bg="bg">
       <VStack
