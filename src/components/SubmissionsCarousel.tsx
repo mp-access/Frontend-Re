@@ -37,9 +37,7 @@ export const getFilteredSubmissions = (
   return submissions.filter((submission) => {
     const testsFailedBoolean = submission.testsPassed.map((v) => !v) // as we want to match the failed tests
     if (selectionArray.length !== testsFailedBoolean.length) {
-      throw new Error(
-        "Missmatching array length between testsPassed and testCaseSelectionArray",
-      )
+      return false
     }
     if (exactMatch) {
       return selectionArray.every((val, idx) => val === testsFailedBoolean[idx])

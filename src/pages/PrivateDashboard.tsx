@@ -824,6 +824,7 @@ export function PrivateDashboard() {
   }
 
   useSSE<SubmissionSsePayload>("student-submission", (data) => {
+    if (data.exampleSlug && data.exampleSlug !== exampleSlug) return
     setSubmissions((prev) => {
       if (prev == null) {
         return [data]
@@ -833,6 +834,7 @@ export function PrivateDashboard() {
   })
 
   useSSE<ExampleInformation>("example-information", (data) => {
+    if (data.exampleSlug && data.exampleSlug !== exampleSlug) return
     setExampleInformation(data)
   })
 

@@ -110,11 +110,7 @@ const PointsHistogram: React.FC<{
 
 export function PublicDashboard() {
   const { user } = useOutletContext<UserContext>()
-  const {
-    data: example,
-    dataUpdatedAt,
-    refetch: refetchExample,
-  } = useExample(user.email)
+  const { data: example, dataUpdatedAt } = useExample(user.email)
   const { i18n } = useTranslation()
   const navigate = useNavigate()
   const currentLanguage = i18n.language
@@ -179,6 +175,7 @@ export function PublicDashboard() {
   })
 
   useSSE<ExampleInformation>("example-information", (data) => {
+    if (data.exampleSlug && data.exampleSlug !== exampleSlug) return
     setExampleInformation(data)
   })
 

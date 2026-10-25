@@ -248,6 +248,7 @@ declare interface ExampleInformation {
   numberOfProcessedSubmissionsWithEmbeddings: number
   passRatePerTestCase: Record<string, number>
   avgPoints: number
+  exampleSlug?: string
 }
 
 declare interface SubmissionSsePayload {
@@ -257,6 +258,7 @@ declare interface SubmissionSsePayload {
   points: number | null
   testsPassed: number[]
   content: Record<string, string>
+  exampleSlug?: string
 }
 
 declare interface Bookmark {
