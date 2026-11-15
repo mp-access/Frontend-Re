@@ -242,7 +242,9 @@ const MarkdownImg = ({ src }: ImgProps) => (
 const MarkdownText = (props: TextProps) => (
   <Text {...props} pb={2} w="full" sx={{ hyphens: "auto" }} />
 )
-const MarkdownLink = (props: HrefProps) => <Href color="blue.500" {...props} />
+const MarkdownLink = (props: HrefProps) => (
+  <Href color="blue.500" isExternal={!props.href?.startsWith("#")} {...props} />
+)
 const MarkdownHeading = ({ children, node: { tagName } }: HeadingProps) => {
   return (
     <Box py={2}>
