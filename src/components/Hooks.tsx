@@ -17,10 +17,16 @@ import { useEventSource } from "../context/EventSourceContext"
 
 interface UseCodeEditorOptions {
   disablePasting?: boolean
+  onChange?: (path: string, content: string) => void
 }
 
 export const useCodeEditor = (options: UseCodeEditorOptions) => {
   const monacoInstance = useMonaco()
+  const onChangeRef = useRef(options.onChange)
+
+  useEffect(() => {
+    onChangeRef.current = options.onChange
+  }, [options.onChange])
 
   const getContent = useCallback(
     (path: string) =>
@@ -43,11 +49,21 @@ export const useCodeEditor = (options: UseCodeEditorOptions) => {
           editorInstance.trigger("keyboard", "undo", null)
         })
       }
+      editorInstance.onDidChangeModelContent(() => {
+        const model = editorInstance.getModel()
+        if (model) onChangeRef.current?.(model.uri.path, model.getValue())
+      })
     },
     [options.disablePasting],
   )
 
-  return { getContent, resetModel, handleEditorMount }
+  const isPath = useCallback(
+    (path: string, modelPath: string) =>
+      monaco.Uri.file(path).path === modelPath,
+    [],
+  )
+
+  return { getContent, resetModel, handleEditorMount, isPath }
 }
 
 const usePath = (prefix: string): string[] => {

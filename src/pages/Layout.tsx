@@ -29,6 +29,7 @@ import {
   useParams,
 } from "react-router-dom"
 import { LogoButton } from "../components/Buttons"
+import { drafts } from "../components/Drafts"
 import { useAssignment, useCourse, useSSE } from "../components/Hooks"
 import { LanguageSwitcher } from "../components/LanguageSwitcher"
 import { Placeholder } from "../components/Panels"
@@ -140,9 +141,10 @@ export default function Layout() {
                 <MenuItem
                   icon={<AiOutlineLogout fontSize="120%" />}
                   children={t("Logout")}
-                  onClick={() =>
+                  onClick={() => {
+                    drafts.clearAll()
                     keycloak.logout({ redirectUri: window.location.origin })
-                  }
+                  }}
                 />
               </MenuGroup>
             </MenuList>

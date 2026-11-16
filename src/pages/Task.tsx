@@ -68,6 +68,7 @@ import {
   TooltipIconButton,
 } from "../components/Buttons"
 import { CountdownTimer } from "../components/CountdownTimer"
+import { draftKey, drafts } from "../components/Drafts"
 import { FileTabs } from "../components/FileTab"
 import { FileTree } from "../components/FileTree"
 import {
@@ -416,7 +417,10 @@ const RightSidebar: React.FC<{
 export default function Task({ type }: { type: "task" | "example" }) {
   const { i18n, t } = useTranslation()
   const currentLanguage = i18n.language
-  const editor = useCodeEditor({ disablePasting: false })
+  const editor = useCodeEditor({
+    disablePasting: false,
+    onChange: (modelPath, content) => saveDraft(modelPath, content),
+  })
   const navigate = useNavigate()
   const toast = useToast()
   const { courseSlug } = useParams()
@@ -449,9 +453,21 @@ export default function Task({ type }: { type: "task" | "example" }) {
 
   const { data: pendingSubmissions, refetch: refetchPendingSubmissions } =
     usePendingSubmissions(user.email, { enabled: type === "example" })
+  const { assignmentSlug, taskSlug } = useParams()
+  const ownDraftKey = draftKey([
+    user.email,
+    courseSlug,
+    type,
+    assignmentSlug,
+    taskSlug,
+    exampleSlug,
+  ])
+  const activeDraftKey = task && userId === user.email ? ownDraftKey : null
+  const draftBase = `${task?.submissions[0]?.id ?? ""}/${task?.start ?? ""}`
 
   useSSE<ExampleResetSsePayload>("example-reset", (data) => {
     if (type === "example" && exampleSlug === data.exampleSlug) {
+      drafts.clear(ownDraftKey)
       if (currentFile) {
         editor.resetModel(getPath(currentFile.id))
         setEditorReload((prev) => prev + 1)
@@ -555,8 +571,17 @@ export default function Task({ type }: { type: "task" | "example" }) {
   }, [enableSubmitCommand, type])
 
   const getPath = (id: number) => `${id}/${user.email}`
+  const saveDraft = (modelPath: string, content: string) => {
+    const file = editableFiles.find((f) =>
+      editor.isPath(getPath(f.id), modelPath),
+    )
+    if (file) drafts.update(activeDraftKey, draftBase, file.path, content)
+  }
 
   const derivedEditorContent = useMemo(() => {
+    const draft =
+      currentFile && drafts.content(activeDraftKey, draftBase, currentFile.path)
+    if (draft !== undefined) return draft
     // example case: submission not yet fully processed, so content only available from pending subnmission
     if (
       type === "example" &&
@@ -579,7 +604,30 @@ export default function Task({ type }: { type: "task" | "example" }) {
     }
 
     return currentFile?.content || currentFile?.template
-  }, [pendingSubmissions, task, currentFile, type])
+  }, [pendingSubmissions, task, currentFile, type, activeDraftKey, draftBase])
+
+  useEffect(() => {
+    if (!task || !activeDraftKey) return
+    const restored = task.files.some((file) => {
+      const draft = drafts.content(activeDraftKey, draftBase, file.path)
+      return (
+        draft !== undefined && draft !== getUpdate(file, task.submissions[0])
+      )
+    })
+    if (restored) toast({ title: t("draft_restored"), isClosable: true })
+  }, [activeDraftKey])
+
+  useEffect(
+    () =>
+      drafts.onSaveError(() =>
+        toast({
+          title: t("draft_not_saved"),
+          status: "warning",
+          isClosable: true,
+        }),
+      ),
+    [t],
+  )
 
   useEffect(() => {
     if (task && derivedEditorContent) {
@@ -787,7 +835,9 @@ export default function Task({ type }: { type: "task" | "example" }) {
   }
 
   const getContent = (file: TaskFileProps) =>
-    editor.getContent(getPath(file.id)) || file.template
+    editor.getContent(getPath(file.id)) ||
+    drafts.content(activeDraftKey, draftBase, file.path) ||
+    file.template
 
   const onSubmit = (command: string) => () => {
     submit({
@@ -844,6 +894,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
   }
 
   const reload = (submission: SubmissionProps) => {
+    drafts.clear(activeDraftKey)
     toast({
       title:
         "Reloaded " + submissionName(submission.command, submission.ordinalNum),
@@ -853,6 +904,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
   }
 
   const reset = () => {
+    drafts.clear(activeDraftKey)
     toast({ title: "Reset files to template", isClosable: true })
     setSubmissionId(-1)
   }
