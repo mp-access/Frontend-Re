@@ -68,7 +68,7 @@ axios.interceptors.response.use(
       if (authClient.authenticated) return axios(request)
     }
     return Promise.reject(error)
-  },
+  }
 )
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && authClient.authenticated) {
@@ -234,5 +234,5 @@ createRoot(document.getElementById("root")!).render(
         </React.StrictMode> */}
       <App />
     </ChakraProvider>
-  </ReactKeycloakProvider>,
+  </ReactKeycloakProvider>
 )
