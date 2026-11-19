@@ -25,6 +25,7 @@ import {
 import { format, parseISO } from "date-fns"
 import { de, enUS } from "date-fns/locale"
 import { DumpModal } from "../components/DumpModal"
+import { ApiKeyModal } from "../components/ApiKeyModal"
 import { get, groupBy, keys, omit } from "lodash"
 import { fork, mapEntries, objectify } from "radash"
 import { useState } from "react"
@@ -142,6 +143,7 @@ export default function Course() {
           ""
         )}
         <VStack>{isSupervisor && <DumpModal slug={course?.slug} />}</VStack>
+        <VStack>{isSupervisor && <ApiKeyModal slug={course?.slug} />}</VStack>
         <VStack>{isSupervisor && <CourseController />}</VStack>
         <VStack>
           <DayPicker

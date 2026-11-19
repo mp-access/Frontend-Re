@@ -74,5 +74,21 @@
   "View Task": "Aufgabe",
   "dump_help": "Alle Metadaten und Abgaben als ZIP downloaden. Kann eine lange Weile dauern!",
   "dump_impossible": "Tut mir Leid, der Download des data dumps funktioniert nur in Chrome-basierten Browsern (inklusive Edge, aber nicht, zum Beispiel, Firefox oder Safari).",
-  "dump_downloading": "Dieser Dialog schliesst, sobald der Download abgeschlossen ist. Den Download abzubrechen resultiert in einer unvollständigen Datei. Download läuft..."
+  "dump_downloading": "Dieser Dialog schliesst, sobald der Download abgeschlossen ist. Den Download abzubrechen resultiert in einer unvollständigen Datei. Download läuft...",
+  "API key": "API-Key",
+  "Create API key": "API-Key erstellen",
+  "Regenerate API key": "API-Key neu generieren",
+  "Confirm regenerate": "Ja, neu generieren",
+  "Copy": "Kopieren",
+  "Copied": "Kopiert",
+  "Close": "Schliessen",
+  "Status": "Status",
+  "api_key_help": "Der API-Key authentifiziert externe Tools (X-API-Key Header) für die Verwaltung von Teilnehmenden, Assistierenden und Supervisors dieses Kurses. Er gilt nur für diesen Kurs und läuft 12 Monate nach der Erstellung ab.",
+  "api_key_none": "Kein Key",
+  "api_key_active": "Aktiv",
+  "api_key_expired": "Abgelaufen",
+  "api_key_created": "Erstellt",
+  "api_key_expires": "Läuft ab",
+  "api_key_shown_once": "Kopiere den Key jetzt. Er wird nur einmal angezeigt und kann später nicht mehr abgerufen werden.",
+  "api_key_regenerate_warning": "Beim neu Generieren wird der aktuelle Key sofort ungültig. Alle Tools, die ihn verwenden, müssen mit dem neuen Key aktualisiert werden."
 }

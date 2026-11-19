@@ -66,5 +66,21 @@
   "feedback_soon": "Feedback will be available soon",
   "dump_help": "Download all metadata and submissions as a ZIP file. This may take a long while to download!",
   "dump_impossible": "Sorry, downloading the data dump is only possible in Chrome-based browsers (including Edge, but not, for example, Firefox or Safari).",
-  "dump_downloading": "This dialog will close when the download is finished. Cancelling the download will result in an incomplete file. Downloading..."
+  "dump_downloading": "This dialog will close when the download is finished. Cancelling the download will result in an incomplete file. Downloading...",
+  "API key": "API key",
+  "Create API key": "Create API key",
+  "Regenerate API key": "Regenerate API key",
+  "Confirm regenerate": "Yes, regenerate",
+  "Copy": "Copy",
+  "Copied": "Copied",
+  "Close": "Close",
+  "Status": "Status",
+  "api_key_help": "The API key authenticates external tools (X-API-Key header) for managing participants, assistants and supervisors of this course. It is only valid for this course and expires 12 months after it was created.",
+  "api_key_none": "No key",
+  "api_key_active": "Active",
+  "api_key_expired": "Expired",
+  "api_key_created": "Created",
+  "api_key_expires": "Expires",
+  "api_key_shown_once": "Copy the key now. It is only shown once and cannot be retrieved later.",
+  "api_key_regenerate_warning": "Regenerating invalidates the current key immediately. All tools using it must be updated with the new key."
 }
