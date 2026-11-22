@@ -96,6 +96,7 @@ export default function Layout() {
   return (
     <Grid
       templateRows="auto 1fr"
+      templateColumns="minmax(0, 1fr)"
       bg="bg"
       h="100vh"
       w="100vw"
