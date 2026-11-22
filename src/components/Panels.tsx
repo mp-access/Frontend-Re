@@ -58,14 +58,46 @@ const swap = (to: number) => (r: number) => ({
   opacity: 0,
 })
 
-type TaskViewProps = {
-  children: [ReactNode, ReactNode, ReactNode]
+const HISTORY_HIDDEN_KEY = "TaskView-history-hidden"
+
+export const readHistoryHidden = () => {
+  try {
+    return localStorage.getItem(HISTORY_HIDDEN_KEY) === "1"
+  } catch {
+    return false
+  }
 }
 
-export const TaskView = ({ children }: TaskViewProps) => {
+export const writeHistoryHidden = (hidden: boolean) => {
+  try {
+    localStorage.setItem(HISTORY_HIDDEN_KEY, hidden ? "1" : "0")
+    return true
+  } catch {
+    return false
+  }
+}
+
+type TaskViewProps = {
+  children: [ReactNode, ReactNode, ReactNode]
+  hideLeft?: boolean
+  hideRight?: boolean
+  maximizeLeft?: boolean
+}
+
+export const TaskView = ({
+  children,
+  hideLeft = false,
+  hideRight = false,
+  maximizeLeft = false,
+}: TaskViewProps) => {
   const size = useWindowSize()
   const x = usePersistentMotionValue("TaskView-sidebar-width", size[0] * 0.3)
-  const width = useTransform(x, (value) => size[0] - 224 - value)
+  const rightWidth = hideRight ? 0 : 224
+  const readingOnly = maximizeLeft && !hideLeft
+  const leftWidth = useTransform(x, (value) =>
+    hideLeft ? 0 : readingOnly ? size[0] - rightWidth : value,
+  )
+  const width = useTransform(leftWidth, (value) => size[0] - rightWidth - value)
 
   const maxX = size[0] - 225
   const minX = 100
@@ -85,11 +117,17 @@ export const TaskView = ({ children }: TaskViewProps) => {
       borderTopWidth={1}
     >
       <motion.div
-        style={{ width: x, marginRight: 2, padding: 10 }}
+        style={{
+          width: leftWidth,
+          marginRight: 2,
+          padding: 10,
+          display: hideLeft ? "none" : "block",
+        }}
         children={children[0]}
       />
       <MotionBox
         pos="absolute"
+        display={hideLeft || readingOnly ? "none" : "block"}
         zIndex={1}
         opacity={0}
         drag="x"
@@ -107,23 +145,24 @@ export const TaskView = ({ children }: TaskViewProps) => {
       <motion.div
         style={{
           width,
-          display: "flex",
+          display: readingOnly ? "none" : "flex",
           flexDirection: "column",
           borderInlineWidth: 1,
         }}
       >
         {children[1]}
       </motion.div>
-      {children[2]}
+      <Box display={hideRight ? "none" : "contents"}>{children[2]}</Box>
     </Flex>
   )
 }
 
 type TaskIOProps = {
   children: [ReactNode, ReactNode, ReactNode, ReactNode]
+  hideOutput?: boolean
 }
 
-export const TaskIO = ({ children }: TaskIOProps) => {
+export const TaskIO = ({ children, hideOutput = false }: TaskIOProps) => {
   const size = useWindowSize()
 
   const minY = 100
@@ -151,7 +190,7 @@ export const TaskIO = ({ children }: TaskIOProps) => {
       >
         <motion.div
           style={{
-            height: y,
+            height: hideOutput ? "100%" : y,
             display: "flex",
             position: "relative",
           }}
@@ -161,6 +200,7 @@ export const TaskIO = ({ children }: TaskIOProps) => {
         </motion.div>
         <MotionBox
           pos="absolute"
+          display={hideOutput ? "none" : "block"}
           zIndex={1}
           opacity={0}
           drag="y"
@@ -175,7 +215,7 @@ export const TaskIO = ({ children }: TaskIOProps) => {
           whileDrag={{ opacity: 0.18 }}
           whileHover={{ opacity: 0.13 }}
         />
-        {children[3]}
+        <Box display={hideOutput ? "none" : "contents"}>{children[3]}</Box>
       </motion.div>
     </>
   )

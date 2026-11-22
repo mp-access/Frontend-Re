@@ -53,13 +53,22 @@ import { TFunction } from "i18next"
 import fileDownload from "js-file-download"
 import JSZip from "jszip"
 import { compact, find, range, unionBy } from "lodash"
-import React, { useContext, useEffect, useMemo, useState } from "react"
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react"
 import Countdown from "react-countdown"
 import { useTranslation } from "react-i18next"
 import { AiOutlineBulb, AiOutlineCode, AiOutlineReload } from "react-icons/ai"
 import { BsCircleFill } from "react-icons/bs"
 import { FcFile, FcInspection, FcTimeline, FcTodoList } from "react-icons/fc"
+import { FiExternalLink, FiMaximize2, FiMinimize2 } from "react-icons/fi"
 import { HiDownload } from "react-icons/hi"
+import {
+  VscLayoutPanel,
+  VscLayoutPanelOff,
+  VscLayoutSidebarLeft,
+  VscLayoutSidebarLeftOff,
+  VscLayoutSidebarRight,
+  VscLayoutSidebarRightOff,
+} from "react-icons/vsc"
 import { useNavigate, useOutletContext, useParams } from "react-router-dom"
 import {
   ActionButton,
@@ -79,7 +88,15 @@ import {
   useTask,
   useTimeframeFromSSE,
 } from "../components/Hooks"
-import { Markdown, Placeholder, TaskIO, TaskView } from "../components/Panels"
+import { openInstructionsWindow } from "../components/InstructionsWindow"
+import {
+  Markdown,
+  Placeholder,
+  readHistoryHidden,
+  TaskIO,
+  TaskView,
+  writeHistoryHidden,
+} from "../components/Panels"
 import { ScoreBar, ScorePie } from "../components/Statistics"
 import { createDownloadHref, detectType } from "../components/Util"
 import { ExampleStatusContext } from "../context/ExampleStatusContext"
@@ -433,6 +450,11 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const [editableFiles, setEditableFiles] = useState<TaskFileProps[]>([])
   const [editorReload, setEditorReload] = useState(1) // counts up every time Editor should re-render
   const [openFiles, setOpenFiles] = useState<TaskFileProps[]>([])
+  const [showInstructions, setShowInstructions] = useState(true)
+  const [showOutput, setShowOutput] = useState(true)
+  const [showHistory, setShowHistory] = useState(() => !readHistoryHidden())
+  const [readingMode, setReadingMode] = useState(false)
+  const instructionsRef = useRef<HTMLDivElement>(null)
   const { base64EncodedUserId } = useParams()
   const inspectionUserId = base64EncodedUserId
     ? atob(base64EncodedUserId)
@@ -512,6 +534,19 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const getUpdate = (file: TaskFileProps, submission?: WorkspaceProps) =>
     submission?.files?.find((s) => s.taskFileId === file.id)?.content ||
     file.template
+
+  useEffect(() => {
+    setShowInstructions(true)
+    setShowOutput(true)
+    setReadingMode(false)
+  }, [task?.id])
+
+  useEffect(() => {
+    if (timer) {
+      setShowOutput(true)
+      setReadingMode(false)
+    }
+  }, [timer])
 
   const isPrivileged = isAssistant && userId === user.email
 
@@ -914,6 +949,23 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const instructionsContent = task.files.filter(
     (file) => file.path === `/${instructionFile}`,
   )[0]?.template
+  const taskTitle =
+    task.information[currentLanguage]?.title || task.information["en"].title
+  const detachInstructions = () => {
+    const opened =
+      !!instructionsRef.current &&
+      openInstructionsWindow(
+        instructionsRef.current,
+        `${taskTitle} – ${t("Instructions")}`,
+        `access-instructions-${task.id}`,
+      )
+    if (!opened)
+      toast({ title: t("popup_blocked"), status: "warning", isClosable: true })
+  }
+  const toggleHistory = () => {
+    writeHistoryHidden(showHistory)
+    setShowHistory(!showHistory)
+  }
   return (
     <Flex boxSize="full">
       <ButtonGroup
@@ -1004,7 +1056,11 @@ export default function Task({ type }: { type: "task" | "example" }) {
           </ModalContent>
         </Modal>
       </ButtonGroup>
-      <TaskView>
+      <TaskView
+        hideLeft={!showInstructions}
+        hideRight={type === "task" && !showHistory}
+        maximizeLeft={readingMode}
+      >
         <Stack h="full" spacing={0} overflow="hidden">
           {isAssistant && (
             <TaskController
@@ -1022,25 +1078,68 @@ export default function Task({ type }: { type: "task" | "example" }) {
             allowMultiple
             defaultIndex={[0, 1]}
           >
-            <AccordionItem display="flex" flexDir="column" overflow="hidden">
+            <AccordionItem
+              display="flex"
+              flexDir="column"
+              overflow="hidden"
+              pos="relative"
+            >
               <AccordionButton>
                 <AccordionIcon />
                 <FcTodoList />
                 <Text>{t("Instructions")}</Text>
               </AccordionButton>
+              <ButtonGroup
+                variant="ghost"
+                size="sm"
+                colorScheme="blackAlpha"
+                pos="absolute"
+                right={3}
+                top={1}
+                spacing={0}
+                bg="base"
+                rounded="md"
+              >
+                <TooltipIconButton
+                  aria-label={t(
+                    readingMode
+                      ? "instructions_reduce"
+                      : "instructions_enlarge",
+                  )}
+                  icon={readingMode ? <FiMinimize2 /> : <FiMaximize2 />}
+                  onClick={() => setReadingMode(!readingMode)}
+                />
+                <TooltipIconButton
+                  aria-label={t("instructions_detach")}
+                  icon={<FiExternalLink />}
+                  onClick={detachInstructions}
+                />
+              </ButtonGroup>
               <AccordionPanel
                 p={2}
                 pr={0}
+                w="full"
                 overflowY="scroll"
                 motionProps={{ style: { display: "flex" } }}
+                sx={{
+                  "@supports not selector(::-webkit-scrollbar)": {
+                    paddingRight: 4,
+                  },
+                }}
               >
-                <Markdown
-                  children={instructionsContent}
-                  transformImageUri={getTemplate}
-                />
+                <Box ref={instructionsRef} w="full" maxW="40rem" mx="auto">
+                  <Markdown
+                    children={instructionsContent}
+                    transformImageUri={getTemplate}
+                  />
+                </Box>
               </AccordionPanel>
             </AccordionItem>
-            <AccordionItem borderBottomColor="transparent" pos="relative">
+            <AccordionItem
+              borderBottomColor="transparent"
+              pos="relative"
+              display={readingMode ? "none" : "block"}
+            >
               <AccordionButton>
                 <AccordionIcon />
                 <FcFile />
@@ -1086,13 +1185,57 @@ export default function Task({ type }: { type: "task" | "example" }) {
             </AccordionItem>
           </Accordion>
         </Stack>
-        <TaskIO>
-          <FileTabs
-            id={currentFile.id}
-            files={openFiles}
-            onSelect={handleFileSelect}
-            onReorder={setOpenFiles}
-          />
+        <TaskIO hideOutput={!showOutput}>
+          <Flex borderBottomWidth={1} align="center">
+            <Box flex={1} minW={0} mb="-1px">
+              <FileTabs
+                id={currentFile.id}
+                files={openFiles}
+                onSelect={handleFileSelect}
+                onReorder={setOpenFiles}
+              />
+            </Box>
+            <ButtonGroup
+              variant="ghost"
+              size="sm"
+              colorScheme="blackAlpha"
+              spacing={0}
+              px={1}
+            >
+              <TooltipIconButton
+                aria-label={t("toggle_instructions")}
+                aria-pressed={showInstructions}
+                icon={
+                  showInstructions ? (
+                    <VscLayoutSidebarLeft />
+                  ) : (
+                    <VscLayoutSidebarLeftOff />
+                  )
+                }
+                onClick={() => setShowInstructions(!showInstructions)}
+              />
+              <TooltipIconButton
+                aria-label={t("toggle_output")}
+                aria-pressed={showOutput}
+                icon={showOutput ? <VscLayoutPanel /> : <VscLayoutPanelOff />}
+                onClick={() => setShowOutput(!showOutput)}
+              />
+              {type === "task" && (
+                <TooltipIconButton
+                  aria-label={t("toggle_history")}
+                  aria-pressed={showHistory}
+                  icon={
+                    showHistory ? (
+                      <VscLayoutSidebarRight />
+                    ) : (
+                      <VscLayoutSidebarRightOff />
+                    )
+                  }
+                  onClick={toggleHistory}
+                />
+              )}
+            </ButtonGroup>
+          </Flex>
           {currentFile.binary || (
             <Editor
               key={editorReload}
