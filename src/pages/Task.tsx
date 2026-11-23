@@ -872,6 +872,7 @@ export default function Task({ type }: { type: "task" | "example" }) {
   const getContent = (file: TaskFileProps) =>
     editor.getContent(getPath(file.id)) ||
     drafts.content(activeDraftKey, draftBase, file.path) ||
+    file.content ||
     file.template
 
   const onSubmit = (command: string) => () => {
