@@ -15,7 +15,7 @@ import Keycloak from "keycloak-js"
 import { compact, flattenDeep, join } from "lodash"
 import "react-day-picker/dist/style.css"
 import { createRoot } from "react-dom/client"
-import { initReactI18next, useTranslation } from "react-i18next"
+import { initReactI18next } from "react-i18next"
 import { createBrowserRouter, RouterProvider } from "react-router-dom"
 import { EventSourceProvider } from "./context/EventSourceContext"
 import { ExampleStatusProvider } from "./context/ExampleStatusContext"
@@ -103,7 +103,6 @@ i18n
   })
 
 function App() {
-  const { t } = useTranslation()
   const toast = useToast()
   const onError = (error: AxiosError | unknown) => {
     if (axios.isAxiosError(error)) {
@@ -164,7 +163,7 @@ function App() {
                   children: [
                     {
                       path: ":assignmentSlug",
-                      handle: t("Assignment"),
+                      handle: "Assignment",
                       children: [
                         { index: true, element: <Assignment /> },
                         {
@@ -178,7 +177,7 @@ function App() {
                 },
                 {
                   path: "examples",
-                  handle: t("Examples"),
+                  handle: "Examples",
                   children: [
                     { index: true, element: <Examples /> },
                     {

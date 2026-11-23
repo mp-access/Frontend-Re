@@ -179,7 +179,10 @@ export const CourseNav: React.FC<{
   if (!course) return <></>
 
   const toNav = (h: unknown) =>
-    join(compact([h, h === t("Assignment") && assignment?.ordinalNum]), " ")
+    join(
+      compact([t(h as string), h === "Assignment" && assignment?.ordinalNum]),
+      " ",
+    )
   return (
     <Breadcrumb
       layerStyle="float"
